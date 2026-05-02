@@ -13,7 +13,7 @@ test("safePath stays inside BASE_DIR", () => {
 test("write guard blocks core and protected entrypoints", () => {
   assert.throws(() => assertWritablePath("core/config.js"), /Blocked path: core/);
   assert.throws(() => assertWritablePath("server_tools.js"), /Protected file: server_tools\.js/);
-  assert.equal(assertWritablePath("warzone/tmp.txt"), "warzone/tmp.txt");
+  assert.equal(assertWritablePath(".mcp_warzone/tmp.txt"), ".mcp_warzone/tmp.txt");
 });
 
 test("policy denies high-risk core patch without dry-run", () => {

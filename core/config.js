@@ -49,7 +49,7 @@ export const SKIPPED_SCAN_DIRS = new Set([
   ".mcp_index",
   ".mcp_sandbox",
   ".mcp_tool_memory",
-  "warzone",
+  ".mcp_warzone",
 ]);
 
 export const SKIPPED_SCAN_EXTENSIONS = new Set([

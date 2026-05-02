@@ -27,5 +27,5 @@ test("core and runtime-heavy directories are excluded from write/scan policy", (
   assert.equal(BLOCKED_TOP_LEVEL_DIRS.has("mcp"), false);
   assert.equal(BLOCKED_TOP_LEVEL_DIRS.has("node_modules"), true);
   assert.equal(SKIPPED_SCAN_DIRS.has("node_modules"), true);
-  assert.equal(SKIPPED_SCAN_DIRS.has("warzone"), true);
+  assert.equal(SKIPPED_SCAN_DIRS.has(".mcp_warzone"), true);
 });
