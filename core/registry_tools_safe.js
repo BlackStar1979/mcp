@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { registerSafeTool } from "./responses.js";
 import { audit } from "./audit.js";
-import { registryStatus } from "./registry/registry.js";
+import { loadRegistry, registryStatus } from "./registry/registry.js";
 
 const READ_ONLY = {
   readOnlyHint: true,
@@ -10,6 +10,8 @@ const READ_ONLY = {
   idempotentHint: true,
   openWorldHint: false,
 };
+
+const TOOL_NAME_SCHEMA = z.string().min(1).max(80).regex(/^[A-Za-z0-9_.-]+$/);
 
 function registrySummary(status) {
   return {
@@ -22,6 +24,10 @@ function registrySummary(status) {
 
 function findTool(status, toolName) {
   return status.tools.find((item) => item.tool === toolName) || null;
+}
+
+function findFullTool(registry, toolName) {
+  return registry.tools.find((item) => item.tool === toolName) || null;
 }
 
 function validateToolDecision(status, toolName) {
@@ -70,7 +76,48 @@ function validateToolDecision(status, toolName) {
   };
 }
 
-const TOOL_NAME_SCHEMA = z.string().min(1).max(80).regex(/^[A-Za-z0-9_.-]+$/);
+function policyDetail(registry, toolName) {
+  const found = findFullTool(registry, toolName);
+
+  if (!found) {
+    return {
+      status: "not_found",
+      connector_safe: true,
+      dispatch_enabled: false,
+      registry_id: registry.registry_id,
+      tool: toolName,
+      found: false,
+      enabled: false,
+      allowed: false,
+      reason: "tool_not_found",
+    };
+  }
+
+  const enabled = found.enabled === true;
+  return {
+    status: "ok",
+    connector_safe: true,
+    dispatch_enabled: false,
+    registry_id: registry.registry_id,
+    version: registry.version,
+    tool: found.tool,
+    found: true,
+    enabled,
+    allowed: enabled,
+    reason: enabled ? null : "tool_disabled",
+    runtime: found.runtime,
+    rag: found.rag,
+    sandbox: found.sandbox,
+    limits: found.limits,
+    policy: found.policy,
+    observability: found.observability,
+    rollback: found.rollback,
+    schemas: {
+      dsl_schema: found.dsl_schema,
+      output_schema: found.output_schema,
+    },
+  };
+}
 
 export function registerRegistryTools(server) {
   registerSafeTool(server, "tool_registry_status", {
@@ -180,5 +227,30 @@ export function registerRegistryTools(server) {
     });
 
     return decision;
+  });
+
+  registerSafeTool(server, "tool_registry_policy", {
+    title: "Registered tool policy detail",
+    description: "Return read-only runtime, policy, sandbox, limits, observability, and rollback metadata for one registered tool. Does not dispatch or execute the tool.",
+    inputSchema: z.object({
+      tool: TOOL_NAME_SCHEMA,
+    }).strict(),
+    annotations: READ_ONLY,
+  }, async ({ tool }) => {
+    const registry = await loadRegistry({ force: true });
+    const detail = policyDetail(registry, tool);
+
+    await audit("tool_registry_policy", {
+      source: "registry_tools_safe",
+      event: "tool_registry_policy",
+      registry_id: registry.registry_id,
+      tool,
+      found: detail.found,
+      enabled: detail.enabled,
+      allowed: detail.allowed,
+      reason: detail.reason,
+    });
+
+    return detail;
   });
 }

@@ -1,0 +1,13 @@
+{
+  "deployment_name": "registry_v4_policy",
+  "files": [
+    {
+      "source": ".mcp_warzone/registry_tools_safe_v4.js",
+      "target": "core/registry_tools_safe.js"
+    },
+    {
+      "source": ".mcp_warzone/registry_v4.test.js",
+      "target": "tests/registry_v4.test.js"
+    }
+  ]
+}
