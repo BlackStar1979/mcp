@@ -1,0 +1,13 @@
+{
+  "deployment_name": "rollback_v3",
+  "files": [
+    {
+      "source": ".mcp_warzone/rollback_v3.ps1",
+      "target": "rollback.ps1"
+    },
+    {
+      "source": ".mcp_warzone/rollback_new_files.test.js",
+      "target": "tests/rollback_new_files.test.js"
+    }
+  ]
+}

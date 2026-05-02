@@ -8,6 +8,10 @@ param(
 $ErrorActionPreference = "Stop"
 
 $Repo = Split-Path -Parent $MyInvocation.MyCommand.Path
+if ((Split-Path -Leaf $Repo) -eq ".mcp_warzone") {
+  $Repo = Split-Path -Parent $Repo
+}
+
 $DeployRoot = Join-Path $Repo ".mcp_deploy"
 $BackupRoot = Join-Path $Repo ".mcp_deploy_backup"
 $AuditLog = Join-Path $Repo ".mcp_audit.log"
@@ -37,6 +41,18 @@ function Assert-RelativeSafePath($PathValue, $Kind) {
   if ($PathValue -match "(^[A-Za-z]:)|(^\\\\)|(^|[\\/])\.\.([\\/]|$)") { throw "Unsafe $Kind path: $PathValue" }
 }
 
+function Remove-EmptyParentDirs($PathValue) {
+  $dir = Split-Path $PathValue
+  while ($dir -and ($dir -ne $Repo) -and ($dir.StartsWith($Repo))) {
+    if ((Test-Path $dir) -and -not (Get-ChildItem $dir -Force | Select-Object -First 1)) {
+      Remove-Item $dir -Force
+      $dir = Split-Path $dir
+    } else {
+      break
+    }
+  }
+}
+
 $executedFile = Join-Path $DeployRoot "$DeploymentId.executed.json"
 if (-not (Test-Path $executedFile)) { throw "Executed deployment record not found: $executedFile" }
 
@@ -57,26 +73,58 @@ try {
 
     $targetFull = Join-Path $Repo $file.target
     $backupFull = Join-Path $backupDir $file.target
+    $targetExistedBeforeDeploy = $null -ne $file.target_sha256_before
+    $targetExistsNow = Test-Path $targetFull
 
-    if (-not (Test-Path $backupFull)) { throw "Backup file missing: $backupFull" }
-    if (-not (Test-Path $targetFull)) { throw "Target file missing: $targetFull" }
+    if ($targetExistedBeforeDeploy) {
+      if (-not $targetExistsNow) { throw "Target file missing: $targetFull" }
+      if (-not (Test-Path $backupFull)) { throw "Backup file missing: $backupFull" }
 
-    $targetBefore = Get-Sha256 $targetFull
-    $backupHash = Get-Sha256 $backupFull
+      $targetBefore = Get-Sha256 $targetFull
+      $backupHash = Get-Sha256 $backupFull
 
-    if (-not $WhatIfOnly) {
-      Copy-Item -Path $backupFull -Destination $targetFull -Force
-    }
+      if (-not $WhatIfOnly) {
+        Copy-Item -Path $backupFull -Destination $targetFull -Force
+      }
 
-    $targetAfter = $(if ($WhatIfOnly) { $targetBefore } else { Get-Sha256 $targetFull })
+      $targetAfter = $(if ($WhatIfOnly) { $targetBefore } else { Get-Sha256 $targetFull })
 
-    $rolledBack += [ordered]@{
-      target = $file.target
-      backup = $backupFull
-      target_sha256_before = $targetBefore
-      backup_sha256 = $backupHash
-      target_sha256_after = $targetAfter
-      applied = -not [bool]$WhatIfOnly
+      $rolledBack += [ordered]@{
+        target = $file.target
+        action = "restore"
+        backup = $backupFull
+        target_sha256_before = $targetBefore
+        backup_sha256 = $backupHash
+        target_sha256_after = $targetAfter
+        applied = -not [bool]$WhatIfOnly
+      }
+    } else {
+      if ($targetExistsNow) {
+        $targetBefore = Get-Sha256 $targetFull
+        if (-not $WhatIfOnly) {
+          Remove-Item -Path $targetFull -Force
+          Remove-EmptyParentDirs $targetFull
+        }
+        $rolledBack += [ordered]@{
+          target = $file.target
+          action = "delete_new_file"
+          backup = $null
+          target_sha256_before = $targetBefore
+          backup_sha256 = $null
+          target_sha256_after = $(if ($WhatIfOnly) { $targetBefore } else { $null })
+          applied = -not [bool]$WhatIfOnly
+        }
+      } else {
+        $rolledBack += [ordered]@{
+          target = $file.target
+          action = "already_absent"
+          backup = $null
+          target_sha256_before = $null
+          backup_sha256 = $null
+          target_sha256_after = $null
+          applied = $false
+        }
+      }
     }
   }
 
