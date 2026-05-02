@@ -1,0 +1,18 @@
+{
+  "deployment_name": "registry_v1b_status",
+  "purpose": "Add minimal registry status tool (connector-safe, no dispatch)",
+  "files": [
+    {
+      "source": ".mcp_warzone/registry_status_only.js",
+      "target": "core/registry_tools_safe.js"
+    },
+    {
+      "source": ".mcp_warzone/server_tools_registry_status_only.js",
+      "target": "server_tools.js"
+    },
+    {
+      "source": ".mcp_warzone/registry_status_only.test.js",
+      "target": "tests/registry_status_only.test.js"
+    }
+  ]
+}

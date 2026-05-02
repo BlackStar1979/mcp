@@ -1,0 +1,17 @@
+{
+  "deployment_name": "registry_v3_validate",
+  "files": [
+    {
+      "source": ".mcp_warzone/registry_tools_safe_v3.js",
+      "target": "core/registry_tools_safe.js"
+    },
+    {
+      "source": ".mcp_warzone/registry_v2.test.js",
+      "target": "tests/registry_v2.test.js"
+    },
+    {
+      "source": ".mcp_warzone/registry_v3.test.js",
+      "target": "tests/registry_v3.test.js"
+    }
+  ]
+}

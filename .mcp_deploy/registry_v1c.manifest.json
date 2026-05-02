@@ -1,0 +1,14 @@
+{
+  "deployment_name": "registry_v1c",
+  "purpose": "Add registry list tool (read-only, connector-safe)",
+  "files": [
+    {
+      "source": ".mcp_warzone/registry_tools_safe_v1c.js",
+      "target": "core/registry_tools_safe.js"
+    },
+    {
+      "source": ".mcp_warzone/registry_v1c.test.js",
+      "target": "tests/registry_v1c.test.js"
+    }
+  ]
+}

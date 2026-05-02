@@ -225,3 +225,110 @@ Registry runtime v1 is accepted only if:
 - perf logs redact token,
 - audit logs include deployment trail,
 - no full `code_tools.js` public registration is restored.
+
+
+## 13. Implemented milestones
+
+### Registry v1b — status-only
+
+Status: implemented and validated in MCP connector.
+
+Exposed tool:
+
+- `tool_registry_status`
+
+Properties:
+
+- explicit empty input schema,
+- read-only annotations,
+- no dispatch,
+- no mutation,
+- connector accepted the descriptor.
+
+### Registry v1c — list
+
+Status: implemented and validated in MCP connector.
+
+Exposed tool:
+
+- `tool_registry_list`
+
+Properties:
+
+- explicit empty input schema,
+- returns registry tool list,
+- no dispatch,
+- no mutation.
+
+### Registry v2 — single-tool metadata
+
+Status: implemented and validated in MCP connector.
+
+Exposed tool:
+
+- `tool_registry_get_tool`
+
+Input:
+
+```json
+{
+  "tool": "code_analysis"
+}
+```
+
+Properties:
+
+- explicit flat schema,
+- returns metadata for a single tool,
+- returns `not_found` for missing tools,
+- no dispatch,
+- no mutation.
+
+### Registry v3 — validation-only
+
+Status: implemented and validated in MCP connector.
+
+Exposed tool:
+
+- `tool_registry_validate_tool`
+
+Input:
+
+```json
+{
+  "tool": "code_analysis"
+}
+```
+
+Output decision fields:
+
+- `found`,
+- `enabled`,
+- `allowed`,
+- `reason`.
+
+Validation results confirmed:
+
+- `code_analysis` -> `allowed: true`, `enabled: true`, `reason: null`,
+- `missing_tool` -> `allowed: false`, `reason: tool_not_found`.
+
+## 14. Next safe milestone
+
+Next safe milestone should be Registry v4 policy detail, still without execution.
+
+Candidate tool:
+
+- `tool_registry_policy`
+
+Purpose:
+
+- return policy/runtime/sandbox/observability metadata for a validated tool,
+- keep connector-safe boundaries,
+- no dispatch,
+- no DSL execution,
+- no file mutation.
+
+Rationale:
+
+- this creates the policy layer required before any controlled dispatch,
+- it keeps risk low while making runtime decisions explainable.

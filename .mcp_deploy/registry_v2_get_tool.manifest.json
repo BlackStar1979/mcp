@@ -1,0 +1,13 @@
+{
+  "deployment_name": "registry_v2_get_tool",
+  "files": [
+    {
+      "source": ".mcp_warzone/registry_tools_safe_v2.js",
+      "target": "core/registry_tools_safe.js"
+    },
+    {
+      "source": ".mcp_warzone/registry_v2.test.js",
+      "target": "tests/registry_v2.test.js"
+    }
+  ]
+}
