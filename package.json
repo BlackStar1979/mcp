@@ -1,0 +1,21 @@
+{
+  "name": "mcp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local MCP server with modular tool system",
+  "type": "module",
+  "main": "server_tools.js",
+  "scripts": {
+    "start": "node server_tools.js",
+    "test": "node --test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BlackStar1979/mcp.git"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "express": "^5.2.1",
+    "zod": "^4.3.6"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mcp://romion/output/code_analysis.json",
+  "title": "Code Analysis Output",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["status"],
+  "properties": {
+    "status": { "type": "string", "enum": ["ok", "error"] },
+    "result": { "type": "object" },
+    "error": {
+      "type": "object",
+      "required": ["message"],
+      "properties": {
+        "message": { "type": "string" },
+        "details": { "type": "object" }
+      }
+    }
+  }
+}

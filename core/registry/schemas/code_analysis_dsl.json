@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mcp://romion/dsl/code_analysis.json",
+  "title": "Code Analysis DSL",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["operation", "scope"],
+  "properties": {
+    "operation": {
+      "type": "string",
+      "enum": ["symbols", "dependencies", "audit", "impact", "scenario", "patch_plan", "orchestrate", "apply_patch"]
+    },
+    "scope": {
+      "type": "string",
+      "minLength": 1,
+      "not": { "pattern": "(^[A-Za-z]:)|(^/)|(^\\\\)|(^|/)\\.\\.(/|$)" }
+    },
+    "target": {
+      "type": "string",
+      "not": { "pattern": "(^[A-Za-z]:)|(^/)|(^\\\\)|(^|/)\\.\\.(/|$)" }
+    },
+    "anchor": { "type": "string", "minLength": 1 },
+    "content": { "type": "string" },
+    "mode": { "type": "string", "enum": ["before", "after", "replace"] },
+    "commit_ref": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "change_type": {
+      "type": "string",
+      "enum": ["internal_refactor", "api_change", "rename", "remove", "behavior_change"]
+    },
+    "intent": {
+      "type": "string",
+      "enum": ["refactor", "change_behavior", "change_api", "rename", "remove"]
+    },
+    "objective": { "type": "string", "maxLength": 2000 },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "recursive": { "type": "boolean" },
+        "max_files": { "type": "integer", "minimum": 1, "maximum": 500 },
+        "max_depth": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "direction": { "type": "string", "enum": ["both", "dependents", "dependencies"] }
+      }
+    }
+  }
+}

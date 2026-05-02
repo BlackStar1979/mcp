@@ -1,0 +1,61 @@
+{
+  "version": "v1.0.0",
+  "registry_id": "romion-core",
+  "tools": [
+    {
+      "tool": "code_analysis",
+      "enabled": true,
+      "description": "Static + semantic code analysis",
+      "runtime": {
+        "provider": "vllm",
+        "base_model": "llama3-70b",
+        "adapter": "lora-code-v1",
+        "adapter_required": true
+      },
+      "dsl_schema": "schemas/code_analysis_dsl.json",
+      "output_schema": "schemas/code_analysis_output.json",
+      "rag": {
+        "index_path": ".mcp_tool_memory/code_analysis",
+        "writable": true,
+        "top_k": 8,
+        "max_context_chars": 80000
+      },
+      "sandbox": {
+        "path": ".mcp_sandbox/code_analysis",
+        "read_write": true,
+        "project_readonly": true,
+        "ttl_seconds": 3600,
+        "quota_mb": 512,
+        "clean_on_start": true,
+        "clean_on_finish": true
+      },
+      "limits": {
+        "max_internal_steps": 5,
+        "max_questions_to_dyrygent": 1,
+        "budget_tokens": 80000,
+        "timeout_ms": 300000
+      },
+      "policy": {
+        "allow_network": false,
+        "allow_project_write": false,
+        "requires_dry_run": true,
+        "requires_validation": true,
+        "requires_audit": true,
+        "allowed_operations": ["read", "sandbox_write", "rag_read", "rag_write", "plan", "dry_run", "validate"]
+      },
+      "observability": {
+        "trace_level": "full",
+        "ledger_path": ".mcp_audit/code_analysis",
+        "record_inputs": true,
+        "record_plan": true,
+        "record_steps": true,
+        "record_outputs": true,
+        "record_validation": true
+      },
+      "rollback": {
+        "strategy": "backup",
+        "checkpoint_required": true
+      }
+    }
+  ]
+}

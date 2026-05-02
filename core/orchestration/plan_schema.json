@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mcp://romion/orchestration/plan_schema.json",
+  "title": "ROMION MCP Orchestration Plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["plan_id", "mode", "steps"],
+  "properties": {
+    "plan_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9_.-]{2,127}$"
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["all_or_nothing", "staged"]
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 25,
+      "items": { "$ref": "#/$defs/step" }
+    }
+  },
+  "$defs": {
+    "stepId": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9_.-]{1,63}$"
+    },
+    "safePath": {
+      "type": "string",
+      "minLength": 1,
+      "not": { "pattern": "(^[A-Za-z]:)|(^/)|(^\\\\)|(^|/)\\.\\.(/|$)" }
+    },
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["step_id", "tool", "operation", "input", "depends_on"],
+      "properties": {
+        "step_id": { "$ref": "#/$defs/stepId" },
+        "tool": {
+          "type": "string",
+          "enum": ["code_analysis"]
+        },
+        "operation": {
+          "type": "string",
+          "enum": ["apply_patch"]
+        },
+        "depends_on": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/stepId" },
+          "uniqueItems": true
+        },
+        "input": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["scope", "target", "anchor", "content"],
+          "properties": {
+            "scope": { "$ref": "#/$defs/safePath" },
+            "target": { "$ref": "#/$defs/safePath" },
+            "anchor": { "type": "string", "minLength": 1 },
+            "content": { "type": "string" },
+            "mode": { "type": "string", "enum": ["before", "after", "replace"] },
+            "intent": { "type": "string", "enum": ["refactor", "change_behavior", "change_api", "rename", "remove"] },
+            "objective": { "type": "string", "maxLength": 2000 },
+            "limits": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "recursive": { "type": "boolean" },
+                "max_files": { "type": "integer", "minimum": 1, "maximum": 500 },
+                "max_depth": { "type": "integer", "minimum": 1, "maximum": 10 },
+                "direction": { "type": "string", "enum": ["both", "dependents", "dependencies"] }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
