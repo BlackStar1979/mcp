@@ -1,0 +1,18 @@
+{
+  "deployment_name": "audit_v1",
+  "created_at": "2026-05-02T15:40:00.000Z",
+  "purpose": "Replace core/audit.js with structured operational audit logger.",
+  "files": [
+    {
+      "source": ".mcp_warzone/core_audit_replacement.js",
+      "target": "core/audit.js",
+      "required": true
+    }
+  ],
+  "checks": [
+    "source_exists",
+    "target_path_safe",
+    "source_hash",
+    "target_hash_if_exists"
+  ]
+}

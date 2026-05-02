@@ -1,0 +1,10 @@
+{
+  "deployment_name": "perf_redaction_v1",
+  "purpose": "Redact sensitive tokens from perf logs",
+  "files": [
+    {
+      "source": ".mcp_warzone/core_perf_replacement.js",
+      "target": "core/perf.js"
+    }
+  ]
+}

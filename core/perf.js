@@ -27,14 +27,33 @@ export async function isTimingEnabled() {
   return fileExists(PERF_FLAG_FILE);
 }
 
+function redactSecret(value) {
+  const text = String(value || "");
+  if (!text) return text;
+  return text
+    .replace(/([?&]token=)[^&#\s]+/gi, "$1[REDACTED]")
+    .replace(/(Authorization:\s*Bearer\s+)[A-Za-z0-9._~+\-/]+=*/gi, "$1[REDACTED]");
+}
+
+function sanitizeMeta(meta = {}) {
+  const out = { ...meta };
+  if (out.url !== undefined) out.url = redactSecret(out.url);
+  if (out.href !== undefined) out.href = redactSecret(out.href);
+  if (out.authorization !== undefined) out.authorization = "[REDACTED]";
+  if (out.Authorization !== undefined) out.Authorization = "[REDACTED]";
+  return out;
+}
+
 function summarizeArgs(args) {
   try {
     if (!args) return null;
     const out = {};
     for (const k of Object.keys(args)) {
       const v = args[k];
-      if (typeof v === "string") {
-        out[k] = v.length > 200 ? v.slice(0, 200) + "…" : v;
+      if (/token|secret|authorization|password/i.test(k)) {
+        out[k] = "[REDACTED]";
+      } else if (typeof v === "string") {
+        out[k] = redactSecret(v.length > 200 ? v.slice(0, 200) + "…" : v);
       } else if (Array.isArray(v)) {
         out[k] = { type: "array", length: v.length };
       } else if (v && typeof v === "object") {
@@ -103,7 +122,7 @@ export async function timeRequest(meta, fn) {
     const ms = nsToMs(nowNs() - t0);
     await logPerf({
       type: "request",
-      ...meta,
+      ...sanitizeMeta(meta),
       ms,
       slow: ms >= PERF_SLOW_MS,
       ok,
