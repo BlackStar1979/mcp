@@ -263,3 +263,23 @@ Brak realnego wywołania oznacza brak walidacji.
 W `core/registry_tools_safe.js` nie wolno używać `z.union()` w `outputSchema`, dopóki runtime MCP nie zostanie osobno potwierdzony jako obsługujący ten konstrukt.
 
 Następna próba `tool_registry_get_tool` musi użyć jednego jawnego `z.object(...)` zgodnego z realnym payloadem albo zostać poprzedzona dedykowanym testem runtime.
+
+
+## Resolution Status
+
+- root cause: unsupported schema (z.any)
+- mitigation: rollback
+- fix: controlled rollout pipeline
+
+## Hardening introduced
+
+- runtime guard test
+- staged rollout (status → list → validate → preflight → plan)
+- explicit schema discipline
+
+## Current state
+
+All registry tools (except get_tool) are:
+- outputSchema-enabled
+- runtime-verified
+- rollback-safe

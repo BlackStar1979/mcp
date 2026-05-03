@@ -53,6 +53,177 @@ const REGISTRY_LIST_TOOL_OUTPUT = z.object({
   tools: z.array(REGISTRY_TOOL_SUMMARY_OUTPUT),
 }).strict();
 
+const REGISTRY_GET_TOOL_OUTPUT = z.object({
+  status: z.string(),
+  connector_safe: z.boolean(),
+  dispatch_enabled: z.boolean(),
+  version: z.string().optional(),
+  registry_id: z.string(),
+  tool: z.string(),
+  found: z.boolean(),
+  enabled: z.boolean().optional(),
+  description: z.string().optional(),
+  provider: z.string().optional(),
+  base_model: z.string().optional(),
+  adapter: z.string().optional(),
+  dsl_schema: z.string().optional(),
+  output_schema: z.string().optional(),
+  max_internal_steps: z.number().optional(),
+  max_questions_to_dyrygent: z.number().optional(),
+  budget_tokens: z.number().optional(),
+}).strict();
+
+const REGISTRY_VALIDATE_TOOL_OUTPUT = z.object({
+  status: z.string(),
+  connector_safe: z.boolean(),
+  dispatch_enabled: z.boolean(),
+  registry_id: z.string(),
+  tool: z.string(),
+  found: z.boolean(),
+  enabled: z.boolean(),
+  allowed: z.boolean(),
+  reason: z.string().nullable().optional(),
+  metadata: REGISTRY_TOOL_SUMMARY_OUTPUT.optional(),
+}).strict();
+
+const REGISTRY_POLICY_TOOL_OUTPUT = z.object({
+  status: z.string(),
+  connector_safe: z.boolean(),
+  dispatch_enabled: z.boolean(),
+  registry_id: z.string(),
+  version: z.string().optional(),
+  tool: z.string(),
+  found: z.boolean(),
+  enabled: z.boolean(),
+  allowed: z.boolean(),
+  reason: z.string().nullable().optional(),
+  runtime: z.object({
+    provider: z.string(),
+    base_model: z.string(),
+    adapter: z.string(),
+    adapter_required: z.boolean(),
+  }).optional(),
+  rag: z.object({
+    index_path: z.string(),
+    writable: z.boolean(),
+    top_k: z.number(),
+    max_context_chars: z.number(),
+  }).optional(),
+  sandbox: z.object({
+    path: z.string(),
+    read_write: z.boolean(),
+    project_readonly: z.boolean(),
+    ttl_seconds: z.number(),
+    quota_mb: z.number(),
+    clean_on_start: z.boolean(),
+    clean_on_finish: z.boolean(),
+  }).optional(),
+  limits: z.object({
+    max_internal_steps: z.number(),
+    max_questions_to_dyrygent: z.number(),
+    budget_tokens: z.number(),
+    timeout_ms: z.number(),
+  }).optional(),
+  policy: z.object({
+    allow_network: z.boolean(),
+    allow_project_write: z.boolean(),
+    requires_dry_run: z.boolean(),
+    requires_validation: z.boolean(),
+    requires_audit: z.boolean(),
+    allowed_operations: z.array(z.string()),
+  }).optional(),
+  observability: z.object({
+    trace_level: z.string(),
+    ledger_path: z.string(),
+    record_inputs: z.boolean(),
+    record_plan: z.boolean(),
+    record_steps: z.boolean(),
+    record_outputs: z.boolean(),
+    record_validation: z.boolean(),
+  }).optional(),
+  rollback: z.object({
+    strategy: z.string(),
+    checkpoint_required: z.boolean(),
+  }).optional(),
+  schemas: z.object({
+    dsl_schema: z.string(),
+    output_schema: z.string(),
+  }).optional(),
+}).strict();
+
+const REGISTRY_PLAN_TOOL_OUTPUT = z.object({
+  status: z.string(),
+  connector_safe: z.boolean(),
+  dispatch_enabled: z.boolean(),
+  execution_enabled: z.boolean(),
+  registry_id: z.string(),
+  tool: z.string(),
+  operation: z.string(),
+  found: z.boolean(),
+  enabled: z.boolean(),
+  allowed: z.boolean(),
+  plan_ready: z.boolean().optional(),
+  reason: z.string().nullable().optional(),
+  requires_dry_run: z.boolean().optional(),
+  requires_validation: z.boolean().optional(),
+  requires_audit: z.boolean().optional(),
+  limits: z.object({
+    max_internal_steps: z.number(),
+    max_questions_to_dyrygent: z.number(),
+    budget_tokens: z.number(),
+    timeout_ms: z.number(),
+  }).optional(),
+  allowed_operations: z.array(z.string()).optional(),
+  steps: z.array(z.object({
+    order: z.number(),
+    action: z.string(),
+    status: z.string(),
+  }).strict()),
+}).strict();
+
+const REGISTRY_PREFLIGHT_TOOL_OUTPUT = z.object({
+  status: z.string(),
+  connector_safe: z.boolean(),
+  dispatch_enabled: z.boolean(),
+  registry_id: z.string(),
+  tool: z.string(),
+  operation: z.string(),
+  found: z.boolean(),
+  enabled: z.boolean(),
+  allowed: z.boolean(),
+  reason: z.string().nullable().optional(),
+  allowed_operations: z.array(z.string()).optional(),
+  requires_dry_run: z.boolean().optional(),
+  requires_validation: z.boolean().optional(),
+  requires_audit: z.boolean().optional(),
+  allow_network: z.boolean().optional(),
+  allow_project_write: z.boolean().optional(),
+  limits: z.object({
+    max_internal_steps: z.number(),
+    max_questions_to_dyrygent: z.number(),
+    budget_tokens: z.number(),
+    timeout_ms: z.number(),
+  }).optional(),
+  sandbox: z.object({
+    path: z.string(),
+    read_write: z.boolean(),
+    project_readonly: z.boolean(),
+    ttl_seconds: z.number(),
+    quota_mb: z.number(),
+    clean_on_start: z.boolean(),
+    clean_on_finish: z.boolean(),
+  }).optional(),
+  observability: z.object({
+    trace_level: z.string(),
+    ledger_path: z.string(),
+    record_inputs: z.boolean(),
+    record_plan: z.boolean(),
+    record_steps: z.boolean(),
+    record_outputs: z.boolean(),
+    record_validation: z.boolean(),
+  }).optional(),
+}).strict();
+
 function registrySummary(status) {
   return {
     status: "ok",
@@ -326,6 +497,7 @@ export function registerRegistryTools(server) {
     inputSchema: z.object({
       tool: TOOL_NAME_SCHEMA,
     }).strict(),
+    outputSchema: REGISTRY_GET_TOOL_OUTPUT,
     annotations: READ_ONLY,
   }, async ({ tool }) => {
     const status = await registryStatus();
@@ -346,6 +518,7 @@ export function registerRegistryTools(server) {
         dispatch_enabled: false,
         registry_id: status.registry_id,
         tool,
+        found: false,
       };
     }
 
@@ -355,7 +528,18 @@ export function registerRegistryTools(server) {
       dispatch_enabled: false,
       version: status.version,
       registry_id: status.registry_id,
-      tool: found,
+      tool: found.tool,
+      found: true,
+      enabled: found.enabled,
+      description: found.description,
+      provider: found.provider,
+      base_model: found.base_model,
+      adapter: found.adapter,
+      dsl_schema: found.dsl_schema,
+      output_schema: found.output_schema,
+      max_internal_steps: found.max_internal_steps,
+      max_questions_to_dyrygent: found.max_questions_to_dyrygent,
+      budget_tokens: found.budget_tokens,
     };
   });
 
@@ -365,6 +549,7 @@ export function registerRegistryTools(server) {
     inputSchema: z.object({
       tool: TOOL_NAME_SCHEMA,
     }).strict(),
+    outputSchema: REGISTRY_VALIDATE_TOOL_OUTPUT,
     annotations: READ_ONLY,
   }, async ({ tool }) => {
     const status = await registryStatus();
@@ -390,6 +575,7 @@ export function registerRegistryTools(server) {
     inputSchema: z.object({
       tool: TOOL_NAME_SCHEMA,
     }).strict(),
+    outputSchema: REGISTRY_POLICY_TOOL_OUTPUT,
     annotations: READ_ONLY,
   }, async ({ tool }) => {
     const registry = await loadRegistry({ force: true });
@@ -443,6 +629,7 @@ export function registerRegistryTools(server) {
       tool: TOOL_NAME_SCHEMA,
       operation: OPERATION_SCHEMA,
     }).strict(),
+    outputSchema: REGISTRY_PLAN_TOOL_OUTPUT,
     annotations: READ_ONLY,
   }, async ({ tool, operation }) => {
     const registry = await loadRegistry({ force: true });

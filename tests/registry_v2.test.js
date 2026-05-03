@@ -8,11 +8,16 @@ test("registry v2 exposes get_tool", () => {
   assert.match(registryFile, /tool_registry_get_tool/);
 });
 
-test("registry v2 get_tool uses explicit flat schema", () => {
-  assert.match(registryFile, /const TOOL_NAME_SCHEMA = z\.string\(\)\.min\(1\)\.max\(80\)\.regex/);
-  assert.match(registryFile, /tool: TOOL_NAME_SCHEMA/);
+test("registry v2 get_tool uses explicit flat outputSchema", () => {
+  assert.match(registryFile, /const REGISTRY_GET_TOOL_OUTPUT = z\.object\(\{[\s\S]*?\}\)\.strict\(\);/);
+  assert.match(registryFile, /tool_registry_get_tool[\s\S]*outputSchema:\s*REGISTRY_GET_TOOL_OUTPUT/);
+  assert.match(registryFile, /tool:\s*found\.tool/);
+  assert.match(registryFile, /found:\s*true/);
+  assert.match(registryFile, /found:\s*false/);
+  assert.doesNotMatch(registryFile, /tool:\s*found,/);
   assert.doesNotMatch(registryFile, /z\.any\(/);
   assert.doesNotMatch(registryFile, /z\.record\(/);
+  assert.doesNotMatch(registryFile, /REGISTRY_GET_TOOL_OUTPUT\s*=\s*z\.union\(/);
 });
 
 test("registry v2 remains read-only and does not dispatch", () => {

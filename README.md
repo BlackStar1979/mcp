@@ -191,3 +191,5 @@ Serwer wykonuje operacje na lokalnym systemie plików, dlatego powinien być uru
 ## Licencja
 
 Licencja nie została jeszcze wybrana. Do czasu dodania pliku `LICENSE` projekt należy traktować jako kod bez udzielonej publicznej licencji.
+
+⚠️ Registry uses controlled outputSchema rollout (deploy + runtime validation required).
