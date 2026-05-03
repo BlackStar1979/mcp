@@ -26,6 +26,9 @@ Cel: sklasyfikować wszystkie dokumenty w `docs/` według roli, czasu, świeżo�
 | `ARCHITECTURE_DECISIONS.md` | decyzje baseline repo/runtime | 2026-05-01 | `current_reference` | ważny dokument bazowy |
 | `MCP_OPERATOR_MANUAL.md` | control-plane operator manual | 2026-05-02 | `current_reference` | procedury operacyjne |
 | `PYTHON_RUNTIME_REQUIREMENTS.md` | wymagania Python dla science tools | 2026-05-03 | `current_reference` | czytać przy pracy z `science_tools` |
+| `REGISTRY.md` | aktualny stan registry i outputSchema coverage | 2026-05-03 | `current_reference` | czytać przy zmianach registry tools |
+| `ARCHITECTURE_OUTPUTSCHEMA_PIPELINE.md` | pipeline bezpiecznego rollout outputSchema | 2026-05-03 | `current_reference` | czytać przed zmianami outputSchema |
+| `OPERATIONS_DEPLOY.md` | checklist deploy i runtime verification | 2026-05-03 | `current_reference` | czytać przed deploy/rollback |
 | `MCP_TOOL_CONTRACTS.md` | kontrakty narzędzi | 2026-05-01 | `current_reference` | czytać przy analizie tooli |
 | `MCP_INTEGRATION_ISSUES.md` | reguły i incydenty integracyjne | 2026-05-01 do 2026-05-03 | `current_reference` | ważne, ale częściowo incydentowe |
 | `REGISTRY_RUNTIME_DESIGN.md` | design + wdrożone milestone registry | 2026-05-02 do 2026-05-03 | `current_reference` | ważne dla registry, ale design i wdrożenie są zmieszane |
