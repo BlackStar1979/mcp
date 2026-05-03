@@ -209,3 +209,57 @@ Wniosek:
 
 - status + list są objęte jawnie zdefiniowanym `outputSchema`,
 - dalszy rollout powinien przejść na `tool_registry_get_tool`, ale dopiero po osobnym rozpisaniu schematu dla wyniku `found` i `not_found`.
+
+## 10. Follow-up: rollback get_tool outputSchema z powodu runtime error
+
+Próba rollout `tool_registry_get_tool` z `outputSchema` opartym o `z.union([...])` przeszła testy statyczne, ale po deployu i restarcie MCP realne wywołanie toola zwróciło błąd runtime:
+
+```text
+Cannot read properties of undefined (reading '_zod')
+```
+
+Deployment id cofniętego rollout:
+
+```text
+2026-05-03T12-39-26-761Z_0847a760
+```
+
+Rollback wykonano przez:
+
+```powershell
+.\rollback.ps1 -DeploymentId 2026-05-03T12-39-26-761Z_0847a760 -WhatIfOnly
+.\rollback.ps1 -DeploymentId 2026-05-03T12-39-26-761Z_0847a760
+```
+
+Po rollbacku potwierdzono:
+
+```text
+tests 51
+pass 51
+fail 0
+```
+
+oraz realne wywołanie:
+
+```text
+tool_registry_get_tool("code_analysis") -> status: ok
+```
+
+### RULE-REGISTRY-SCHEMA-003 — outputSchema musi przejść realne wywołanie runtime
+
+Dla każdego nowego `outputSchema` w registry safe layer testy statyczne są niewystarczające.
+
+Wymagany pipeline po deployu kodu:
+
+1. `npm test`,
+2. restart MCP,
+3. realne wywołanie zmienionego toola przez connector,
+4. rollback, jeśli realne wywołanie zwraca błąd runtime.
+
+Brak realnego wywołania oznacza brak walidacji.
+
+### RULE-REGISTRY-SCHEMA-004 — z.union w outputSchema jest zablokowane do czasu potwierdzenia runtime
+
+W `core/registry_tools_safe.js` nie wolno używać `z.union()` w `outputSchema`, dopóki runtime MCP nie zostanie osobno potwierdzony jako obsługujący ten konstrukt.
+
+Następna próba `tool_registry_get_tool` musi użyć jednego jawnego `z.object(...)` zgodnego z realnym payloadem albo zostać poprzedzona dedykowanym testem runtime.
