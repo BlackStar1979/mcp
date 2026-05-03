@@ -14,6 +14,45 @@ const READ_ONLY = {
 const TOOL_NAME_SCHEMA = z.string().min(1).max(80).regex(/^[A-Za-z0-9_.-]+$/);
 const OPERATION_SCHEMA = z.string().min(1).max(80).regex(/^[A-Za-z0-9_.-]+$/);
 
+const REGISTRY_TOOL_SUMMARY_OUTPUT = z.object({
+  tool: z.string(),
+  enabled: z.boolean(),
+  description: z.string(),
+  provider: z.string(),
+  base_model: z.string(),
+  adapter: z.string(),
+  dsl_schema: z.string(),
+  output_schema: z.string(),
+  max_internal_steps: z.number(),
+  max_questions_to_dyrygent: z.number(),
+  budget_tokens: z.number(),
+}).strict();
+
+const REGISTRY_STATUS_TOOL_OUTPUT = z.object({
+  status: z.string(),
+  connector_safe: z.boolean(),
+  dispatch_enabled: z.boolean(),
+  registry: z.object({
+    status: z.string(),
+    version: z.string(),
+    registry_id: z.string(),
+    tool_count: z.number(),
+    enabled_tool_count: z.number(),
+    tools: z.array(REGISTRY_TOOL_SUMMARY_OUTPUT),
+  }).strict(),
+}).strict();
+
+const REGISTRY_LIST_TOOL_OUTPUT = z.object({
+  status: z.string(),
+  connector_safe: z.boolean(),
+  dispatch_enabled: z.boolean(),
+  version: z.string(),
+  registry_id: z.string(),
+  tool_count: z.number(),
+  enabled_tool_count: z.number(),
+  tools: z.array(REGISTRY_TOOL_SUMMARY_OUTPUT),
+}).strict();
+
 function registrySummary(status) {
   return {
     status: "ok",
@@ -236,6 +275,7 @@ function planDecision(registry, toolName, operation) {
 export function registerRegistryTools(server) {
   registerSafeTool(server, "tool_registry_status", {
     title: "Tool registry status",
+    outputSchema: REGISTRY_STATUS_TOOL_OUTPUT,
     description: "Return validated read-only registry metadata. Does not dispatch tools or mutate files.",
     inputSchema: z.object({}).strict(),
     annotations: READ_ONLY,
@@ -256,6 +296,7 @@ export function registerRegistryTools(server) {
     title: "Tool registry list",
     description: "List registered tools and registry policy metadata without dispatching tools or mutating files.",
     inputSchema: z.object({}).strict(),
+    outputSchema: REGISTRY_LIST_TOOL_OUTPUT,
     annotations: READ_ONLY,
   }, async () => {
     const status = await registryStatus();

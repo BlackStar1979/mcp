@@ -130,3 +130,82 @@ Aktualny runtime: stabilny.
 Aktualne testy: `51/51`.
 
 Następny rollout `outputSchema` wymaga nowego stagingu. Staging `registry_tools_safe_outputschema_v1.js` należy traktować jako odrzucony artefakt, nie jako bazę do deploy.
+
+## 8. Follow-up: udany rollout status-only
+
+Po incydencie wykonano poprawiony, minimalny rollout:
+
+```text
+registry_outputschema_status_v2
+```
+
+Zakres:
+
+- tylko `tool_registry_status`,
+- jeden jawny `outputSchema`,
+- brak `z.any()`,
+- brak `z.record()`,
+- brak zmian w logice handlerów,
+- brak zmian w registry v2-v6 toolach.
+
+Deployment id:
+
+```text
+2026-05-03T11-50-44-247Z_15416e26
+```
+
+Wynik:
+
+```text
+tests 51
+pass 51
+fail 0
+```
+
+Wniosek:
+
+- reguła małego zakresu zadziałała,
+- `outputSchema` należy rollować iteracyjnie,
+- każdy następny zakres wymaga wcześniejszego odczytania testów obejmujących dany moduł.
+
+## 9. Follow-up: udany rollout list-only
+
+Po udanym rollout `tool_registry_status` wykonano kolejny minimalny rollout:
+
+```text
+registry_outputschema_list_v1
+```
+
+Zakres:
+
+- `tool_registry_list`,
+- wspólny jawny schema helper `REGISTRY_TOOL_SUMMARY_OUTPUT`,
+- zachowanie wcześniej wdrożonego `tool_registry_status`,
+- brak `z.any()`,
+- brak `z.record()`,
+- brak zmian w `get_tool`, `validate_tool`, `policy`, `preflight`, `plan`.
+
+Deployment id:
+
+```text
+2026-05-03T12-10-56-383Z_f36d5d77
+```
+
+Wynik:
+
+```text
+tests 51
+pass 51
+fail 0
+```
+
+Po restarcie MCP potwierdzono:
+
+- `MODULAR MCP running v1.7.0`,
+- `RECOVERY: { status: 'recovery_ok', recovered_count: 0 }`,
+- `tool_registry_list` odpowiada poprawnym payloadem.
+
+Wniosek:
+
+- status + list są objęte jawnie zdefiniowanym `outputSchema`,
+- dalszy rollout powinien przejść na `tool_registry_get_tool`, ale dopiero po osobnym rozpisaniu schematu dla wyniku `found` i `not_found`.
