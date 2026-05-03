@@ -15,16 +15,14 @@ test("registry v7 execute uses explicit outputSchema", () => {
 });
 
 test("registry v7 execute remains simulation-only", () => {
-
-test("registry v7 execute requires plan_ready true in success path", () => {
-  const registryFile = fs.readFileSync("core/registry_tools_safe.js", "utf8");
-  assert.match(registryFile, /plan_ready:\s*true/);
-});
-
   assert.match(registryFile, /dispatch_enabled:\s*false/);
   assert.match(registryFile, /execution_enabled:\s*false/);
   assert.match(registryFile, /simulated_execution:\s*true/);
   assert.doesNotMatch(registryFile, /tool_registry_execute[\s\S]*dispatch\(/);
   assert.doesNotMatch(registryFile, /tool_registry_execute[\s\S]*execFile/);
   assert.doesNotMatch(registryFile, /tool_registry_execute[\s\S]*writeFile/);
+});
+
+test("registry v7 execute requires plan_ready true in success path", () => {
+  assert.match(registryFile, /plan_ready:\s*true/);
 });
