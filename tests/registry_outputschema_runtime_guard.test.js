@@ -17,5 +17,6 @@ test("registry outputSchema rollout includes runtime-verified registry tools", (
   assert.match(registryFile, /tool_registry_get_tool[\s\S]*outputSchema:\s*REGISTRY_GET_TOOL_OUTPUT/);
   assert.match(registryFile, /tool_registry_validate_tool[\s\S]*outputSchema:\s*REGISTRY_VALIDATE_TOOL_OUTPUT/);
   assert.match(registryFile, /tool_registry_policy[\s\S]*outputSchema:\s*REGISTRY_POLICY_TOOL_OUTPUT/);
+  assert.match(registryFile, /tool_registry_preflight[\s\S]*outputSchema:\s*REGISTRY_PREFLIGHT_TOOL_OUTPUT/);
   assert.match(registryFile, /tool_registry_plan[\s\S]*outputSchema:\s*REGISTRY_PLAN_TOOL_OUTPUT/);
 });

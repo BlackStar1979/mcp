@@ -602,6 +602,7 @@ export function registerRegistryTools(server) {
       tool: TOOL_NAME_SCHEMA,
       operation: OPERATION_SCHEMA,
     }).strict(),
+    outputSchema: REGISTRY_PREFLIGHT_TOOL_OUTPUT,
     annotations: READ_ONLY,
   }, async ({ tool, operation }) => {
     const registry = await loadRegistry({ force: true });
