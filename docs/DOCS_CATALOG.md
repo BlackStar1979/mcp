@@ -30,6 +30,7 @@ Cel: sklasyfikować wszystkie dokumenty w `docs/` według roli, czasu, świeżo�
 | `ARCHITECTURE_OUTPUTSCHEMA_PIPELINE.md` | pipeline bezpiecznego rollout outputSchema | 2026-05-03 | `current_reference` | czytać przed zmianami outputSchema |
 | `OPERATIONS_DEPLOY.md` | checklist deploy i runtime verification | 2026-05-03 | `current_reference` | czytać przed deploy/rollback |
 | `ROADMAP_REGISTRY_EXECUTION.md` | roadmap registry, web_tools, dispatch i execution | 2026-05-03 | `current_plan` | czytać przed zmianą kierunku architektury |
+| `INCIDENT_2026-05-03_REGISTRY_EXECUTE_V1_PLAN_READY.md` | incydent V7 execute: plan_ready mismatch, rollback ID, wnioski | 2026-05-03 | `current_reference` | czytać przed zmianami execution-adjacent |
 | `MCP_TOOL_CONTRACTS.md` | kontrakty narzędzi | 2026-05-01 | `current_reference` | czytać przy analizie tooli |
 | `MCP_INTEGRATION_ISSUES.md` | reguły i incydenty integracyjne | 2026-05-01 do 2026-05-03 | `current_reference` | ważne, ale częściowo incydentowe |
 | `REGISTRY_RUNTIME_DESIGN.md` | design + wdrożone milestone registry | 2026-05-02 do 2026-05-03 | `current_reference` | ważne dla registry, ale design i wdrożenie są zmieszane |
