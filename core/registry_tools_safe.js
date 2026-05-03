@@ -224,6 +224,29 @@ const REGISTRY_PREFLIGHT_TOOL_OUTPUT = z.object({
   }).optional(),
 }).strict();
 
+const REGISTRY_EXECUTE_TOOL_OUTPUT = z.object({
+  status: z.string(),
+  connector_safe: z.boolean(),
+  dispatch_enabled: z.boolean(),
+  execution_enabled: z.boolean(),
+  simulated_execution: z.boolean(),
+  registry_id: z.string(),
+  tool: z.string(),
+  operation: z.string(),
+  found: z.boolean(),
+  enabled: z.boolean(),
+  allowed: z.boolean(),
+  plan_ready: z.boolean(),
+  reason: z.string().nullable().optional(),
+  steps_count: z.number(),
+  simulated_steps: z.array(z.object({
+    order: z.number(),
+    action: z.string(),
+    status: z.string(),
+    simulated: z.boolean(),
+  }).strict()),
+}).strict();
+
 function registrySummary(status) {
   return {
     status: "ok",
@@ -428,6 +451,7 @@ function planDecision(registry, toolName, operation) {
     found: true,
     enabled: true,
     allowed: true,
+    plan_ready: true,
     reason: null,
     requires_dry_run: preflight.requires_dry_run,
     requires_validation: preflight.requires_validation,
@@ -440,6 +464,55 @@ function planDecision(registry, toolName, operation) {
       { order: 4, action: "prepare_readonly_execution", status: "planned" },
       { order: 5, action: "return_plan_only", status: "planned" }
     ],
+  };
+}
+
+function executeDecision(registry, toolName, operation) {
+  const plan = planDecision(registry, toolName, operation);
+
+  if (plan.status !== "plan_ready") {
+    return {
+      status: plan.status,
+      connector_safe: true,
+      dispatch_enabled: false,
+      execution_enabled: false,
+      simulated_execution: true,
+      registry_id: registry.registry_id,
+      tool: toolName,
+      operation,
+      found: plan.found === true,
+      enabled: plan.enabled === true,
+      allowed: plan.allowed === true,
+      plan_ready: false,
+      reason: plan.reason || null,
+      steps_count: 0,
+      simulated_steps: [],
+    };
+  }
+
+  const simulatedSteps = plan.steps.map((step) => ({
+    order: step.order,
+    action: step.action,
+    status: step.status === "complete" ? "simulated_complete" : "simulated_planned",
+    simulated: true,
+  }));
+
+  return {
+    status: "simulated",
+    connector_safe: true,
+    dispatch_enabled: false,
+    execution_enabled: false,
+    simulated_execution: true,
+    registry_id: registry.registry_id,
+    tool: toolName,
+    operation,
+    found: true,
+    enabled: true,
+    allowed: true,
+    plan_ready: true,
+    reason: null,
+    steps_count: simulatedSteps.length,
+    simulated_steps: simulatedSteps,
   };
 }
 
@@ -623,7 +696,34 @@ export function registerRegistryTools(server) {
     return decision;
   });
 
-  registerSafeTool(server, "tool_registry_plan", {
+    registerSafeTool(server, "tool_registry_execute", {
+    title: "Registry operation execute (dry-run simulation)",
+    description: "Simulate execution of a registry operation without dispatch or side effects.",
+    inputSchema: z.object({
+      tool: TOOL_NAME_SCHEMA,
+      operation: OPERATION_SCHEMA,
+    }).strict(),
+    outputSchema: REGISTRY_EXECUTE_TOOL_OUTPUT,
+    annotations: READ_ONLY,
+  }, async ({ tool, operation }) => {
+    const registry = await loadRegistry({ force: true });
+    const result = executeDecision(registry, tool, operation);
+
+    await audit("tool_registry_execute", {
+      source: "registry_tools_execute",
+      event: "tool_registry_execute",
+      registry_id: registry.registry_id,
+      tool,
+      operation,
+      allowed: result.allowed,
+      plan_ready: result.plan_ready,
+      simulated_execution: true,
+    });
+
+    return result;
+  });
+
+registerSafeTool(server, "tool_registry_plan", {
     title: "Registry operation plan",
     description: "Return a deterministic plan for an allowed registry operation. Does not dispatch or execute the tool.",
     inputSchema: z.object({

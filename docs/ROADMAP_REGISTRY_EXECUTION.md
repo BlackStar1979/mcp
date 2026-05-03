@@ -8,13 +8,14 @@ Zakres: bezpieczna ewolucja MCP od registry plan-only do controlled execution z 
 
 ## CURRENT STATE (CONFIRMED)
 
-Stage: V6 closed
+Stage: V6.5 closed / V7.0 planned
 
 - registry: DONE
 - policy: DONE
 - preflight: DONE
 - plan: DONE
 - outputSchema: DONE for all registry tools
+- web_tools v1a/v1c: DONE
 - runtime verification: DONE
 - dispatch: NOT DEPLOYED
 - execution: NOT DEPLOYED
@@ -25,11 +26,12 @@ Current model:
 MCP tools surface
   -> registry control-plane
   -> preflight / plan
+  -> web_tools read-only intelligence
   -> no dispatch
   -> no execution
 ```
 
-This is intentional. The system is currently safe, read-only at registry level, and side-effect free for registry operations.
+This is intentional. The system is safe, mostly read-only at new-control-plane level, and side-effect free for registry operations.
 
 ---
 
@@ -45,6 +47,7 @@ These rules are controlling, not advisory:
 6. Rollback must remain available for every deployment.
 7. Descriptor/schema changes require client refresh after MCP restart.
 8. No large deployments.
+9. Execution must not be introduced before dry-run execution simulation is stable.
 
 ---
 
@@ -58,11 +61,11 @@ Dispatch without audit, anomaly influence, and critical-path policy would create
 
 Decision:
 
-Do not introduce dispatch as the next step.
+Do not introduce real dispatch yet.
 
 Resolution:
 
-Insert V7 as audit/enforcement hardening before dispatch.
+Insert V7.0 as dry-run execution simulation before real controlled dispatch.
 
 ---
 
@@ -78,7 +81,7 @@ Execution is blocked until a global decision model exists.
 
 Resolution:
 
-Add V7.5 before controlled execution.
+V7.0 simulates execution only. V7.5 introduces explicit global decision checks before V8.
 
 ---
 
@@ -86,15 +89,15 @@ Add V7.5 before controlled execution.
 
 Problem:
 
-Current registry has only one logical tool: `code_analysis`. Moving directly to dispatch would test execution before testing registry scalability.
+Initial registry had only one logical tool: `code_analysis`. Moving directly to dispatch would test execution before testing system extensibility.
 
 Decision:
 
-V6.5 must add a small read-only tool family first.
+V6.5 added a small read-only web tools family first.
 
 Resolution:
 
-Use `web_tools_v1` as the next safe expansion.
+`http_get` and `check_pypi_package` are available as read-only developer-intelligence tools.
 
 ---
 
@@ -106,7 +109,7 @@ Web tools can leak data, fetch unbounded content, follow redirects into unsafe t
 
 Decision:
 
-Web tools v1 must be allowlisted, read-only, bounded, no-auth, no-cookies, no writes, no disk downloads.
+Web tools v1 are allowlisted, read-only, bounded, no-auth, no-cookies, no writes, no disk downloads.
 
 Resolution:
 
@@ -130,21 +133,21 @@ Status: CLOSED
 
 ---
 
-### V6.5 — Web tools v1 (NEXT)
+### V6.5 — Web tools v1 (DONE)
 
 Goal:
 
 Add a small, read-only, bounded web intelligence surface useful for MCP development and ROMION projects.
 
-Initial tools:
+Implemented tools:
 
 - `http_get` — allowlisted GET only, bounded response, no auth
-- `check_pypi_package` — package metadata lookup
-- `check_npm_package` — package metadata lookup
-- `fetch_github_file` — raw GitHub file fetch with bounds
+- `check_pypi_package` — package metadata lookup, bounded JSON parsing
 
-Explicitly not included in v1:
+Deferred tools:
 
+- `check_npm_package`
+- `fetch_github_file`
 - `download_docs`
 - generic crawling
 - recursive docs fetch
@@ -153,49 +156,76 @@ Explicitly not included in v1:
 - writing fetched content to disk
 - CVE aggregation beyond one vetted source
 
-Safety constraints:
+Known issue:
 
-- GET only
-- allowlist domains only
-- timeout enforced
-- max response bytes enforced
-- no cookies
-- no credentials
-- no redirects to non-allowlisted domains
-- structuredContent first
-- outputSchema required
-- readOnlyHint true
-- openWorldHint true
+- connector-layer false positives may selectively block safe tools for some inputs; see `KNOWN_ISSUES_CONNECTOR_LAYER.md`.
 
-Entry conditions:
-
-- current registry state remains green
-- tests pass
-
-Exit conditions:
-
-- tools registered in connector-safe profile
-- tests pass
-- MCP restart succeeds
-- client refreshed
-- at least one runtime call per tool succeeds
+Status: CLOSED
 
 ---
 
-### V7 — Audit and enforcement hardening
+### V7.0 — Registry execute simulation (NEXT)
 
 Goal:
 
-Prepare the system for dispatch without enabling dispatch.
+Introduce the transition layer between plan and execution without enabling real execution.
+
+New tool:
+
+```text
+tool_registry_execute
+```
+
+Mode:
+
+```text
+dry_run only
+```
 
 Scope:
 
-- decision audit verification
-- policy critical-path checks
-- anomaly signals must affect allow/block decisions
-- explicit test for no execution if audit is unavailable
+- calls existing plan logic
+- refuses operations that are not plan-ready
+- simulates execution steps
+- records audit event
+- returns deterministic execution report
 
-Dispatch remains disabled.
+Hard constraints:
+
+- no dispatch
+- no filesystem writes
+- no network calls
+- no mutation
+- execution_enabled remains false
+- simulated_execution remains true
+
+Expected output shape:
+
+```text
+status
+connector_safe
+dispatch_enabled
+execution_enabled
+simulated_execution
+registry_id
+tool
+operation
+found
+enabled
+allowed
+reason
+plan_ready
+steps_count
+simulated_steps
+```
+
+Exit conditions:
+
+- tests pass
+- outputSchema is explicit and flat enough for runtime
+- `tool_registry_execute(code_analysis, read)` returns simulated
+- `tool_registry_execute(code_analysis, mcp_apply)` returns blocked
+- `tool_registry_execute(missing_tool, read)` returns not_found
 
 ---
 
@@ -264,12 +294,13 @@ Possible scope:
 
 ## NEXT ENGINEERING STEP
 
-Implement V6.5 in the smallest deployable slice:
+Implement V7.0 in the smallest deployable slice:
 
 ```text
-web_tools_v1a = http_get + check_pypi_package
+tool_registry_execute = dry-run simulation only
 ```
 
-No dispatch.
-No execution.
-No downloads to disk.
+No real dispatch.
+No real execution.
+No filesystem writes.
+No network calls.
