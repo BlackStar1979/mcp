@@ -9,6 +9,7 @@ import { registerFsTools } from "./core/tools_fs.js";
 import { registerScienceTools } from "./core/science_tools.js";
 import { registerCodeTools } from "./core/code_tools_safe.js";
 import { registerRegistryTools } from "./core/registry_tools_safe.js";
+import { registerWebTools } from "./core/web_tools.js";
 import { timeTool, timeRequest, perfStatus } from "./core/perf.js";
 import { runRecovery } from "./core/orchestration/recovery.js";
 import { rollbackPatchForRecovery } from "./core/recovery_rollback.js";
@@ -32,6 +33,7 @@ function createServer() {
   registerScienceTools(server);
   registerCodeTools(server);
   registerRegistryTools(server);
+  registerWebTools(server);
 
   return server;
 }
