@@ -22,7 +22,8 @@ Instrukcja operacyjna dla lokalnego MCP control plane.
 3. Każda zmiana ma manifest w `.mcp_deploy`.
 4. Każdy deploy ma `Prepare`, `Execute`, backup, hash tracking i audit log.
 5. Po deployu kodu trzeba zrestartować MCP, bo Node.js nie ładuje ponownie modułów automatycznie.
-6. Tokeny i sekrety nie mogą trafiać do logów; po wycieku token należy rotować.
+6. Po serii deployów dokumentacyjno-testowych zalecany jest restart jako checkpoint operatora.
+7. Tokeny i sekrety nie mogą trafiać do logów; po wycieku token należy rotować.
 
 ## 3. Standardowy cykl zmiany
 
@@ -85,6 +86,22 @@ W oknie serwera:
 CTRL + C
 node C:\Work\mcp\server_tools.js
 ```
+
+Po restarcie poprawny log zawiera:
+
+```text
+MODULAR MCP running v1.7.0
+URL: http://127.0.0.1:3001/mcp
+RECOVERY: { status: 'recovery_ok', recovered_count: 0 }
+```
+
+### 3.6 Reconnect klienta
+
+W ChatGPT Desktop:
+
+1. rozłącz `Lokalne pliki tools`,
+2. połącz ponownie,
+3. sprawdź, czy narzędzia są dostępne po nowym zasobie konektora.
 
 ## 4. Rollback
 
@@ -241,9 +258,21 @@ Aktualnie testy obejmują:
 - ścieżki runtime,
 - policy/path guards,
 - integralność importów,
+- brak startup dependency od legacy `core/code_tools.js`,
+- MCP descriptor contract,
+- MCP result-shape helpers,
 - deploy script,
 - rollback script,
-- perf script.
+- perf script,
+- registry safe layer.
+
+Aktualny checkpoint po serii deployów 2026-05-03:
+
+```text
+tests 51
+pass 51
+fail 0
+```
 
 ## 10. Aktualny zamknięty zakres
 
@@ -255,14 +284,28 @@ Zamknięty rozdział obejmuje:
 - pre/post deploy validation,
 - perf telemetry,
 - redakcję tokenów w perf logu,
-- testy regresyjne.
+- testy regresyjne,
+- izolację startup recovery od legacy `core/code_tools.js`,
+- bazowy MCP descriptor contract,
+- bazowy MCP result-shape contract,
+- dokumentację wymagań Python dla `science_tools`.
 
-## 11. Następny etap
+## 11. Checkpoint 2026-05-03 po restarcie MCP
 
-Po zamknięciu tego rozdziału kolejne prace powinny dotyczyć reintegracji:
+Po deployu `python_docs_v1` i restarcie MCP potwierdzono:
 
-- registry,
-- orchestration,
-- validation/promotion,
-- anomaly/feedback,
-- trace end-to-end.
+- aplikacja wstała,
+- konektor `Lokalne pliki tools` działa po ponownym połączeniu,
+- zasób konektora zmienił identyfikator po restarcie, co jest oczekiwane,
+- ostatni deploy record `2026-05-03T10-25-04-867Z_15dcc3ad.executed.json` ma status `executed`,
+- `npm test` przechodzi `51/51`,
+- aktywne docs obejmują `docs/PYTHON_RUNTIME_REQUIREMENTS.md`.
+
+## 12. Następny etap
+
+Po zamknięciu bieżącego rozdziału kolejne prace powinny dotyczyć optymalizacji i rozszerzeń:
+
+- rollout `outputSchema` poza bounded IO readers,
+- odchudzenie `content` względem `structuredContent`,
+- testy result-shape na realnych handlerach,
+- opcjonalny `requirements.txt` albo test środowiska Python.

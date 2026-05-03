@@ -5,11 +5,13 @@ Lokalny projekt MCP oparty o Node.js, Express i `@modelcontextprotocol/sdk`.
 Repozytorium zawiera dwa serwery MCP:
 
 - `server.js` — podstawowy read-only MCP dla plików w `C:\Work\mcp`.
-- `server_tools.js` — modularny MCP z narzędziami FS, policy engine i lokalnym dostępem do plików.
+- `server_tools.js` — modularny MCP tools profile z narzędziami FS, index, science, connector-safe code tools i connector-safe registry control-plane.
 
 ## Status
 
-Projekt jest przygotowywany do publikacji w repozytorium GitHub:
+Projekt jest lokalnym runtime MCP z kontrolowanym deploy/rollback. Dokumentacja canonical znajduje się w `docs/`.
+
+Repozytorium GitHub:
 
 ```text
 https://github.com/BlackStar1979/mcp
@@ -17,11 +19,30 @@ https://github.com/BlackStar1979/mcp
 
 ## Wymagania
 
+### Node.js
+
 - Node.js 18 lub nowszy
 - npm
 - Windows, z katalogiem roboczym `C:\Work\mcp`
 
-## Instalacja
+### Python dla narzędzi science
+
+Część narzędzi z `core/science_tools.js` uruchamia helpery Python przez komendę `python`.
+
+Wymagane pakiety Python:
+
+- `astropy` — dla `fits_info`
+- `h5py` — dla `hdf5_info`
+
+`table_profile` używa wyłącznie standard library Pythona.
+
+Szczegóły operacyjne:
+
+```text
+docs/PYTHON_RUNTIME_REQUIREMENTS.md
+```
+
+## Instalacja Node.js
 
 ```bash
 npm install
@@ -29,7 +50,7 @@ npm install
 
 ## Uruchomienie
 
-### Modularny MCP
+### Modularny MCP tools profile
 
 ```bash
 npm start
@@ -39,6 +60,12 @@ Domyślny punkt wejścia:
 
 ```text
 server_tools.js
+```
+
+Alternatywnie bezpośrednio:
+
+```bash
+node C:\Work\mcp\server_tools.js
 ```
 
 ### Read-only MCP
@@ -64,22 +91,49 @@ Testy sprawdzają między innymi:
 - konfigurację ścieżek runtime,
 - blokady zapisu w katalogach chronionych,
 - przekierowanie importów do modułów w `core`,
-- politykę ryzyka dla operacji na kodzie.
+- brak startup dependency od legacy `core/code_tools.js`,
+- minimalny kontrakt descriptorów MCP,
+- bazowy result-shape helperów MCP,
+- registry safe layer,
+- deploy / rollback / perf scripts.
+
+## Deploy / rollback
+
+Zmiany operacyjne powinny przechodzić przez manifest i skrypty:
+
+```powershell
+.\deploy.ps1 -Mode Prepare -Manifest <manifest>
+.\deploy.ps1 -Mode Execute -Manifest <manifest>
+```
+
+Rollback:
+
+```powershell
+.\rollback.ps1 -DeploymentId <deployment_id>
+```
+
+Nie należy kopiować zmian bezpośrednio do runtime z pominięciem deploy/rollback.
 
 ## Struktura
 
 ```text
 .
-├── core/                 # moduły wewnętrzne modularnego MCP
-├── docs/                 # dokumentacja projektowa i decyzje architektoniczne
-├── science_py/           # pomocnicze moduły Python
+├── core/                 # moduły wewnętrzne modularnego MCP i helpery Python
+├── docs/                 # dokumentacja canonical/current/reference/history
 ├── tests/                # testy node:test
-├── validation/           # skrypty walidacyjne
+├── .mcp_warzone/         # lokalny staging zmian, nie source-of-truth repo
+├── .mcp_deploy/          # manifesty i recordy deploy
+├── .mcp_deploy_backup/   # backupy deploy
 ├── server.js             # read-only MCP
-├── server_tools.js       # modularny MCP tools
+├── server_tools.js       # modularny MCP tools profile
+├── deploy.ps1
+├── rollback.ps1
+├── perf.ps1
 ├── package.json
 └── package-lock.json
 ```
+
+Uwaga: wcześniejszy katalog `science_py/` nie jest aktywną strukturą runtime. Helpery Python znajdują się obecnie w `core/`.
 
 ## Dokumentacja
 
@@ -89,16 +143,14 @@ Dokumentacja projektowa jest w katalogu:
 docs/
 ```
 
-Kluczowy dokument decyzyjny:
+Czytanie zacznij od:
 
 ```text
-docs/ARCHITECTURE_DECISIONS.md
-```
-
-Status narzędzi:
-
-```text
-docs/status/mcp_tools_status.md
+docs/README.md
+docs/CURRENT_STATE.md
+docs/AUDIT_2026-05-03_DEEP.md
+docs/OPENAI_MCP_CONFORMANCE_2026-05-03.md
+docs/DOCS_CATALOG.md
 ```
 
 ## Pliki lokalne wyłączone z repozytorium
@@ -112,39 +164,29 @@ Repozytorium nie powinno zawierać:
 - `.mcp_index/`,
 - `.mcp_trash/`,
 - `.mcp_warzone/`,
+- `.mcp_deploy_backup/`,
 - logów, cache i środowisk wirtualnych.
 
 Reguły wykluczeń są zapisane w `.gitignore`.
 
 ## Audit i performance logging
 
-Audyt i performance logging są obecnie traktowane jako nieaktywne funkcje docelowe. Historyczne artefakty `.mcp_audit`, `.mcp_audit.log`, `.mcp_perf.log` i `.mcp_perf_on` nie są częścią publikowanego repozytorium.
+Audit i performance logging są aktywne w lokalnym runtime operatorskim:
 
-Przywrócenie tych mechanizmów wymaga osobnej implementacji z testami i spójną dokumentacją.
+- `core/audit.js`
+- `core/perf.js`
+- `perf.ps1`
+- `.mcp_audit.log`
+- `.mcp_perf.log`
+- `.mcp_perf_on`
+
+Artefakty `.mcp_audit*` i `.mcp_perf*` są lokalnymi źródłami dowodowymi, ale nie są canonical documentation ani częścią publikowanego repozytorium.
 
 ## Bezpieczeństwo
 
-Serwer wykonuje operacje na lokalnym systemie plików, dlatego powinien być uruchamiany wyłącznie w zaufanym środowisku. Nie wystawiaj go publicznie bez dodatkowej kontroli dostępu, ograniczeń sieciowych i świadomej konfiguracji tokenów.
+Serwer wykonuje operacje na lokalnym systemie plików, dlatego powinien być uruchamiany wyłącznie w zaufanym środowisku.
 
-## Publikacja na GitHub
-
-Przykładowa sekwencja pierwszej publikacji:
-
-```bash
-git init
-git branch -M main
-git remote add origin https://github.com/BlackStar1979/mcp.git
-git add .
-git commit -m "Initial commit"
-git push -u origin main
-```
-
-Jeżeli repozytorium lokalne jest już zainicjalizowane, wystarczy sprawdzić:
-
-```bash
-git status
-git remote -v
-```
+`server_tools.js` używa autoryzacji przez `MCP_TOKEN`. Token może być przekazywany przez query string albo bearer header zgodnie z aktualnym flow lokalnego connectora. Token w URL jest ryzykiem operacyjnym i powinien być chroniony przed ujawnieniem.
 
 ## Licencja
 
