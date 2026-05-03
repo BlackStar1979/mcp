@@ -194,6 +194,45 @@ function preflightDecision(registry, toolName, operation) {
   };
 }
 
+function planDecision(registry, toolName, operation) {
+  const preflight = preflightDecision(registry, toolName, operation);
+
+  if (preflight.allowed !== true) {
+    return {
+      ...preflight,
+      status: preflight.status === "not_found" ? "not_found" : "blocked",
+      plan_ready: false,
+      execution_enabled: false,
+      steps: [],
+    };
+  }
+
+  return {
+    status: "plan_ready",
+    connector_safe: true,
+    dispatch_enabled: false,
+    execution_enabled: false,
+    registry_id: registry.registry_id,
+    tool: toolName,
+    operation,
+    found: true,
+    enabled: true,
+    allowed: true,
+    reason: null,
+    requires_dry_run: preflight.requires_dry_run,
+    requires_validation: preflight.requires_validation,
+    requires_audit: preflight.requires_audit,
+    limits: preflight.limits,
+    steps: [
+      { order: 1, action: "preflight", status: "complete" },
+      { order: 2, action: "load_policy", status: "planned" },
+      { order: 3, action: "validate_operation", status: "planned" },
+      { order: 4, action: "prepare_readonly_execution", status: "planned" },
+      { order: 5, action: "return_plan_only", status: "planned" }
+    ],
+  };
+}
+
 export function registerRegistryTools(server) {
   registerSafeTool(server, "tool_registry_status", {
     title: "Tool registry status",
@@ -354,5 +393,31 @@ export function registerRegistryTools(server) {
     });
 
     return decision;
+  });
+
+  registerSafeTool(server, "tool_registry_plan", {
+    title: "Registry operation plan",
+    description: "Return a deterministic plan for an allowed registry operation. Does not dispatch or execute the tool.",
+    inputSchema: z.object({
+      tool: TOOL_NAME_SCHEMA,
+      operation: OPERATION_SCHEMA,
+    }).strict(),
+    annotations: READ_ONLY,
+  }, async ({ tool, operation }) => {
+    const registry = await loadRegistry({ force: true });
+    const plan = planDecision(registry, tool, operation);
+
+    await audit("tool_registry_plan", {
+      source: "registry_tools_safe",
+      event: "tool_registry_plan",
+      registry_id: registry.registry_id,
+      tool,
+      operation,
+      allowed: plan.allowed,
+      plan_ready: plan.plan_ready,
+      reason: plan.reason,
+    });
+
+    return plan;
   });
 }
