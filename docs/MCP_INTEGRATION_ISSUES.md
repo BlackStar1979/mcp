@@ -235,3 +235,134 @@ Add a connector-safe validator before deploy. It must fail on:
 
 ### Process correction
 Before claiming missing tool access, the assistant must call `api_tool.list_resources` and inspect the currently exposed tool surface. Tool availability must be treated as runtime state, not remembered context.
+
+
+---
+
+## 2026-05-02 — CRITICAL: Rollback failure for newly created files
+
+### ISSUE
+Rollback process failed with exception:
+"Backup file missing: ..."
+
+### ROOT CAUSE
+- Deployment did not record files created during deploy
+- Rollback assumed every file has a backup
+- No fallback for newly created files
+
+### IMPACT
+- Rollback failure → inconsistent state
+- Application startup failure possible
+
+### FIX
+- Implement rollback_v3:
+  - detect newly created files
+  - delete instead of restore if no backup exists
+  - validate file existence before restore
+- Add tests:
+  - restore existing files
+  - remove newly created files
+
+### RULE-ROLLBACK-001
+Rollback must support BOTH:
+- restore (existing files)
+- delete (new files)
+
+---
+
+## 2026-05-02 — SECURITY: Sensitive token leak in perf logs
+
+### ISSUE
+`.mcp_perf.log` contained:
+- full request URLs with `?token=`
+- Authorization headers
+
+### ROOT CAUSE
+- raw request data logged without sanitization
+
+### IMPACT
+- credential exposure
+- logs unsafe to share
+
+### FIX
+- implement `redactSecret()`:
+  - mask `?token=`
+  - mask `Authorization: Bearer`
+
+### RULE-LOG-001
+Never log secrets. Always sanitize:
+- query params
+- headers
+
+---
+
+## 2026-05-02 — BUG: Test fragility (schema indirection)
+
+### ISSUE
+Tests failed due to expecting inline schema:
+`z.string().min().max().regex()`
+
+Implementation used shared constant.
+
+### ROOT CAUSE
+- tests rely on source pattern matching (regex)
+- not semantic validation
+
+### IMPACT
+- false-negative test failure
+- blocked deploy
+
+### FIX
+- inline schema in tool definition
+
+### RULE-TEST-001
+Avoid brittle tests based on source matching.
+Prefer behavior-based validation.
+
+---
+
+## 2026-05-02 — SYSTEM: Registry rollout (v1–v4 safe model)
+
+### SUMMARY
+Implemented staged registry system with strict safety guarantees.
+
+### PHASES
+- v1: status/list (read-only)
+- v2: get_tool (metadata lookup)
+- v3: validate_tool (explicit decision model)
+- v4: policy exposure (runtime/sandbox/limits/observability)
+
+### GUARANTEES
+- no dispatch
+- no mutation
+- no DSL execution
+- connector-safe
+
+### RULE-REGISTRY-001
+Registry exposure must be read-only until full policy + validation layer is complete.
+
+
+---
+
+## 2026-05-03 — SYSTEM: Registry v5 preflight
+
+### SUMMARY
+Added `tool_registry_preflight` as policy decision layer before any planning or execution.
+
+### INPUT
+- `tool`
+- `operation`
+
+### VALIDATED CASES
+- `code_analysis` + `read` -> allowed
+- `code_analysis` + `mcp_apply` -> blocked (`operation_not_allowed`)
+- missing tool -> blocked (`tool_not_found`)
+
+### SAFETY GUARANTEES
+- no dispatch
+- no execution
+- no mutation
+- policy-only decision
+
+### RULE-REGISTRY-002
+No execution may be introduced until preflight and plan-only layers are both validated.

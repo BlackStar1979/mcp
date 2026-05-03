@@ -332,3 +332,59 @@ Rationale:
 
 - this creates the policy layer required before any controlled dispatch,
 - it keeps risk low while making runtime decisions explainable.
+
+
+### Registry v5 — preflight
+
+Status: implemented and validated in MCP connector.
+
+Exposed tool:
+
+- `tool_registry_preflight`
+
+Input:
+
+```json
+{
+  "tool": "code_analysis",
+  "operation": "read"
+}
+```
+
+Purpose:
+
+- validate whether a registry operation is allowed by policy,
+- expose decision fields before any plan or execution,
+- keep dispatch disabled.
+
+Validated behavior:
+
+- `code_analysis` + `read` -> `allowed: true`, `reason: null`,
+- `code_analysis` + `mcp_apply` -> `allowed: false`, `reason: operation_not_allowed`,
+- `missing_tool` + `read` -> `allowed: false`, `reason: tool_not_found`.
+
+Safety guarantees:
+
+- no dispatch,
+- no DSL execution,
+- no mutation,
+- connector-safe flat input schema.
+
+## 15. Next milestone: Registry v6 plan-only
+
+Next step should be `tool_registry_plan`.
+
+Purpose:
+
+- produce a deterministic execution plan for an allowed operation,
+- run preflight internally,
+- return planned steps only,
+- still do not execute anything.
+
+Required behavior:
+
+- reject if preflight fails,
+- return `status: plan_ready` only for allowed operations,
+- include `dispatch_enabled: false`,
+- include `execution_enabled: false`,
+- include audit/perf trace compatibility.

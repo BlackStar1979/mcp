@@ -12,6 +12,7 @@ const READ_ONLY = {
 };
 
 const TOOL_NAME_SCHEMA = z.string().min(1).max(80).regex(/^[A-Za-z0-9_.-]+$/);
+const OPERATION_SCHEMA = z.string().min(1).max(80).regex(/^[A-Za-z0-9_.-]+$/);
 
 function registrySummary(status) {
   return {
@@ -116,6 +117,80 @@ function policyDetail(registry, toolName) {
       dsl_schema: found.dsl_schema,
       output_schema: found.output_schema,
     },
+  };
+}
+
+function preflightDecision(registry, toolName, operation) {
+  const found = findFullTool(registry, toolName);
+
+  if (!found) {
+    return {
+      status: "not_found",
+      connector_safe: true,
+      dispatch_enabled: false,
+      registry_id: registry.registry_id,
+      tool: toolName,
+      operation,
+      found: false,
+      enabled: false,
+      allowed: false,
+      reason: "tool_not_found",
+    };
+  }
+
+  if (found.enabled !== true) {
+    return {
+      status: "ok",
+      connector_safe: true,
+      dispatch_enabled: false,
+      registry_id: registry.registry_id,
+      tool: toolName,
+      operation,
+      found: true,
+      enabled: false,
+      allowed: false,
+      reason: "tool_disabled",
+    };
+  }
+
+  const allowedOperations = found.policy?.allowed_operations || [];
+  const operationAllowed = allowedOperations.includes(operation);
+
+  if (!operationAllowed) {
+    return {
+      status: "ok",
+      connector_safe: true,
+      dispatch_enabled: false,
+      registry_id: registry.registry_id,
+      tool: toolName,
+      operation,
+      found: true,
+      enabled: true,
+      allowed: false,
+      reason: "operation_not_allowed",
+      allowed_operations: allowedOperations,
+    };
+  }
+
+  return {
+    status: "ok",
+    connector_safe: true,
+    dispatch_enabled: false,
+    registry_id: registry.registry_id,
+    tool: toolName,
+    operation,
+    found: true,
+    enabled: true,
+    allowed: true,
+    reason: null,
+    requires_dry_run: found.policy.requires_dry_run,
+    requires_validation: found.policy.requires_validation,
+    requires_audit: found.policy.requires_audit,
+    allow_network: found.policy.allow_network,
+    allow_project_write: found.policy.allow_project_write,
+    limits: found.limits,
+    sandbox: found.sandbox,
+    observability: found.observability,
   };
 }
 
@@ -252,5 +327,32 @@ export function registerRegistryTools(server) {
     });
 
     return detail;
+  });
+
+  registerSafeTool(server, "tool_registry_preflight", {
+    title: "Registry operation preflight",
+    description: "Validate whether one registry operation is allowed by tool policy. Does not dispatch or execute the tool.",
+    inputSchema: z.object({
+      tool: TOOL_NAME_SCHEMA,
+      operation: OPERATION_SCHEMA,
+    }).strict(),
+    annotations: READ_ONLY,
+  }, async ({ tool, operation }) => {
+    const registry = await loadRegistry({ force: true });
+    const decision = preflightDecision(registry, tool, operation);
+
+    await audit("tool_registry_preflight", {
+      source: "registry_tools_safe",
+      event: "tool_registry_preflight",
+      registry_id: registry.registry_id,
+      tool,
+      operation,
+      found: decision.found,
+      enabled: decision.enabled,
+      allowed: decision.allowed,
+      reason: decision.reason,
+    });
+
+    return decision;
   });
 }

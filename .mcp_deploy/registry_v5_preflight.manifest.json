@@ -1,0 +1,13 @@
+{
+  "deployment_name": "registry_v5_preflight",
+  "files": [
+    {
+      "source": ".mcp_warzone/registry_tools_safe_v5.js",
+      "target": "core/registry_tools_safe.js"
+    },
+    {
+      "source": ".mcp_warzone/registry_v5.test.js",
+      "target": "tests/registry_v5.test.js"
+    }
+  ]
+}
