@@ -118,6 +118,8 @@ Bieżący plan dzienny i status wykonania prowadź w:
 
 Ten dokument opisuje zasady pracy i kolejność faz, ale nie powinien być drugim niezależnym trackerem postępu dziennego.
 
+Jeśli w trakcie pracy widzisz brak narzędzia, który realnie zwiększa koszt, ryzyko albo chaos operacyjny, masz obowiązek zaproponować nowe narzędzie MCP i sensownie je spriorytetyzować zamiast czekać, aż zrobi to użytkownik.
+
 ### Faza 1. Ustalenie prawdy operacyjnej
 
 Cel:

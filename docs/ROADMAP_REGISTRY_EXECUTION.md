@@ -452,3 +452,41 @@ Short operational queue:
 5. `OPEN` — D5 decision gate for V7.2
    - decide whether V7.2 starts now, is postponed, or needs additional prerequisites
    - do not start V7.2 if docs/test/runtime consistency is still drifting
+
+---
+
+## PRIORITY TOOLING TRACK
+
+Do not start this track before the D1-D4 consistency work is under control.
+
+Priority order:
+
+1. `project_truth_audit`
+   - highest short-term leverage
+   - compare runtime truth, docs truth, test truth, and deploy truth
+   - expected outcome: faster audits, fewer false assumptions, safer model handoffs
+
+2. `code_runtime_map`
+   - map entrypoints, import graph, runtime-critical paths, legacy residue, and test-to-runtime coverage
+   - expected outcome: stronger code/dependency analysis and faster orientation
+
+3. `deploy_decision_guard`
+   - classify change as:
+     - repo-only
+     - test-only
+     - runtime
+     - runtime + client refresh
+   - expected outcome: fewer workflow mistakes and fewer unnecessary deploy/restart cycles
+
+4. `change_workflow_simulator`
+   - simulate the minimal safe validation/deploy/restart/reconnect sequence for a planned change
+   - expected outcome: lower operator burden and clearer execution plans
+
+5. stronger web/research tools
+   - expand only after truth/audit/deploy discipline is stable
+   - expected outcome: better research throughput without outrunning control
+
+Deferred by design:
+
+- `romioncoresim` bridge remains a later track
+- RAG orchestration and internal agent/model-serving remain lower priority than the tools above
