@@ -112,6 +112,12 @@ Za dowód wdrożenia uznawaj dopiero połączenie:
 
 Ten harmonogram jest zoptymalizowany pod minimalizację ryzyka, maksymalizację kontroli i utrzymanie ciągłości projektu.
 
+Bieżący plan dzienny i status wykonania prowadź w:
+
+- `docs/ROADMAP_REGISTRY_EXECUTION.md`
+
+Ten dokument opisuje zasady pracy i kolejność faz, ale nie powinien być drugim niezależnym trackerem postępu dziennego.
+
 ### Faza 1. Ustalenie prawdy operacyjnej
 
 Cel:

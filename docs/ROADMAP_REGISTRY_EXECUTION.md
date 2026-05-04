@@ -409,3 +409,46 @@ tool_registry_execute + optional execution_context
 ```
 
 No dispatch. No real execution. No project writes. No network calls.
+
+---
+
+## NEXT 3-5 DAYS
+
+Status convention:
+
+- `OPEN`
+- `IN_PROGRESS`
+- `CLOSED`
+
+Short operational queue:
+
+1. `OPEN` — D1 docs consistency sweep after new commits
+   - verify `CURRENT_STATE.md`, `REGISTRY.md`, `RUNTIME_CONTRACTS_CURRENT.md`, `DOCS_CATALOG.md`
+   - close only if canonical docs still match active runtime and test boundary
+
+2. `OPEN` — D2 test names vs actual coverage review
+   - check whether test names imply stronger coverage than they really provide
+   - tighten test or rename expectation if needed
+
+3. `OPEN` — D3 registry control-plane consistency review
+   - compare docs, outputSchema, tests, and runtime expectations for:
+     - `tool_registry_status`
+     - `tool_registry_list`
+     - `tool_registry_get_tool`
+     - `tool_registry_validate_tool`
+     - `tool_registry_policy`
+     - `tool_registry_preflight`
+     - `tool_registry_plan`
+     - `tool_registry_execute`
+
+4. `OPEN` — D4 operator workflow consistency review
+   - align `MCP_OPERATOR_MANUAL.md`, `OPERATIONS_DEPLOY.md`, and `LLM_IDIOT_PROOF_PROTOCOL_2026-05-04.md`
+   - keep explicit distinction:
+     - runtime change
+     - repo-only docs/test change
+     - restart required
+     - reconnect required
+
+5. `OPEN` — D5 decision gate for V7.2
+   - decide whether V7.2 starts now, is postponed, or needs additional prerequisites
+   - do not start V7.2 if docs/test/runtime consistency is still drifting
