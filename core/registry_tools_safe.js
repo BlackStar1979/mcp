@@ -13,6 +13,7 @@ const READ_ONLY = {
 
 const TOOL_NAME_SCHEMA = z.string().min(1).max(80).regex(/^[A-Za-z0-9_.-]+$/);
 const OPERATION_SCHEMA = z.string().min(1).max(80).regex(/^[A-Za-z0-9_.-]+$/);
+const EXECUTION_MODE_SCHEMA = z.enum(["simulation", "real"]).default("simulation");
 
 const REGISTRY_TOOL_SUMMARY_OUTPUT = z.object({
   tool: z.string(),
@@ -230,6 +231,9 @@ const REGISTRY_EXECUTE_TOOL_OUTPUT = z.object({
   dispatch_enabled: z.boolean(),
   execution_enabled: z.boolean(),
   simulated_execution: z.boolean(),
+  execution_mode: z.string(),
+  execution_id: z.string(),
+  plan_hash: z.string(),
   registry_id: z.string(),
   tool: z.string(),
   operation: z.string(),
@@ -246,6 +250,41 @@ const REGISTRY_EXECUTE_TOOL_OUTPUT = z.object({
     simulated: z.boolean(),
   }).strict()),
 }).strict();
+
+function stableStringify(value) {
+  if (Array.isArray(value)) {
+    return `[${value.map((item) => stableStringify(item)).join(",")}]`;
+  }
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function simpleHash(input) {
+  let hash = 2166136261;
+  for (let i = 0; i < input.length; i += 1) {
+    hash ^= input.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `fnv1a_${(hash >>> 0).toString(16).padStart(8, "0")}`;
+}
+
+function planHash(plan) {
+  return simpleHash(stableStringify({
+    status: plan.status,
+    registry_id: plan.registry_id,
+    tool: plan.tool,
+    operation: plan.operation,
+    allowed: plan.allowed,
+    plan_ready: plan.plan_ready === true,
+    steps: plan.steps || [],
+  }));
+}
+
+function executionId(registryId, toolName, operation, hash) {
+  return `sim_${registryId}_${toolName}_${operation}_${hash}`.replace(/[^A-Za-z0-9_.-]/g, "_").slice(0, 160);
+}
 
 function registrySummary(status) {
   return {
@@ -467,8 +506,33 @@ function planDecision(registry, toolName, operation) {
   };
 }
 
-function executeDecision(registry, toolName, operation) {
+function executeDecision(registry, toolName, operation, executionMode = "simulation") {
   const plan = planDecision(registry, toolName, operation);
+  const hash = planHash(plan);
+  const id = executionId(registry.registry_id, toolName, operation, hash);
+
+  if (executionMode === "real") {
+    return {
+      status: "blocked",
+      connector_safe: true,
+      dispatch_enabled: false,
+      execution_enabled: false,
+      simulated_execution: false,
+      execution_mode: executionMode,
+      execution_id: id,
+      plan_hash: hash,
+      registry_id: registry.registry_id,
+      tool: toolName,
+      operation,
+      found: plan.found === true,
+      enabled: plan.enabled === true,
+      allowed: false,
+      plan_ready: plan.plan_ready === true,
+      reason: "execution_not_enabled",
+      steps_count: 0,
+      simulated_steps: [],
+    };
+  }
 
   if (plan.status !== "plan_ready") {
     return {
@@ -477,6 +541,9 @@ function executeDecision(registry, toolName, operation) {
       dispatch_enabled: false,
       execution_enabled: false,
       simulated_execution: true,
+      execution_mode: executionMode,
+      execution_id: id,
+      plan_hash: hash,
       registry_id: registry.registry_id,
       tool: toolName,
       operation,
@@ -503,6 +570,9 @@ function executeDecision(registry, toolName, operation) {
     dispatch_enabled: false,
     execution_enabled: false,
     simulated_execution: true,
+    execution_mode: executionMode,
+    execution_id: id,
+    plan_hash: hash,
     registry_id: registry.registry_id,
     tool: toolName,
     operation,
@@ -696,18 +766,19 @@ export function registerRegistryTools(server) {
     return decision;
   });
 
-    registerSafeTool(server, "tool_registry_execute", {
+  registerSafeTool(server, "tool_registry_execute", {
     title: "Registry operation execute (dry-run simulation)",
     description: "Simulate execution of a registry operation without dispatch or side effects.",
     inputSchema: z.object({
       tool: TOOL_NAME_SCHEMA,
       operation: OPERATION_SCHEMA,
+      execution_mode: EXECUTION_MODE_SCHEMA.optional(),
     }).strict(),
     outputSchema: REGISTRY_EXECUTE_TOOL_OUTPUT,
     annotations: READ_ONLY,
-  }, async ({ tool, operation }) => {
+  }, async ({ tool, operation, execution_mode = "simulation" }) => {
     const registry = await loadRegistry({ force: true });
-    const result = executeDecision(registry, tool, operation);
+    const result = executeDecision(registry, tool, operation, execution_mode);
 
     await audit("tool_registry_execute", {
       source: "registry_tools_execute",
@@ -717,7 +788,10 @@ export function registerRegistryTools(server) {
       operation,
       allowed: result.allowed,
       plan_ready: result.plan_ready,
-      simulated_execution: true,
+      execution_mode: result.execution_mode,
+      execution_id: result.execution_id,
+      plan_hash: result.plan_hash,
+      simulated_execution: result.simulated_execution,
     });
 
     return result;
