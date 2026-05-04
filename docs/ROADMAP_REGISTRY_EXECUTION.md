@@ -8,6 +8,10 @@ Zakres: bezpieczna ewolucja MCP od registry plan-only do controlled execution z 
 
 ## CURRENT STATE (CONFIRMED)
 
+> 2026-05-04 update: V7.0 and V7.1 are now CLOSED. `tool_registry_execute` is deployed, tested, and runtime-verified as simulation-only. Current next step is V7.2: optional execution context binding. Dispatch and real execution remain NOT DEPLOYED.
+
+
+
 Stage: V6.5 closed / V7.0 planned
 
 - registry: DONE
@@ -304,3 +308,104 @@ No real dispatch.
 No real execution.
 No filesystem writes.
 No network calls.
+
+---
+
+## 2026-05-04 UPDATE — V7.1 STATUS, ISSUES, AND ARCHITECTURAL RISKS
+
+### Current execution-control status
+
+V7.1 is deployed, tested, committed, pushed, and runtime-verified.
+
+Confirmed runtime behavior:
+
+```text
+execution_mode=simulation -> status=simulated, plan_ready=true, steps_count=5
+execution_mode=real       -> status=blocked, reason=execution_not_enabled
+mcp_apply                 -> status=blocked, reason=operation_not_allowed
+missing_tool              -> status=not_found, reason=tool_not_found
+```
+
+Current invariant:
+
+```text
+dispatch_enabled=false
+execution_enabled=false
+real execution is not deployed
+```
+
+V7.1 insight:
+
+```text
+execution_id + plan_hash create a deterministic execution surface,
+enabling future idempotent execution and replay-safe audit.
+```
+
+### V7.1 staging issue: schema/audit cleanup
+
+During V7.1 staging, `node --check` was insufficient to prove semantic correctness.
+
+Observed before deploy:
+
+- duplicated `execution_id` / `plan_hash` fields in staged outputSchema
+- formatting artifacts merging `registry_id` and `execution_mode` on one line
+- audit initially hard-coded `simulated_execution: true`
+
+Resolution before deploy:
+
+- outputSchema deduplicated
+- return shapes normalized
+- audit records `result.execution_mode`, `result.execution_id`, `result.plan_hash`, and `result.simulated_execution`
+- static V7.1 tests added for envelope fields and audit fields
+
+Lesson:
+
+Execution-adjacent staging must be reviewed structurally, not only with syntax checks. JavaScript can parse while MCP descriptor semantics remain wrong.
+
+### External review items accepted into roadmap
+
+The following suggestions are accepted as valid risks, but not immediate implementation work:
+
+1. `registerRegistryTools` centralization
+   - Accepted risk.
+   - Current decision: tolerate while registry surface is small.
+   - Future step: V7.4 registry module boundary refactor before real dispatch.
+   - Preferred first design: explicit modules, not auto-discovery.
+
+2. Runtime tool version metadata
+   - Accepted gap.
+   - Future step: V7.3 expose registry/control-plane tool version metadata.
+
+3. Regex-heavy tests
+   - Accepted risk.
+   - Current decision: keep regex tests as guardrails.
+   - Future step: V7.6 add integration test harness before V8 dispatch.
+
+4. Redirect/import magic
+   - Accepted onboarding/documentation risk.
+   - Future step: V7.7 developer architecture notes.
+
+5. Core vs Extension boundary
+   - Accepted architecture clarity issue.
+   - Future step: V7.8 document Core / Control-plane Extension / Developer Extension / Data Extension boundaries.
+
+### Adjusted near-term roadmap
+
+```text
+V7.2  execution_context binding, still simulation-only
+V7.3  runtime tool version metadata
+V7.4  registry module boundary refactor if complexity requires it
+V7.5  global decision model
+V7.6  integration test harness
+V7.7  developer architecture notes
+V7.8  Core vs Extension boundary documentation
+V8    controlled dispatch only after prerequisites
+```
+
+Next engineering step remains V7.2:
+
+```text
+tool_registry_execute + optional execution_context
+```
+
+No dispatch. No real execution. No project writes. No network calls.
