@@ -1,5 +1,20 @@
 # MCP Tools Status
 
+Data: 2026-05-04
+Status: contradicted_in_part
+Zakres: historyczny snapshot runtime z 2026-05-01; nie opisuje już bieżącego tool surface ani zamkniętych później zabezpieczeń
+
+## Ważne
+
+Ten dokument zachowuje wartość jako krótki zapis wcześniejszego etapu projektu, ale nie może być czytany jako aktualny opis runtime.
+
+Czytaj zamiast niego:
+
+1. `docs/CURRENT_STATE.md`
+2. `docs/RUNTIME_CONTRACTS_CURRENT.md`
+3. `docs/REGISTRY.md`
+4. `docs/DOCS_CATALOG.md`
+
 Stan na: 2026-05-01
 
 ## Działające elementy

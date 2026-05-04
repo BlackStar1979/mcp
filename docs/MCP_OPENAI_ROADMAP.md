@@ -1,6 +1,19 @@
 # MCP / OpenAI — COMPATIBILITY (CURATED)
 
-Status: skrócona wersja operacyjna (zachowuje fakty, usuwa plan historyczny)
+Data: 2026-05-04
+Status: contradicted_in_part
+Zakres: historyczny skrót zgodności i zasad integracyjnych; zawiera nadal cenne reguły, ale nie opisuje już samodzielnie pełnego bieżącego runtime
+
+## Ważne
+
+Ten dokument zachowuje użyteczne reguły integracyjne i bezpieczeństwa, ale część skrótów i klasyfikacji pochodzi z wcześniejszego etapu projektu.
+
+Czytaj razem z:
+
+1. `docs/CURRENT_STATE.md`
+2. `docs/OPENAI_MCP_CONFORMANCE_2026-05-03.md`
+3. `docs/RUNTIME_CONTRACTS_CURRENT.md`
+4. `docs/DOCS_CATALOG.md`
 
 ---
 

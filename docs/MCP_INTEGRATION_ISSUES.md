@@ -1,7 +1,21 @@
 # MCP INTEGRATION ISSUES (CURATED)
 
-Status: aktywne zasady runtime
-Cel: szybkie przypomnienie realnych problemów i reguł — bez historii, bez szumu
+Data: 2026-05-04
+Status: current_reference
+Zakres: aktywne reguły integracyjne zmieszane z materiałem incydentowym; nie jest canonical source-of-truth dla pełnego bieżącego runtime
+
+## Ważne
+
+Początkowa część dokumentu zawiera nadal użyteczne reguły integracyjne, ale dalsze sekcje obejmują także historię incydentów i błędnych ścieżek diagnostycznych.
+
+Czytaj razem z:
+
+1. `docs/CURRENT_STATE.md`
+2. `docs/RUNTIME_CONTRACTS_CURRENT.md`
+3. `docs/REGISTRY.md`
+4. `docs/DOCS_CATALOG.md`
+
+Cel: szybkie przypomnienie realnych problemów i reguł, ale nie samodzielna definicja aktualnego runtime
 
 ---
 

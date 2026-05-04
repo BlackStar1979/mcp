@@ -1,7 +1,24 @@
 # Registry Runtime Design v1
 
-Status: design baseline for next implementation phase.
-Date: 2026-05-02
+Data: 2026-05-04
+Status: current_reference
+Zakres: design registry z elementami częściowo wdrożonymi; nie jest canonical opisem aktywnego runtime
+
+## Ważne
+
+Ten dokument pozostaje użyteczny do zrozumienia kierunku registry, ale miesza design, plan wdrożenia i później częściowo osiągnięte milestone.
+
+Czytaj razem z:
+
+1. `docs/CURRENT_STATE.md`
+2. `docs/RUNTIME_CONTRACTS_CURRENT.md`
+3. `docs/REGISTRY.md`
+4. `docs/DOCS_CATALOG.md`
+
+Najważniejszy znany rozjazd:
+
+- dokument opisuje m.in. `tool_dispatch_readonly` jako planowany/exposed path, podczas gdy bieżący aktywny runtime opiera się na `tool_registry_*` i nadal pozostaje no-dispatch / simulation-only.
+
 Scope: connector-safe registry runtime, without code mutation.
 
 ## 1. Problem

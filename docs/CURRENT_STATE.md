@@ -1,82 +1,74 @@
 # Current State
 
-Data: 2026-05-03
+Data: 2026-05-04
 Status: canonical_current
-Zakres: aktualny stan projektu `C:\Work\mcp` z rozdzieleniem runtime, worktree i lokalnych artefaktów
+Zakres: aktualny stan projektu `C:\Work\mcp` po rolloutach registry execute v7.1, web tools v1c, domknięciu test coverage dla web tools i korekcie testów registry execute v1.1 na aktywny runtime
 
-## 1. Repo i worktree
+## 1. Stan repo i lokalnego runtime
 
-Stan gałęzi:
+Projekt jest lokalnym MCP runtime z kontrolowanym deploy/rollback.
 
-- `main`
-- `origin/main`
-- lokalny branch jest na tym samym commitcie co `origin/main`, ale worktree jest brudny
+Potwierdzone:
 
-Lokalne zmiany niezatwierdzone w chwili audytu:
+- repo lokalne: `C:\Work\mcp`
+- branch: `main`
+- upstream: `origin/main`
+- runtime jest rozwijany lokalnie, a GitHub jest pomocniczym źródłem historii, nie zamiennikiem local truth
 
-- `core/registry_tools_safe.js`
-- `docs/MCP_INTEGRATION_ISSUES.md`
-- `docs/REGISTRY_RUNTIME_DESIGN.md`
+Najważniejsza zasada:
 
-Nowe pliki nieśledzone:
+- source-of-truth dla bieżącego stanu technicznego pozostaje lokalny worktree i aktywny runtime path
 
-- `.mcp_deploy/registry_v1a_guard.manifest.json`
-- `.mcp_deploy/registry_v6_plan.manifest.json`
-- `tests/registry_v6.test.js`
-
-Wniosek:
-
-- audyt tej daty obejmuje nie tylko ostatni zatwierdzony stan repo, ale także aktualny stan worktree.
-
-## 2. Aktywny baseline runtime
+## 2. Aktywny runtime
 
 ### `server.js`
 
-- profil read-only
-- lokalny port `3000`
+Potwierdzone:
+
+- read-only MCP
+- port `3000`
 - zakres ograniczony do `C:\Work\mcp`
-- narzędzia:
-  - `search`
-  - `fetch`
-  - `list_directory`
-  - `read_file`
-  - `get_info`
 
 ### `server_tools.js`
 
-- profil tools
-- lokalny port `3001`
+Potwierdzone:
+
+- tools profile
+- port `3001`
 - auth przez `MCP_TOKEN`
-- recovery przed startem
-- transport `StreamableHTTPServerTransport`
-- rejestruje:
-  - index tools
-  - filesystem tools
-  - science tools
-  - connector-safe code tools
-  - connector-safe registry tools
+- `StreamableHTTPServerTransport`
+- startup recovery
+- runtime timing/perf hooks
+
+Rejestrowane aktywne grupy tooli:
+
+- index tools
+- filesystem tools
+- science tools
+- connector-safe code tools
+- connector-safe registry tools
+- web tools
 
 ## 3. Auth i tunel
 
 ### Potwierdzone
 
 - `MCP_TOKEN` jest czytany z environment
-- token może wejść:
-  - przez query string `?token=...`
-  - przez bearer header
-- `cloudflared tunnel --url http://127.0.0.1:3001` jest używany operacyjnie
+- auth akceptuje:
+  - query string `?token=...`
+  - bearer header
+- użytkownik operacyjnie używa:
+  - `cloudflared tunnel --url http://127.0.0.1:3001`
 - ChatGPT Desktop używa publicznego URL do `/mcp?token=...`
 
-### Niepotwierdzone bezpośrednio w tym audycie
+### Nadal niepotwierdzone bezpośrednio z kodu
 
-- dokładna konfiguracja po stronie samej aplikacji desktopowej
-- aktualny stan cache listy tools po stronie klienta
+- wewnętrzne zachowanie cache tool list po stronie klienta
+- pełna logika connector-layer filtering poza MCP runtime
 
-## 4. Registry / control-plane
+## 4. Registry control-plane
 
-### Stan obecny
-
-Projekt ma już dołożony control-plane warstwy registry:
+### Potwierdzone aktywne registry tools
 
 - `tool_registry_status`
 - `tool_registry_list`
@@ -84,70 +76,164 @@ Projekt ma już dołożony control-plane warstwy registry:
 - `tool_registry_validate_tool`
 - `tool_registry_policy`
 - `tool_registry_preflight`
+- `tool_registry_execute`
 - `tool_registry_plan`
 
-To jest profil:
+### Faktyczny model registry dziś
 
-- read-only,
-- connector-safe,
-- no-dispatch,
-- no-execution,
-- plan-only na najwyższym obecnym poziomie.
+Registry jest:
 
-### Czego jeszcze nie wolno nazywać aktywnym execution layer
+- connector-safe
+- no-dispatch
+- no real execution
+- simulation-only dla `tool_registry_execute`
+- plan-driven
 
-- `dispatchRegisteredTool(...)` jako exposed runtime connector path
+To oznacza:
+
+- `tool_registry_execute` istnieje i jest wdrożone,
+- ale real execution nadal nie jest wdrożone,
+- dispatch nadal nie jest wdrożony,
+- side effects przez registry execution nadal nie są dozwolone.
+
+### Czego nadal nie wolno nazywać aktywnym execution layer
+
+- `dispatchRegisteredTool(...)` jako aktywny runtime connector path
 - write-capable registry execution
 - registry mutation
-- network-capable registry execution
+- network-capable registry execution przez registry path
 
-## 5. Deploy / rollback / perf
+## 5. Web tools
+
+Potwierdzone aktywne toole:
+
+- `http_get`
+- `check_pypi_package`
+
+Model bezpieczeństwa:
+
+- read-only
+- allowlisted
+- bounded
+- no auth
+- no cookies
+- no disk writes
+- `openWorldHint: true`
+
+Test coverage:
+
+- `tests/mcp_contract_surface.test.js` obejmuje web tools przez `registerWebTools`
+- test kontraktu wymusza obecność aktywnych web tools:
+  - `http_get`
+  - `check_pypi_package`
+
+Znana uwaga operacyjna:
+
+- connector/safety layer może dawać false positives dla części wywołań mimo poprawnego MCP runtime
+
+## 6. Recovery i legacy separation
 
 Potwierdzone:
 
-- istnieje `deploy.ps1`
-- istnieje `rollback.ps1`
-- istnieje `perf.ps1`
-- istnieje lokalna historia deployów w `.mcp_deploy`
-- istnieją backupi deployów w `.mcp_deploy_backup`
-- `npm test` obejmuje:
-  - deploy scripts
-  - rollback
-  - perf script
-  - registry v1-v6
+- startup recovery nie importuje już rollbacku z legacy `core/code_tools.js`
+- `server_tools.js` używa:
+  - `core/recovery_rollback.js`
 
-## 6. Lokalne artefakty, których nie wolno mylić z repo truth
+Wniosek:
 
-- `.mcp_warzone`
-- `.mcp_deploy`
-- `.mcp_deploy_backup`
-- `.mcp_audit`
-- `.mcp_audit.log`
-- `.mcp_perf_on`
-- `.mcp_perf.log`
-- `.mcp_backups`
-- `.mcp_index`
-- `.mcp_trash`
+- poprzednia luka „safe runtime zależy startowo od legacy full profile” została zamknięta na poziomie kodu runtime i testów
 
-To są ważne źródła dowodowe dla audytu, ale nie canonical source-of-truth same przez się.
+## 7. Deploy / rollback / perf
 
-## 7. Najważniejsze ryzyka dokumentacyjne
+Potwierdzone:
 
-1. Dokumenty historyczne i bieżące były mieszane w jednym poziomie `docs/`.
-2. Nie było jawnego podziału na:
-   - current,
-   - reference,
-   - historical,
-   - staging/local-only.
-3. Część dokumentów opisywała funkcje "jakby aktywne", mimo że kod potwierdzał tylko częściową integrację.
-4. `MCP_INDEX.md` był zbyt agresywnie stylizowany na jedyne źródło prawdy.
+- `deploy.ps1`
+- `rollback.ps1`
+- `perf.ps1`
+- lokalna historia deployów w `.mcp_deploy`
+- backupi deployów w `.mcp_deploy_backup`
 
-## 8. Czytaj dalej
+Obowiązujący model dla zmian runtime MCP:
+
+- staging w `.mcp_warzone`
+- manifest w `.mcp_deploy`
+- `Prepare`
+- `Execute`
+- restart serwera
+- reconnect klienta, jeśli zmienił się tool surface / schemy / descriptor metadata
+- runtime verification
+- rollback w razie potrzeby
+
+Zmiany testów i dokumentacji repo nie są automatycznie zmianami runtime MCP i nie wymagają domyślnie deploy pipeline, restartu ani reconnectu.
+
+## 8. Testy
+
+Aktualny checkpoint potwierdzony lokalnie po korektach test surface:
+
+- staging validation `mcp_contract_surface_web_tools_v1`:
+  - `node --check .mcp_warzone\mcp_contract_surface_web_tools_v1.test.js` — PASS
+  - `node --test .mcp_warzone\mcp_contract_surface_web_tools_v1.test.js` — PASS `4/4`
+- deploy validation testu `mcp_contract_surface_web_tools_v1`:
+  - `deploy.ps1 -Mode Prepare` — PASS
+  - `deploy.ps1 -Mode Execute` — PASS
+  - post-deploy `npm test` — PASS `68/68`
+- staging validation `registry_execute_v1_1_runtime_surface`:
+  - `node --check .mcp_warzone\registry_execute_v1_1_runtime_surface.test.js` — PASS
+  - `node --test .mcp_warzone\registry_execute_v1_1_runtime_surface.test.js` — PASS `7/7`
+- repo validation po aktualizacji `tests/registry_execute_v1_1.test.js`:
+  - `npm test` — PASS `69/69`
+
+Obszary objęte testami:
+
+- runtime paths
+- policy/path guards
+- import integrity
+- deploy script
+- rollback script
+- perf script
+- recovery no-legacy import
+- MCP descriptor contract dla pełnego aktywnego surface `server_tools.js`, w tym web tools
+- MCP result-shape helpers
+- registry safe layer
+- registry execute simulation
+- registry execute v1.1 assertions czytające aktywny runtime `core/registry_tools_safe.js`, nie staging artifact
+- registry outputSchema runtime guards, w tym `tool_registry_execute`
+- web tools static/runtime-shape guards
+
+### Ważne ograniczenie
+
+Nie wszystkie testy są równie mocne, jak sugerują nazwy.
+
+Potwierdzone luki:
+
+- brak potwierdzonych aktywnych luk w zakresie dwóch zamkniętych punktów: web tools coverage i registry execute v1.1 source path
+
+Zamknięte luki:
+
+- `tests/mcp_contract_surface.test.js` obejmuje teraz web tools wystawiane przez runtime
+- `tests/registry_execute_v1_1.test.js` czyta aktywny runtime file `core/registry_tools_safe.js` i sam test nie zależy już od pliku w `.mcp_warzone`
+
+## 9. Wymagania środowiskowe Python
+
+Potwierdzone:
+
+- `core/science_tools.js` uruchamia helpery Python przez `python`
+- helpery Python żyją w `core/`
+- wymagania operacyjne są opisane w:
+  - `docs/PYTHON_RUNTIME_REQUIREMENTS.md`
+
+## 10. Najważniejsze otwarte nieprawidłowości
+
+1. Część dokumentacji reference nadal wymaga ostrożnego porównywania z aktywnym runtime przed użyciem jako source-of-truth.
+2. `MCP_TOOL_CONTRACTS.md` opisuje w części stary workflow i nie może być traktowany jako aktualna instrukcja operacyjna bez porównania z nowszymi docs.
+3. Starsze docs registry/design nadal mieszają plan, historię i wdrożenie; `REGISTRY.md` oraz `RUNTIME_CONTRACTS_CURRENT.md` pozostają ważniejszymi źródłami dla bieżącego runtime.
+
+## 11. Czytaj dalej
 
 Jeśli potrzebujesz:
 
-- rozszerzonego audytu findings + recommendations: `AUDIT_2026-05-03_DEEP.md`
+- głównych findings i zaleceń: `AUDIT_2026-05-03_DEEP.md`
 - zgodności z OpenAI MCP / Apps: `OPENAI_MCP_CONFORMANCE_2026-05-03.md`
-- pełnego audytu: `AUDIT_2026-05-03.md`
-- klasyfikacji wszystkich dokumentów: `DOCS_CATALOG.md`
-- procedur operatorskich: `MCP_OPERATOR_MANUAL.md`
+- aktualnego stanu registry: `REGISTRY.md`
+- aktualnych kontraktów runtime: `RUNTIME_CONTRACTS_CURRENT.md`
+- idiotoodpornego protokołu dla kolejnego LLM: `LLM_IDIOT_PROOF_PROTOCOL_2026-05-04.md`

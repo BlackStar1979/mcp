@@ -1,6 +1,27 @@
 # MCP TOOL CONTRACTS
 
-Status: active operational memory.
+Data: 2026-05-04
+Status: contradicted_in_part
+Zakres: historyczny i częściowo nieaktualny opis kontraktów narzędzi; nie jest source-of-truth dla aktywnego runtime
+
+## Ważne
+
+Ten dokument zawiera nadal użyteczne opisy zachowań i ograniczeń narzędzi, ale nie może być czytany samodzielnie jako aktualna instrukcja operacyjna.
+
+Najpierw czytaj:
+
+1. `docs/README.md`
+2. `docs/CURRENT_STATE.md`
+3. `docs/RUNTIME_CONTRACTS_CURRENT.md`
+4. `docs/REGISTRY.md`
+5. `docs/DOCS_CATALOG.md`
+
+Najważniejsze znane rozjazdy:
+
+- początkowe reguły nadal odwołują się do starego workflow z `C:\Work\_mcp_next`,
+- część opisów pochodzi sprzed obecnego modelu `.mcp_warzone` + manifest + deploy/rollback,
+- dokument nie jest canonical opisem aktywnego tool surface `server_tools.js`.
+
 Purpose: describe each tool by behavior, inputs, outputs, side effects, hidden constraints, and safe-use rules.
 
 ---

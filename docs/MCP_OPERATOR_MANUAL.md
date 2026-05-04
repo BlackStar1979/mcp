@@ -22,7 +22,7 @@ Instrukcja operacyjna dla lokalnego MCP control plane.
 3. Każda zmiana ma manifest w `.mcp_deploy`.
 4. Każdy deploy ma `Prepare`, `Execute`, backup, hash tracking i audit log.
 5. Po deployu kodu trzeba zrestartować MCP, bo Node.js nie ładuje ponownie modułów automatycznie.
-6. Po serii deployów dokumentacyjno-testowych zalecany jest restart jako checkpoint operatora.
+6. Po zmianach repo-only w testach i dokumentacji restart MCP nie jest wymagany; po zmianach runtime jest wymagany.
 7. Tokeny i sekrety nie mogą trafiać do logów; po wycieku token należy rotować.
 
 ## 3. Standardowy cykl zmiany
@@ -266,7 +266,7 @@ Aktualnie testy obejmują:
 - perf script,
 - registry safe layer.
 
-Aktualny checkpoint po serii deployów 2026-05-03:
+Historyczny checkpoint po serii deployów 2026-05-03:
 
 ```text
 tests 51
@@ -301,7 +301,16 @@ Po deployu `python_docs_v1` i restarcie MCP potwierdzono:
 - `npm test` przechodzi `51/51`,
 - aktywne docs obejmują `docs/PYTHON_RUNTIME_REQUIREMENTS.md`.
 
-## 12. Następny etap
+## 12. Bieżący checkpoint 2026-05-04
+
+Po późniejszych poprawkach test coverage i registry runtime contracts potwierdzono:
+
+- `tests/mcp_contract_surface.test.js` obejmuje aktywne web tools `http_get` i `check_pypi_package`,
+- `tests/registry_execute_v1_1.test.js` czyta aktywny runtime `core/registry_tools_safe.js`, nie staging JS z `.mcp_warzone`,
+- `npm test` przechodzi `69/69`,
+- repo-only zmiany w testach i dokumentacji nie wymagają deploy pipeline, restartu MCP ani reconnectu klienta.
+
+## 13. Następny etap
 
 Po zamknięciu bieżącego rozdziału kolejne prace powinny dotyczyć optymalizacji i rozszerzeń:
 

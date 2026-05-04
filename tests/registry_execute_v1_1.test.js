@@ -2,7 +2,13 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 
-const src = fs.readFileSync(".mcp_warzone/registry_tools_execute_v1_1.js", "utf8");
+const src = fs.readFileSync("core/registry_tools_safe.js", "utf8");
+const testSrc = fs.readFileSync(new URL(import.meta.url), "utf8");
+
+test("registry execute v1.1 test reads active runtime source, not staging artifact", () => {
+  assert.doesNotMatch(testSrc, /\.mcp_warzone\/registry_tools_execute_v1_1\.js/);
+  assert.match(testSrc, /core\/registry_tools_safe\.js/);
+});
 
 test("registry execute v1.1 declares execution envelope output fields", () => {
   assert.match(src, /execution_mode:\s*z\.string\(\)/);

@@ -6,6 +6,7 @@ import { registerFsTools } from "../core/tools_fs.js";
 import { registerScienceTools } from "../core/science_tools.js";
 import { registerCodeTools } from "../core/code_tools_safe.js";
 import { registerRegistryTools } from "../core/registry_tools_safe.js";
+import { registerWebTools } from "../core/web_tools.js";
 
 function collectRegisteredTools() {
   const tools = [];
@@ -26,6 +27,7 @@ function collectRegisteredTools() {
   registerScienceTools(server);
   registerCodeTools(server);
   registerRegistryTools(server);
+  registerWebTools(server);
 
   return tools;
 }
@@ -51,6 +53,13 @@ test("all server_tools exposed tools have minimum MCP descriptors", () => {
     assertBooleanAnnotation(config, name, "destructiveHint");
     assertBooleanAnnotation(config, name, "openWorldHint");
   }
+});
+
+test("contract surface includes web tools registered by server_tools", () => {
+  const names = collectRegisteredTools().map(({ name }) => name).sort();
+
+  assert.ok(names.includes("http_get"), "contract surface must include active web tool: http_get");
+  assert.ok(names.includes("check_pypi_package"), "contract surface must include active web tool: check_pypi_package");
 });
 
 test("read-only descriptor semantics are internally consistent", () => {

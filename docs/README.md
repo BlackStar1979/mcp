@@ -1,6 +1,6 @@
 # Dokumentacja `C:\Work\mcp`
 
-Data porządkowania: 2026-05-03
+Data porządkowania: 2026-05-04
 Status: canonical index dla `docs/`
 
 ## Cel
@@ -18,11 +18,14 @@ Kluczowa zasada:
 2. `docs/CURRENT_STATE.md`
 3. `docs/AUDIT_2026-05-03_DEEP.md`
 4. `docs/OPENAI_MCP_CONFORMANCE_2026-05-03.md`
-5. `docs/LLM_EXECUTION_BRIEF.md`
-6. `docs/AUDIT_2026-05-03.md`
-7. `docs/DOCS_CATALOG.md`
-8. `docs/MCP_OPERATOR_MANUAL.md`
-9. `docs/PYTHON_RUNTIME_REQUIREMENTS.md` — jeśli pracujesz z `science_tools`
+5. `docs/RUNTIME_CONTRACTS_CURRENT.md`
+6. `docs/LLM_IDIOT_PROOF_PROTOCOL_2026-05-04.md`
+7. `docs/LLM_FULL_HANDOFF_2026-05-04.md`
+8. `docs/LLM_EXECUTION_BRIEF.md`
+9. `docs/REGISTRY.md`
+10. `docs/DOCS_CATALOG.md`
+11. `docs/MCP_OPERATOR_MANUAL.md`
+12. `docs/PYTHON_RUNTIME_REQUIREMENTS.md` — jeśli pracujesz z `science_tools`
 
 ## Warstwy dokumentacji
 
@@ -33,8 +36,12 @@ To są dokumenty, które należy czytać najpierw, jeśli celem jest zrozumienie
 - `CURRENT_STATE.md`
 - `AUDIT_2026-05-03_DEEP.md`
 - `OPENAI_MCP_CONFORMANCE_2026-05-03.md`
+- `RUNTIME_CONTRACTS_CURRENT.md`
+- `LLM_IDIOT_PROOF_PROTOCOL_2026-05-04.md`
 - `LLM_EXECUTION_BRIEF.md`
-- `AUDIT_2026-05-03.md`
+- `LLM_FULL_HANDOFF_2026-05-04.md`
+- `LLM_SESSION_TIMELINE_2026-05-04.md`
+- `REGISTRY.md`
 - `DOCS_CATALOG.md`
 - `MCP_OPERATOR_MANUAL.md`
 - `ARCHITECTURE_DECISIONS.md`
@@ -91,6 +98,7 @@ Pełna klasyfikacja plików jest w:
 ## Czego nie robić
 
 - nie czytać `MCP_INDEX.md` jako jedynego źródła prawdy,
+- nie czytać `MCP_TOOL_CONTRACTS.md` jako jedynego aktualnego kontraktu runtime,
 - nie czytać `MCP_OPENAI_ROADMAP.md` jako gwarancji, że wszystko opisane tam jest aktywne,
 - nie traktować samego istnienia pliku w repo jako dowodu wdrożenia,
 - nie traktować stagingu z `.mcp_warzone/` jako warstwy do automatycznego przenoszenia do repo.
@@ -103,5 +111,7 @@ Od tej chwili porządek dokumentacji jest następujący:
 - `CURRENT_STATE.md` opisuje aktualny stan,
 - `AUDIT_2026-05-03_DEEP.md` jest głównym dokumentem findings i ryzyk,
 - `OPENAI_MCP_CONFORMANCE_2026-05-03.md` opisuje zgodność MCP / Apps,
+- `RUNTIME_CONTRACTS_CURRENT.md` opisuje aktualne granice kontraktowe runtime,
+- `LLM_IDIOT_PROOF_PROTOCOL_2026-05-04.md` jest najprostszą instrukcją dla kolejnego modelu,
 - `DOCS_CATALOG.md` klasyfikuje całą resztę po świeżości, czasie i autorytecie,
 - `PYTHON_RUNTIME_REQUIREMENTS.md` opisuje jawnie wymagania Python dla `science_tools`.

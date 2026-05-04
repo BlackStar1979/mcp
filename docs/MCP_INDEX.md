@@ -1,70 +1,31 @@
-# MCP INDEX (RUNTIME ENTRY POINT)
+# MCP INDEX
 
-Cel: szybki start kontekstu — czytaj TYLKO to
+Data: 2026-05-04
+Status: contradicted_in_part
+Zakres: historyczny skrótowy entry point; nie jest już source-of-truth
 
----
+## Ważne
 
-## 1. SYSTEM
+Ten plik nie jest aktualnym opisem runtime.
 
-CONTROL > TRUST
+Czytanie zacznij od:
 
-Dyrygent → Tool → Agent → MCP → Execution → Audit → Rollback
+1. `docs/README.md`
+2. `docs/CURRENT_STATE.md`
+3. `docs/RUNTIME_CONTRACTS_CURRENT.md`
+4. `docs/LLM_IDIOT_PROOF_PROTOCOL_2026-05-04.md`
+5. `docs/DOCS_CATALOG.md`
 
----
+## Dlaczego ten plik został zdegradowany
 
-## 2. CO JEST PRAWDĄ
+Wcześniejsze krótkie indeksy:
 
-System działa tylko tam gdzie:
+- były zbyt agresywne,
+- mieszały runtime truth z pamięcią operacyjną,
+- nie nadążają za obecnym stanem registry, web tools i control-plane.
 
-✔ jest w runtime path
-✔ ma walidację
-✔ ma audit
-✔ ma rollback
+## Do czego ten plik może jeszcze służyć
 
----
-
-## 3. KLUCZOWE PLIKI
-
-MUST READ:
-
-- MCP_TOOL_CONTRACTS.md
-- MCP_INTEGRATION_ISSUES.md
-- MCP_STEP_LOG.md (ostatnie kroki)
-
-OPTIONAL:
-
-- MCP_OPENAI_ROADMAP.md
-
----
-
-## 4. AKTUALNY STAN
-
-✔ policy enforced
-✔ anomaly enforced
-✔ recovery auto + blocking
-✔ deploy controlled
-✔ validation gate
-
----
-
-## 5. ZASADY PRACY
-
-✔ brak założeń
-✔ brak skrótów
-✔ brak "wydaje się"
-✔ tylko runtime truth
-
----
-
-## 6. CZEGO NIE ROBIĆ
-
-✖ nie projektuj bez integracji
-✖ nie deklaruj bez enforcement
-✖ nie pomijaj audit
-✖ nie upraszczaj logiki
-
----
-
-## 7. CEL
-
-utrzymać system spójny przy rosnącej złożoności
+- jako ślad historyczny,
+- jako ostrzeżenie, że skrótowe entrypointy bardzo łatwo się starzeją,
+- jako przykład, czego nie traktować jako jedynego źródła prawdy.
