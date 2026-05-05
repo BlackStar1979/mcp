@@ -56,6 +56,7 @@ Potwierdzone aktywne narzędzie tej warstwy:
 - `code_runtime_map`
 - `deploy_decision_guard`
 - `change_workflow_simulator`
+- `tool_usage_snapshot`
 
 ## 3. Auth i tunel
 
@@ -93,6 +94,7 @@ Potwierdzone aktywne narzędzie tej warstwy:
 - `code_runtime_map`
 - `deploy_decision_guard`
 - `change_workflow_simulator`
+- `tool_usage_snapshot`
 
 Rola:
 
@@ -102,6 +104,7 @@ Rola:
 - klasyfikacja zmiany jako `repo_only`, `test_only`, `runtime` albo `runtime_with_client_refresh`
 - zwracanie minimalnego bezpiecznego workflow wdrożeniowego i powodów decyzji
 - symulowanie operator workflow dla planowanej zmiany bez wykonywania deployu
+- podsumowanie rzeczywistego użycia tooli na podstawie lokalnego `\.mcp_perf.log`, żeby decyzje o kolejnych narzędziach opierać o obserwowane wzorce użycia
 - narzędzie read-only, local-world, bez dispatch i bez side effects poza audytem
 
 ### Faktyczny model registry dziś
@@ -240,6 +243,8 @@ Aktualny checkpoint potwierdzony lokalnie po korektach test surface:
   - `npm test` — PASS `83/83`
 - repo validation po wdrożeniu `fetch_github_file`:
   - `npm test` — PASS `84/84`
+- repo validation po wdrożeniu `tool_usage_snapshot`:
+  - `npm test` — PASS `86/86`
 - live MCP verification po restarcie `server_tools.js`:
   - `project_truth_audit` — `status: ok`
   - `drifts: []`
@@ -252,6 +257,8 @@ Aktualny checkpoint potwierdzony lokalnie po korektach test surface:
   - `check_npm_package("is-number")` — `status: ok`
   - `check_npm_package("zod")` — `status: ok`
   - `fetch_github_file("colinhacks/zod", "main", "package.json")` — `status: ok`
+  - `tool_usage_snapshot()` — `status: ok`
+  - snapshot potwierdził, że bieżące web/research usage pozostaje bounded i nie daje jeszcze dowodu potrzeby `download_docs`
 
 Obszary objęte testami:
 
@@ -273,6 +280,7 @@ Obszary objęte testami:
 - truth tools contract i handler baseline dla `code_runtime_map`
 - truth tools contract i handler baseline dla `deploy_decision_guard`
 - truth tools contract i handler baseline dla `change_workflow_simulator`
+- truth tools contract i handler baseline dla `tool_usage_snapshot`
 - web tools static/runtime-shape guards
 - bounded npm package metadata guard
 - bounded GitHub raw file guard

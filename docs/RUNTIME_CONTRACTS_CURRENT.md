@@ -83,6 +83,7 @@ Ten dokument zastępuje używanie `MCP_TOOL_CONTRACTS.md` jako bieżącego sourc
 - `code_runtime_map`
 - `deploy_decision_guard`
 - `change_workflow_simulator`
+- `tool_usage_snapshot`
 
 ## Critical boundaries
 
@@ -121,7 +122,7 @@ Confirmed current coverage:
 3. `tests/registry_outputschema_runtime_guard.test.js` covers the active registry rollout set including:
    - `tool_registry_execute`
 4. Latest repo validation:
-   - `npm test` PASS `84/84`
+   - `npm test` PASS `86/86`
 5. Live MCP verification confirms:
    - `project_truth_audit` is exposed in active runtime
    - `project_truth_audit` returns `status: ok` with `drifts: []`
@@ -131,6 +132,8 @@ Confirmed current coverage:
    - `deploy_decision_guard` returns `status: ok` for both repo-only and runtime-with-refresh scenarios
    - `change_workflow_simulator` is exposed in active runtime
    - `change_workflow_simulator` returns `status: ok` for both repo-only and runtime-with-refresh simulations
+   - `tool_usage_snapshot` is exposed in active runtime
+   - `tool_usage_snapshot()` returns `status: ok`
    - `pypi_info` is exposed in active runtime
    - `pypi_info("zod")` returns `status: ok`
    - `check_pypi_package("zod")` returns `status: ok`
@@ -153,7 +156,7 @@ Confirmed current coverage:
 - `project_truth_audit` is an exposed MCP tool but not a logical registry entry under `tool_registry_get_tool`
 - this is expected in the current architecture:
   - registry describes registered logical tools such as `code_analysis`
-  - `project_truth_audit`, `code_runtime_map`, `deploy_decision_guard`, and `change_workflow_simulator` are direct MCP runtime tools for drift detection, runtime orientation, workflow classification, and operator-step simulation
+  - `project_truth_audit`, `code_runtime_map`, `deploy_decision_guard`, `change_workflow_simulator`, and `tool_usage_snapshot` are direct MCP runtime tools for drift detection, runtime orientation, workflow classification, operator-step simulation, and observed usage monitoring
 
 Therefore:
 

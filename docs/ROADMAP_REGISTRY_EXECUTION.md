@@ -496,6 +496,11 @@ Priority order:
    - simulate the minimal safe validation/deploy/restart/reconnect sequence for a planned change
    - outcome achieved: live MCP tool returns `status: ok` for both repo-only and runtime-with-refresh simulations
 
+4.5. `CLOSED` — `tool_usage_snapshot`
+   - summarize observed MCP tool usage from local perf logs
+   - support conservative decisions about whether new tools are really needed
+   - outcome achieved: live MCP tool returns `status: ok` and confirms current web/research usage remains bounded without evidence-based need for `download_docs`
+
 5. stronger web/research tools
    - expand only after truth/audit/deploy discipline is stable
    - current sub-step: bounded package metadata lookups for major developer registries

@@ -31,6 +31,13 @@ test("truth tools expose change_workflow_simulator with explicit outputSchema", 
   assert.match(truthTools, /validation_steps:\s*z\.array\(z\.string\(\)\)/);
 });
 
+test("truth tools expose tool_usage_snapshot with explicit outputSchema", () => {
+  assert.match(truthTools, /"tool_usage_snapshot"/);
+  assert.match(truthTools, /outputSchema:\s*TOOL_USAGE_SNAPSHOT_OUTPUT/);
+  assert.match(truthTools, /source_log:\s*z\.string\(\)/);
+  assert.match(truthTools, /web_tool_counts:\s*z\.array\(/);
+});
+
 test("project_truth_audit is read-only and local-world", () => {
   assert.match(truthTools, /readOnlyHint:\s*true/);
   assert.match(truthTools, /destructiveHint:\s*false/);
@@ -194,4 +201,27 @@ test("change_workflow_simulator returns runtime-with-refresh workflow", async ()
   assert.ok(payload.operator_actions.includes("restart MCP"));
   assert.ok(payload.operator_actions.includes("refresh client connector"));
   assert.ok(payload.deployment_steps.includes("deploy.ps1 -Mode Execute"));
+});
+
+test("tool_usage_snapshot summarizes observed tool usage from perf log", async () => {
+  let captured;
+  const server = {
+    registerTool(name, config, handler) {
+      if (name === "tool_usage_snapshot") captured = { name, config, handler };
+    },
+  };
+
+  registerTruthTools(server);
+  assert.equal(captured.name, "tool_usage_snapshot");
+
+  const result = await captured.handler({});
+  const payload = result.structuredContent || result;
+
+  assert.equal(payload.status, "ok");
+  assert.equal(payload.source_log, ".mcp_perf.log");
+  assert.ok(payload.total_tool_invocations > 0);
+  assert.ok(payload.unique_tool_count > 0);
+  assert.ok(payload.top_tools.length > 0);
+  assert.ok(payload.family_counts.truth_tools > 0);
+  assert.ok(payload.web_tool_counts.some((item) => item.name === "fetch_github_file" || item.name === "check_npm_package" || item.name === "http_get"));
 });
