@@ -430,7 +430,7 @@ Short operational queue:
    - check whether test names imply stronger coverage than they really provide
    - tightened misleading test titles while preserving milestone-oriented file structure
 
-3. `OPEN` — D3 registry control-plane consistency review
+3. `CLOSED` — D3 registry control-plane consistency review
    - compare docs, outputSchema, tests, and runtime expectations for:
      - `tool_registry_status`
      - `tool_registry_list`
@@ -440,6 +440,10 @@ Short operational queue:
      - `tool_registry_preflight`
      - `tool_registry_plan`
      - `tool_registry_execute`
+   - result:
+     - active runtime, docs, and exposed control-plane remain consistent
+     - `REGISTRY.md` now records the 2026-05-05 manual live verification pass explicitly
+     - remaining runtime evidence is manual MCP invocation, not full automated end-to-end test coverage
 
 4. `OPEN` — D4 operator workflow consistency review
    - align `MCP_OPERATOR_MANUAL.md`, `OPERATIONS_DEPLOY.md`, and `LLM_IDIOT_PROOF_PROTOCOL_2026-05-04.md`

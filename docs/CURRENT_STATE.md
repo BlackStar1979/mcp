@@ -118,6 +118,17 @@ To oznacza:
 - dispatch nadal nie jest wdrożony,
 - side effects przez registry execution nadal nie są dozwolone.
 
+Live MCP verification z 2026-05-05 potwierdziła cały exposed registry control-plane:
+
+- `tool_registry_status`
+- `tool_registry_list`
+- `tool_registry_get_tool`
+- `tool_registry_validate_tool`
+- `tool_registry_policy`
+- `tool_registry_preflight`
+- `tool_registry_plan`
+- `tool_registry_execute`
+
 ### Czego nadal nie wolno nazywać aktywnym execution layer
 
 - `dispatchRegisteredTool(...)` jako aktywny runtime connector path

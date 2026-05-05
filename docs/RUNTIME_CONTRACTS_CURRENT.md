@@ -124,6 +124,15 @@ Confirmed current coverage:
    - `code_runtime_map` returns `status: ok` with active entrypoints, module map, boundaries, and test links
    - `deploy_decision_guard` is exposed in active runtime
    - `deploy_decision_guard` returns `status: ok` for both repo-only and runtime-with-refresh scenarios
+   - full registry control-plane was manually invoked through active MCP on 2026-05-05:
+     - `tool_registry_status`
+     - `tool_registry_list`
+     - `tool_registry_get_tool`
+     - `tool_registry_validate_tool`
+     - `tool_registry_policy`
+     - `tool_registry_preflight`
+     - `tool_registry_plan`
+     - `tool_registry_execute`
 
 ### Truth audit boundary
 

@@ -31,10 +31,10 @@ Cel: sklasyfikować wszystkie dokumenty w `docs/` według roli, czasu, świeżo�
 | `ARCHITECTURE_DECISIONS.md` | decyzje baseline repo/runtime | 2026-05-01 | `current_reference` | ważny dokument bazowy |
 | `MCP_OPERATOR_MANUAL.md` | control-plane operator manual | 2026-05-02/04 | `current_reference` | procedury operacyjne z rozróżnieniem runtime deploy vs repo-only changes |
 | `PYTHON_RUNTIME_REQUIREMENTS.md` | wymagania Python dla science tools | 2026-05-03 | `current_reference` | czytać przy pracy z `science_tools` |
-| `REGISTRY.md` | aktualny stan registry i outputSchema coverage | 2026-05-04 | `current_reference` | czytać przy zmianach registry tools |
+| `REGISTRY.md` | aktualny stan registry, outputSchema coverage i ręcznie potwierdzona live verification control-plane | 2026-05-05 | `current_reference` | czytać przy zmianach registry tools |
 | `ARCHITECTURE_OUTPUTSCHEMA_PIPELINE.md` | pipeline bezpiecznego rollout outputSchema | 2026-05-03 | `current_reference` | czytać przed zmianami outputSchema |
 | `OPERATIONS_DEPLOY.md` | checklist deploy i runtime verification | 2026-05-03 | `current_reference` | czytać przed deploy/rollback |
-| `ROADMAP_REGISTRY_EXECUTION.md` | roadmap registry, web_tools, dispatch i execution; zawiera aktualizację V7.1/V7.2 i rejestr ryzyk architektonicznych | 2026-05-03/04 | `current_plan` | czytać przed zmianą kierunku architektury lub pracą nad execution |
+| `ROADMAP_REGISTRY_EXECUTION.md` | roadmap registry, web_tools, dispatch i execution; zawiera aktualizację V7.1/V7.2, kolejkę prac i rejestr ryzyk architektonicznych | 2026-05-03/04/05 | `current_plan` | czytać przed zmianą kierunku architektury lub pracą nad execution |
 | `INCIDENT_2026-05-03_REGISTRY_EXECUTE_V1_PLAN_READY.md` | incydent V7 execute: plan_ready mismatch, rollback ID, wnioski | 2026-05-03 | `current_reference` | czytać przed zmianami execution-adjacent |
 | `MCP_TOOL_CONTRACTS.md` | dawny szeroki dokument kontraktów i workflow | 2026-05-01 | `contradicted_in_part` | cenny historycznie, ale częściowo opisuje stary `_mcp_next` workflow |
 | `MCP_INTEGRATION_ISSUES.md` | reguły i incydenty integracyjne | 2026-05-01 do 2026-05-03 | `current_reference` | ważne, ale częściowo incydentowe; czytać z bannerem i razem z canonical docs |

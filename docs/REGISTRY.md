@@ -1,8 +1,8 @@
 # REGISTRY — CURRENT STATE
 
-Data: 2026-05-04
+Data: 2026-05-05
 Status: current_reference
-Zakres: aktywny stan registry tools, outputSchema coverage i runtime verification po wdrożeniu `tool_registry_execute`
+Zakres: aktywny stan registry tools, outputSchema coverage i ręcznie potwierdzona live runtime verification całego control-plane po wdrożeniu `tool_registry_execute`
 
 ## Runtime model
 
@@ -35,9 +35,9 @@ Registry pozostaje:
 | `tool_registry_execute` | active | no | no | simulation-only execution envelope |
 | `tool_registry_plan` | active | no | no | deterministic plan-only output |
 
-## OutputSchema coverage
+## OutputSchema coverage and live verification
 
-| Tool | OutputSchema | Runtime verified |
+| Tool | OutputSchema | Live MCP verified 2026-05-05 |
 |---|---:|---:|
 | `tool_registry_status` | DONE | YES |
 | `tool_registry_list` | DONE | YES |
@@ -50,18 +50,29 @@ Registry pozostaje:
 
 ## Runtime verification baseline
 
-Required health checks:
+Confirmed live health checks on 2026-05-05:
 
 ```text
+tool_registry_status() -> status: ok, dispatch_enabled: false
+tool_registry_list() -> status: ok, tool_count: 1
 tool_registry_get_tool("code_analysis") -> status: ok, found: true
 tool_registry_get_tool("missing_tool_probe") -> status: not_found, found: false
+tool_registry_validate_tool("code_analysis") -> status: ok, allowed: true
+tool_registry_policy("code_analysis") -> status: ok, found: true
+tool_registry_policy("missing_tool_probe") -> status: not_found, found: false
+tool_registry_preflight("code_analysis", "read") -> status: ok, allowed: true
+tool_registry_preflight("code_analysis", "mcp_apply") -> status: ok, allowed: false, reason: operation_not_allowed
 tool_registry_plan("code_analysis", "read") -> status: plan_ready
 tool_registry_plan("code_analysis", "mcp_apply") -> status: blocked
 tool_registry_execute("code_analysis", "read") -> status: simulated
-tool_registry_execute("code_analysis", "mcp_apply") -> status: blocked
 tool_registry_execute("missing_tool_probe", "read") -> status: not_found
 tool_registry_execute("code_analysis", "read", execution_mode="real") -> status: blocked, reason: execution_not_enabled
 ```
+
+Note:
+
+- `tool_registry_execute("code_analysis", "mcp_apply")` remains inferably blocked by the same policy boundary, but this exact call was not re-run in the 2026-05-05 live verification pass above.
+- "Live MCP verified" here means manual invocation through the active MCP runtime, not an automated end-to-end runtime test in `npm test`.
 
 Expected safety flags:
 
