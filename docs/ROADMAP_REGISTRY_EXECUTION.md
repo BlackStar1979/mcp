@@ -1,6 +1,6 @@
 # MCP REGISTRY → WEB TOOLS → CONTROLLED EXECUTION ROADMAP
 
-Data: 2026-05-03
+Data: 2026-05-05
 Status: current_plan
 Zakres: bezpieczna ewolucja MCP od registry plan-only do controlled execution z etapem web_tools
 
@@ -8,7 +8,7 @@ Zakres: bezpieczna ewolucja MCP od registry plan-only do controlled execution z 
 
 ## CURRENT STATE (CONFIRMED)
 
-> 2026-05-04 update: V7.0 and V7.1 are now CLOSED. `tool_registry_execute` is deployed, tested, and runtime-verified as simulation-only. Current next step is V7.2: optional execution context binding. Dispatch and real execution remain NOT DEPLOYED.
+> 2026-05-05 update: V7.0 and V7.1 are now CLOSED. `tool_registry_execute` is deployed, tested, and runtime-verified as simulation-only. V7.2 is now explicitly POSTPONED pending stronger justification, a concrete contract, and completion of the current priority tooling track. Dispatch and real execution remain NOT DEPLOYED.
 
 
 
@@ -402,7 +402,7 @@ V7.8  Core vs Extension boundary documentation
 V8    controlled dispatch only after prerequisites
 ```
 
-Next engineering step remains V7.2:
+When V7.2 eventually starts, its intended scope remains:
 
 ```text
 tool_registry_execute + optional execution_context
@@ -457,9 +457,17 @@ Short operational queue:
      - `repo_only` and `test_only` are explicitly exempt from manifest / deploy / restart / reconnect flow
      - reconnect is now described as required only when tool surface, descriptors, or schema handshake change
 
-5. `OPEN` — D5 decision gate for V7.2
+5. `CLOSED` — D5 decision gate for V7.2
    - decide whether V7.2 starts now, is postponed, or needs additional prerequisites
    - do not start V7.2 if docs/test/runtime consistency is still drifting
+   - result:
+     - V7.2 is POSTPONED for now
+     - no confirmed runtime scaffold for `execution_context` exists yet beyond roadmap text
+     - current higher-leverage work remains in the priority tooling track after D1-D4 closure
+     - V7.2 should not start before:
+       - a concrete `execution_context` contract is written
+       - explicit tests for that contract are designed
+       - there is a clear operator/runtime need stronger than the current tooling backlog
 
 ---
 
