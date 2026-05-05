@@ -74,6 +74,7 @@ Ten dokument zastępuje używanie `MCP_TOOL_CONTRACTS.md` jako bieżącego sourc
 - `http_get`
 - `pypi_info`
 - `check_pypi_package`
+- `check_npm_package`
 
 ### Truth tools
 
@@ -119,7 +120,7 @@ Confirmed current coverage:
 3. `tests/registry_outputschema_runtime_guard.test.js` covers the active registry rollout set including:
    - `tool_registry_execute`
 4. Latest repo validation:
-   - `npm test` PASS `82/82`
+   - `npm test` PASS `83/83`
 5. Live MCP verification confirms:
    - `project_truth_audit` is exposed in active runtime
    - `project_truth_audit` returns `status: ok` with `drifts: []`
@@ -132,6 +133,8 @@ Confirmed current coverage:
    - `pypi_info` is exposed in active runtime
    - `pypi_info("zod")` returns `status: ok`
    - `check_pypi_package("zod")` returns `status: ok`
+   - `check_npm_package("is-number")` returns `status: ok`
+   - `check_npm_package("zod")` returns `status: ok`
    - `http_get("https://pypi.org/pypi/zod/json")` returns `status: ok`
    - full registry control-plane was manually invoked through active MCP on 2026-05-05:
      - `tool_registry_status`

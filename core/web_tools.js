@@ -45,6 +45,20 @@ const PYPI_PACKAGE_OUTPUT = z.object({
   vulnerabilities_count: z.number().optional(),
 }).strict();
 
+const NPM_PACKAGE_OUTPUT = z.object({
+  status: z.string(),
+  package: z.string(),
+  url: z.string(),
+  http_status: z.number(),
+  found: z.boolean(),
+  name: z.string().optional(),
+  version: z.string().optional(),
+  description: z.string().optional(),
+  homepage: z.string().nullable().optional(),
+  repository_url: z.string().nullable().optional(),
+  license: z.string().nullable().optional(),
+}).strict();
+
 function packageInfoDescription(registryName) {
   return `Return bounded metadata for one ${registryName} package using the official JSON API. Read-only.`;
 }
@@ -181,4 +195,58 @@ export function registerWebTools(server) {
     outputSchema: PYPI_PACKAGE_OUTPUT,
     annotations: READ_ONLY_OPEN_WORLD,
   }, pypiPackageHandler);
+
+  registerSafeTool(server, "check_npm_package", {
+    title: "Check npm package",
+    description: packageInfoDescription("npm"),
+    inputSchema: z.object({ package: PACKAGE_NAME_SCHEMA }).strict(),
+    outputSchema: NPM_PACKAGE_OUTPUT,
+    annotations: READ_ONLY_OPEN_WORLD,
+  }, async ({ package: packageName }) => {
+    const safeUrl = assertAllowedUrl(`https://registry.npmjs.org/${encodeURIComponent(packageName)}/latest`);
+    const result = await boundedFetch(safeUrl);
+
+    await audit("check_npm_package", {
+      source: "web_tools_v1d",
+      event: "check_npm_package",
+      package: packageName,
+      http_status: result.response.status,
+      bytes: result.bytes,
+      truncated: result.truncated,
+    });
+
+    if (result.response.status === 404) {
+      return { status: "not_found", package: packageName, url: safeUrl.toString(), http_status: 404, found: false };
+    }
+
+    if (!result.response.ok) {
+      return { status: "http_error", package: packageName, url: safeUrl.toString(), http_status: result.response.status, found: false };
+    }
+
+    if (result.truncated) {
+      return { status: "payload_too_large", package: packageName, url: safeUrl.toString(), http_status: result.response.status, found: false };
+    }
+
+    const parsed = JSON.parse(result.fullText);
+
+    const repositoryUrl = typeof parsed?.repository === "string"
+      ? parsed.repository
+      : typeof parsed?.repository?.url === "string"
+        ? parsed.repository.url
+        : null;
+
+    return {
+      status: "ok",
+      package: packageName,
+      url: safeUrl.toString(),
+      http_status: result.response.status,
+      found: true,
+      name: String(parsed?.name || packageName),
+      version: parsed?.version ? String(parsed.version) : undefined,
+      description: parsed?.description ? String(parsed.description).slice(0, 1000) : undefined,
+      homepage: parsed?.homepage ? String(parsed.homepage) : null,
+      repository_url: repositoryUrl,
+      license: parsed?.license ? String(parsed.license) : null,
+    };
+  });
 }

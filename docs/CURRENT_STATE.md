@@ -146,6 +146,7 @@ Potwierdzone aktywne toole:
 - `http_get`
 - `pypi_info`
 - `check_pypi_package`
+- `check_npm_package`
 
 Model bezpieczeństwa:
 
@@ -164,12 +165,14 @@ Test coverage:
   - `http_get`
   - `pypi_info`
   - `check_pypi_package`
+  - `check_npm_package`
 
 Znana uwaga operacyjna:
 
 - connector/safety layer może dawać false positives dla części wywołań mimo poprawnego MCP runtime
 - `pypi_info` został dodany jako bardziej neutralny alias dla `check_pypi_package`, żeby zmniejszyć ryzyko heurystycznych blokad bez zrywania kompatybilności wstecznej
 - live MCP verification z 2026-05-05 potwierdziła, że `pypi_info`, `check_pypi_package` i `http_get` poprawnie zwracają dane dla `https://pypi.org/pypi/zod/json`; to wzmacnia wniosek, że historyczne blokady były connector-dependent, a nie runtime-dependent
+- `check_npm_package` został wdrożony jako bounded lookup po endpointcie `https://registry.npmjs.org/<package>/latest`, a nie po pełnym dokumencie pakietu; live MCP verification z 2026-05-05 potwierdziła `status: ok` dla `is-number` i `zod`
 
 ## 6. Recovery i legacy separation
 
@@ -230,6 +233,8 @@ Aktualny checkpoint potwierdzony lokalnie po korektach test surface:
   - `npm test` — PASS `79/79`
 - repo validation po wdrożeniu `change_workflow_simulator`:
   - `npm test` — PASS `82/82`
+- repo validation po wdrożeniu bounded `check_npm_package`:
+  - `npm test` — PASS `83/83`
 - live MCP verification po restarcie `server_tools.js`:
   - `project_truth_audit` — `status: ok`
   - `drifts: []`
@@ -239,6 +244,8 @@ Aktualny checkpoint potwierdzony lokalnie po korektach test surface:
   - poprawna klasyfikacja scenariuszy `repo_only` i `runtime_with_client_refresh`
   - `change_workflow_simulator` — `status: ok`
   - poprawna symulacja scenariuszy `repo_only` i `runtime_with_client_refresh`
+  - `check_npm_package("is-number")` — `status: ok`
+  - `check_npm_package("zod")` — `status: ok`
 
 Obszary objęte testami:
 
@@ -261,6 +268,7 @@ Obszary objęte testami:
 - truth tools contract i handler baseline dla `deploy_decision_guard`
 - truth tools contract i handler baseline dla `change_workflow_simulator`
 - web tools static/runtime-shape guards
+- bounded npm package metadata guard
 
 ### Ważne ograniczenie
 
