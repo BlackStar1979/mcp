@@ -422,9 +422,9 @@ Status convention:
 
 Short operational queue:
 
-1. `OPEN` — D1 docs consistency sweep after new commits
+1. `CLOSED` — D1 docs consistency sweep after new commits
    - verify `CURRENT_STATE.md`, `REGISTRY.md`, `RUNTIME_CONTRACTS_CURRENT.md`, `DOCS_CATALOG.md`
-   - close only if canonical docs still match active runtime and test boundary
+   - canonical docs now match active runtime and test boundary after `project_truth_audit` rollout
 
 2. `OPEN` — D2 test names vs actual coverage review
    - check whether test names imply stronger coverage than they really provide
@@ -461,10 +461,10 @@ Do not start this track before the D1-D4 consistency work is under control.
 
 Priority order:
 
-1. `project_truth_audit`
+1. `CLOSED` — `project_truth_audit`
    - highest short-term leverage
    - compare runtime truth, docs truth, test truth, and deploy truth
-   - expected outcome: faster audits, fewer false assumptions, safer model handoffs
+   - outcome achieved: live MCP tool returns `status: ok` and `drifts: []`
 
 2. `code_runtime_map`
    - map entrypoints, import graph, runtime-critical paths, legacy residue, and test-to-runtime coverage

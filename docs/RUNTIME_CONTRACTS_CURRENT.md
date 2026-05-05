@@ -1,8 +1,8 @@
 # Runtime Contracts — Current
 
-Data: 2026-05-04
+Data: 2026-05-05
 Status: canonical_current
-Zakres: aktualne kontrakty i granice odpowiedzialności dla aktywnego runtime `server_tools.js` oraz bieżący status test boundary po korektach coverage
+Zakres: aktualne kontrakty i granice odpowiedzialności dla aktywnego runtime `server_tools.js` oraz bieżący status test boundary po korektach coverage i wdrożeniu `project_truth_audit`
 
 ## Cel
 
@@ -74,6 +74,10 @@ Ten dokument zastępuje używanie `MCP_TOOL_CONTRACTS.md` jako bieżącego sourc
 - `http_get`
 - `check_pypi_package`
 
+### Truth tools
+
+- `project_truth_audit`
+
 ## Critical boundaries
 
 ### Registry boundary
@@ -110,7 +114,17 @@ Confirmed current coverage:
 3. `tests/registry_outputschema_runtime_guard.test.js` covers the active registry rollout set including:
    - `tool_registry_execute`
 4. Latest repo validation:
-   - `npm test` PASS `69/69`
+   - `npm test` PASS `74/74`
+5. Live MCP verification confirms:
+   - `project_truth_audit` is exposed in active runtime
+   - `project_truth_audit` returns `status: ok` with `drifts: []`
+
+### Truth audit boundary
+
+- `project_truth_audit` is an exposed MCP tool but not a logical registry entry under `tool_registry_get_tool`
+- this is expected in the current architecture:
+  - registry describes registered logical tools such as `code_analysis`
+  - `project_truth_audit` is a direct MCP runtime tool for drift detection
 
 Therefore:
 

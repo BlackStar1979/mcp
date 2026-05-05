@@ -18,10 +18,10 @@ Cel: sklasyfikować wszystkie dokumenty w `docs/` według roli, czasu, świeżo�
 | Plik | Rola | Zakres czasu | Status | Jak czytać |
 |---|---|---|---|---|
 | `README.md` | indeks canonical | 2026-05-04 | `canonical_current` | zaczynać od tego |
-| `CURRENT_STATE.md` | bieżący stan systemu | 2026-05-04 | `canonical_current` | opis aktualnego runtime po web_tools i registry execute |
+| `CURRENT_STATE.md` | bieżący stan systemu | 2026-05-05 | `canonical_current` | opis aktualnego runtime po web_tools, registry execute i project_truth_audit |
 | `AUDIT_2026-05-03_DEEP.md` | rozszerzony audyt findings + zalecenia | 2026-05-03 | `canonical_current` | główny dokument dla ryzyk, nieprawidłowości i zaleceń |
 | `OPENAI_MCP_CONFORMANCE_2026-05-03.md` | matryca zgodności MCP / Apps | 2026-05-03 | `canonical_current` | zgodność z wyciągami OpenAI na podstawie kodu |
-| `RUNTIME_CONTRACTS_CURRENT.md` | aktualne granice kontraktowe runtime | 2026-05-04 | `canonical_current` | czytać zamiast traktować `MCP_TOOL_CONTRACTS.md` jako source-of-truth |
+| `RUNTIME_CONTRACTS_CURRENT.md` | aktualne granice kontraktowe runtime | 2026-05-05 | `canonical_current` | czytać zamiast traktować `MCP_TOOL_CONTRACTS.md` jako source-of-truth |
 | `LLM_IDIOT_PROOF_PROTOCOL_2026-05-04.md` | idiotoodporny protokół pracy dla kolejnego LLM | 2026-05-04 | `canonical_current` | najprostsza instrukcja wykonywania pracy krok po kroku |
 | `LLM_EXECUTION_BRIEF.md` | briefing wykonawczy dla kolejnego LLM | 2026-05-03 | `canonical_current` | zasady pracy, harmonogram i dyscyplina dokumentacyjna |
 | `LLM_FULL_HANDOFF_2026-05-04.md` | pełny handoff dla kolejnego LLM | 2026-05-04 | `canonical_current` | pełny kontekst, ustalenia i workflow |

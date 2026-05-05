@@ -7,6 +7,7 @@ import { registerScienceTools } from "../core/science_tools.js";
 import { registerCodeTools } from "../core/code_tools_safe.js";
 import { registerRegistryTools } from "../core/registry_tools_safe.js";
 import { registerWebTools } from "../core/web_tools.js";
+import { registerTruthTools } from "../core/truth_tools.js";
 
 function collectRegisteredTools() {
   const tools = [];
@@ -28,6 +29,7 @@ function collectRegisteredTools() {
   registerCodeTools(server);
   registerRegistryTools(server);
   registerWebTools(server);
+  registerTruthTools(server);
 
   return tools;
 }
@@ -60,6 +62,12 @@ test("contract surface includes web tools registered by server_tools", () => {
 
   assert.ok(names.includes("http_get"), "contract surface must include active web tool: http_get");
   assert.ok(names.includes("check_pypi_package"), "contract surface must include active web tool: check_pypi_package");
+});
+
+test("contract surface includes project truth audit tool", () => {
+  const names = collectRegisteredTools().map(({ name }) => name).sort();
+
+  assert.ok(names.includes("project_truth_audit"), "contract surface must include project_truth_audit");
 });
 
 test("read-only descriptor semantics are internally consistent", () => {

@@ -1,8 +1,8 @@
 # Current State
 
-Data: 2026-05-04
+Data: 2026-05-05
 Status: canonical_current
-Zakres: aktualny stan projektu `C:\Work\mcp` po rolloutach registry execute v7.1, web tools v1c, domknięciu test coverage dla web tools i korekcie testów registry execute v1.1 na aktywny runtime
+Zakres: aktualny stan projektu `C:\Work\mcp` po rolloutach registry execute v7.1, web tools v1c, domknięciu test coverage dla web tools, korekcie testów registry execute v1.1 na aktywny runtime i wdrożeniu `project_truth_audit`
 
 ## 1. Stan repo i lokalnego runtime
 
@@ -48,6 +48,11 @@ Rejestrowane aktywne grupy tooli:
 - connector-safe code tools
 - connector-safe registry tools
 - web tools
+- truth tools
+
+Potwierdzone aktywne narzędzie tej warstwy:
+
+- `project_truth_audit`
 
 ## 3. Auth i tunel
 
@@ -78,6 +83,16 @@ Rejestrowane aktywne grupy tooli:
 - `tool_registry_preflight`
 - `tool_registry_execute`
 - `tool_registry_plan`
+
+### Potwierdzone aktywne truth tools
+
+- `project_truth_audit`
+
+Rola:
+
+- porównanie `runtime truth`, `docs truth`, `test truth` i `deploy truth`
+- wykrywanie driftu między aktywnym runtime, canonical docs i kluczowymi testami
+- narzędzie read-only, local-world, bez dispatch i bez side effects poza audytem
 
 ### Faktyczny model registry dziś
 
@@ -182,6 +197,11 @@ Aktualny checkpoint potwierdzony lokalnie po korektach test surface:
   - `node --test .mcp_warzone\registry_execute_v1_1_runtime_surface.test.js` — PASS `7/7`
 - repo validation po aktualizacji `tests/registry_execute_v1_1.test.js`:
   - `npm test` — PASS `69/69`
+- repo validation po wdrożeniu `project_truth_audit`:
+  - `npm test` — PASS `74/74`
+- live MCP verification po restarcie `server_tools.js`:
+  - `project_truth_audit` — `status: ok`
+  - `drifts: []`
 
 Obszary objęte testami:
 
@@ -193,11 +213,13 @@ Obszary objęte testami:
 - perf script
 - recovery no-legacy import
 - MCP descriptor contract dla pełnego aktywnego surface `server_tools.js`, w tym web tools
+- MCP descriptor contract dla pełnego aktywnego surface `server_tools.js`, w tym truth tools
 - MCP result-shape helpers
 - registry safe layer
 - registry execute simulation
 - registry execute v1.1 assertions czytające aktywny runtime `core/registry_tools_safe.js`, nie staging artifact
 - registry outputSchema runtime guards, w tym `tool_registry_execute`
+- truth tools contract i handler baseline dla `project_truth_audit`
 - web tools static/runtime-shape guards
 
 ### Ważne ograniczenie
