@@ -24,6 +24,13 @@ test("truth tools expose deploy_decision_guard with explicit outputSchema", () =
   assert.match(truthTools, /classification:\s*z\.enum\(\["repo_only", "test_only", "runtime", "runtime_with_client_refresh"\]\)/);
 });
 
+test("truth tools expose change_workflow_simulator with explicit outputSchema", () => {
+  assert.match(truthTools, /"change_workflow_simulator"/);
+  assert.match(truthTools, /outputSchema:\s*CHANGE_WORKFLOW_SIMULATOR_OUTPUT/);
+  assert.match(truthTools, /operator_actions:\s*z\.array\(z\.string\(\)\)/);
+  assert.match(truthTools, /validation_steps:\s*z\.array\(z\.string\(\)\)/);
+});
+
 test("project_truth_audit is read-only and local-world", () => {
   assert.match(truthTools, /readOnlyHint:\s*true/);
   assert.match(truthTools, /destructiveHint:\s*false/);
@@ -130,4 +137,61 @@ test("deploy_decision_guard classifies runtime tool-surface change", async () =>
   assert.equal(payload.requires_restart_mcp, true);
   assert.equal(payload.requires_client_refresh, true);
   assert.ok(payload.workflow.includes("deploy.ps1 -Mode Prepare"));
+});
+
+test("change_workflow_simulator returns short repo-only workflow", async () => {
+  let captured;
+  const server = {
+    registerTool(name, config, handler) {
+      if (name === "change_workflow_simulator") captured = { name, config, handler };
+    },
+  };
+
+  registerTruthTools(server);
+  assert.equal(captured.name, "change_workflow_simulator");
+
+  const result = await captured.handler({
+    changed_paths: ["docs/CURRENT_STATE.md", "tests/truth_tools_v1.test.js"],
+    descriptor_change: false,
+    schema_change: false,
+    tool_surface_change: false,
+  });
+  const payload = result.structuredContent || result;
+
+  assert.equal(payload.classification, "repo_only");
+  assert.equal(payload.requires_manifest, false);
+  assert.equal(payload.requires_restart_mcp, false);
+  assert.equal(payload.requires_client_refresh, false);
+  assert.ok(payload.deployment_steps.includes("no deploy pipeline required"));
+  assert.ok(payload.post_steps.includes("commit"));
+  assert.equal(payload.operator_actions.length, 0);
+});
+
+test("change_workflow_simulator returns runtime-with-refresh workflow", async () => {
+  let captured;
+  const server = {
+    registerTool(name, config, handler) {
+      if (name === "change_workflow_simulator") captured = { name, config, handler };
+    },
+  };
+
+  registerTruthTools(server);
+
+  const result = await captured.handler({
+    changed_paths: ["core/truth_tools.js", "server_tools.js"],
+    descriptor_change: true,
+    schema_change: true,
+    tool_surface_change: true,
+  });
+  const payload = result.structuredContent || result;
+
+  assert.equal(payload.classification, "runtime_with_client_refresh");
+  assert.equal(payload.requires_manifest, true);
+  assert.equal(payload.requires_prepare_execute, true);
+  assert.equal(payload.requires_restart_mcp, true);
+  assert.equal(payload.requires_client_refresh, true);
+  assert.ok(payload.operator_actions.includes("run Prepare"));
+  assert.ok(payload.operator_actions.includes("restart MCP"));
+  assert.ok(payload.operator_actions.includes("refresh client connector"));
+  assert.ok(payload.deployment_steps.includes("deploy.ps1 -Mode Execute"));
 });

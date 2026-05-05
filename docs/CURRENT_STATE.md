@@ -2,7 +2,7 @@
 
 Data: 2026-05-05
 Status: canonical_current
-Zakres: aktualny stan projektu `C:\Work\mcp` po rolloutach registry execute v7.1, web tools v1c, domknięciu test coverage dla web tools, korekcie testów registry execute v1.1 na aktywny runtime oraz wdrożeniu `project_truth_audit`, `code_runtime_map` i `deploy_decision_guard`
+Zakres: aktualny stan projektu `C:\Work\mcp` po rolloutach registry execute v7.1, web tools v1c, domknięciu test coverage dla web tools, korekcie testów registry execute v1.1 na aktywny runtime oraz wdrożeniu `project_truth_audit`, `code_runtime_map`, `deploy_decision_guard` i `change_workflow_simulator`
 
 ## 1. Stan repo i lokalnego runtime
 
@@ -55,6 +55,7 @@ Potwierdzone aktywne narzędzie tej warstwy:
 - `project_truth_audit`
 - `code_runtime_map`
 - `deploy_decision_guard`
+- `change_workflow_simulator`
 
 ## 3. Auth i tunel
 
@@ -91,6 +92,7 @@ Potwierdzone aktywne narzędzie tej warstwy:
 - `project_truth_audit`
 - `code_runtime_map`
 - `deploy_decision_guard`
+- `change_workflow_simulator`
 
 Rola:
 
@@ -99,6 +101,7 @@ Rola:
 - mapowanie entrypointów, aktywnych modułów runtime, protected boundaries, legacy/staging areas i relacji test->runtime
 - klasyfikacja zmiany jako `repo_only`, `test_only`, `runtime` albo `runtime_with_client_refresh`
 - zwracanie minimalnego bezpiecznego workflow wdrożeniowego i powodów decyzji
+- symulowanie operator workflow dla planowanej zmiany bez wykonywania deployu
 - narzędzie read-only, local-world, bez dispatch i bez side effects poza audytem
 
 ### Faktyczny model registry dziś
@@ -221,6 +224,8 @@ Aktualny checkpoint potwierdzony lokalnie po korektach test surface:
   - `npm test` — PASS `76/76`
 - repo validation po wdrożeniu `deploy_decision_guard`:
   - `npm test` — PASS `79/79`
+- repo validation po wdrożeniu `change_workflow_simulator`:
+  - `npm test` — PASS `82/82`
 - live MCP verification po restarcie `server_tools.js`:
   - `project_truth_audit` — `status: ok`
   - `drifts: []`
@@ -228,6 +233,8 @@ Aktualny checkpoint potwierdzony lokalnie po korektach test surface:
   - aktywne grupy runtime obejmują `truth tools`
   - `deploy_decision_guard` — `status: ok`
   - poprawna klasyfikacja scenariuszy `repo_only` i `runtime_with_client_refresh`
+  - `change_workflow_simulator` — `status: ok`
+  - poprawna symulacja scenariuszy `repo_only` i `runtime_with_client_refresh`
 
 Obszary objęte testami:
 
@@ -248,6 +255,7 @@ Obszary objęte testami:
 - truth tools contract i handler baseline dla `project_truth_audit`
 - truth tools contract i handler baseline dla `code_runtime_map`
 - truth tools contract i handler baseline dla `deploy_decision_guard`
+- truth tools contract i handler baseline dla `change_workflow_simulator`
 - web tools static/runtime-shape guards
 
 ### Ważne ograniczenie

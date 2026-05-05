@@ -2,7 +2,7 @@
 
 Data: 2026-05-05
 Status: canonical_current
-Zakres: aktualne kontrakty i granice odpowiedzialności dla aktywnego runtime `server_tools.js` oraz bieżący status test boundary po korektach coverage i wdrożeniu `project_truth_audit`, `code_runtime_map` oraz `deploy_decision_guard`
+Zakres: aktualne kontrakty i granice odpowiedzialności dla aktywnego runtime `server_tools.js` oraz bieżący status test boundary po korektach coverage i wdrożeniu `project_truth_audit`, `code_runtime_map`, `deploy_decision_guard` oraz `change_workflow_simulator`
 
 ## Cel
 
@@ -79,6 +79,7 @@ Ten dokument zastępuje używanie `MCP_TOOL_CONTRACTS.md` jako bieżącego sourc
 - `project_truth_audit`
 - `code_runtime_map`
 - `deploy_decision_guard`
+- `change_workflow_simulator`
 
 ## Critical boundaries
 
@@ -116,7 +117,7 @@ Confirmed current coverage:
 3. `tests/registry_outputschema_runtime_guard.test.js` covers the active registry rollout set including:
    - `tool_registry_execute`
 4. Latest repo validation:
-   - `npm test` PASS `79/79`
+   - `npm test` PASS `82/82`
 5. Live MCP verification confirms:
    - `project_truth_audit` is exposed in active runtime
    - `project_truth_audit` returns `status: ok` with `drifts: []`
@@ -124,6 +125,8 @@ Confirmed current coverage:
    - `code_runtime_map` returns `status: ok` with active entrypoints, module map, boundaries, and test links
    - `deploy_decision_guard` is exposed in active runtime
    - `deploy_decision_guard` returns `status: ok` for both repo-only and runtime-with-refresh scenarios
+   - `change_workflow_simulator` is exposed in active runtime
+   - `change_workflow_simulator` returns `status: ok` for both repo-only and runtime-with-refresh simulations
    - full registry control-plane was manually invoked through active MCP on 2026-05-05:
      - `tool_registry_status`
      - `tool_registry_list`
@@ -139,7 +142,7 @@ Confirmed current coverage:
 - `project_truth_audit` is an exposed MCP tool but not a logical registry entry under `tool_registry_get_tool`
 - this is expected in the current architecture:
   - registry describes registered logical tools such as `code_analysis`
-  - `project_truth_audit`, `code_runtime_map`, and `deploy_decision_guard` are direct MCP runtime tools for drift detection, runtime orientation, and workflow classification
+  - `project_truth_audit`, `code_runtime_map`, `deploy_decision_guard`, and `change_workflow_simulator` are direct MCP runtime tools for drift detection, runtime orientation, workflow classification, and operator-step simulation
 
 Therefore:
 

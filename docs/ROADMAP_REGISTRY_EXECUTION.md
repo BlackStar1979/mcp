@@ -494,9 +494,9 @@ Priority order:
      - runtime + client refresh
    - outcome achieved: live MCP tool returns `status: ok` and correct workflow decisions for repo-only and runtime-with-refresh cases
 
-4. `change_workflow_simulator`
+4. `CLOSED` — `change_workflow_simulator`
    - simulate the minimal safe validation/deploy/restart/reconnect sequence for a planned change
-   - expected outcome: lower operator burden and clearer execution plans
+   - outcome achieved: live MCP tool returns `status: ok` for both repo-only and runtime-with-refresh simulations
 
 5. stronger web/research tools
    - expand only after truth/audit/deploy discipline is stable
