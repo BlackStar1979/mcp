@@ -120,6 +120,13 @@ Ten dokument opisuje zasady pracy i kolejność faz, ale nie powinien być drugi
 
 Jeśli w trakcie pracy widzisz brak narzędzia, który realnie zwiększa koszt, ryzyko albo chaos operacyjny, masz obowiązek zaproponować nowe narzędzie MCP i sensownie je spriorytetyzować zamiast czekać, aż zrobi to użytkownik.
 
+Przy proponowaniu kolejnych warstw systemu pamiętaj:
+
+- narzędzia pierwszego rzutu mają pierwszeństwo przed stanowością, retrieval i agentami,
+- warstwy lokalne, audytowalne i odwracalne mają pierwszeństwo przed zewnętrzną wygodą,
+- przyszłe warstwy źródeł wiedzy muszą od początku zakładać metadata discipline i lifecycle źródeł,
+- RAG, session state i internal agents to osobny etap architektoniczny, nie szybki dodatek.
+
 ### Faza 1. Ustalenie prawdy operacyjnej
 
 Cel:

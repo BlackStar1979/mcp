@@ -490,3 +490,33 @@ Deferred by design:
 
 - `romioncoresim` bridge remains a later track
 - RAG orchestration and internal agent/model-serving remain lower priority than the tools above
+
+---
+
+## FUTURE ARCHITECTURE GUARDRAILS
+
+These principles are accepted into the workflow now, even where implementation is deferred:
+
+1. Foundation before state
+   - do not introduce RAG, internal agents, session state, or model routing before contracts, policy, audit, deploy truth, and test truth are stable
+
+2. Local and auditable before clever
+   - prefer local, deterministic, reversible, and auditable components over opaque convenience layers
+
+3. Metadata discipline for future source systems
+   - any later knowledge/retrieval layer should treat sources as first-class objects with:
+     - stable identity
+     - metadata
+     - checksum or equivalent content signature
+     - add / rewrite / delete lifecycle
+
+4. Retrieval/state is a separate phase
+   - vector stores, source monitoring, internal agent loops, and long-lived session memory are not "small additions"
+   - they require a dedicated architecture phase after first-line tools are mature
+
+5. New capability only after truth closes
+   - new capability should follow closure of:
+     - runtime truth
+     - docs truth
+     - test truth
+     - deploy truth
