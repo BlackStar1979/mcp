@@ -69,6 +69,7 @@ test("contract surface includes project truth audit tool", () => {
 
   assert.ok(names.includes("project_truth_audit"), "contract surface must include project_truth_audit");
   assert.ok(names.includes("code_runtime_map"), "contract surface must include code_runtime_map");
+  assert.ok(names.includes("deploy_decision_guard"), "contract surface must include deploy_decision_guard");
 });
 
 test("read-only descriptor semantics are internally consistent", () => {

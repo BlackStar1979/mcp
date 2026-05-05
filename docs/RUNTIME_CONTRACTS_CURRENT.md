@@ -2,7 +2,7 @@
 
 Data: 2026-05-05
 Status: canonical_current
-Zakres: aktualne kontrakty i granice odpowiedzialności dla aktywnego runtime `server_tools.js` oraz bieżący status test boundary po korektach coverage i wdrożeniu `project_truth_audit` oraz `code_runtime_map`
+Zakres: aktualne kontrakty i granice odpowiedzialności dla aktywnego runtime `server_tools.js` oraz bieżący status test boundary po korektach coverage i wdrożeniu `project_truth_audit`, `code_runtime_map` oraz `deploy_decision_guard`
 
 ## Cel
 
@@ -78,6 +78,7 @@ Ten dokument zastępuje używanie `MCP_TOOL_CONTRACTS.md` jako bieżącego sourc
 
 - `project_truth_audit`
 - `code_runtime_map`
+- `deploy_decision_guard`
 
 ## Critical boundaries
 
@@ -115,19 +116,21 @@ Confirmed current coverage:
 3. `tests/registry_outputschema_runtime_guard.test.js` covers the active registry rollout set including:
    - `tool_registry_execute`
 4. Latest repo validation:
-   - `npm test` PASS `76/76`
+   - `npm test` PASS `79/79`
 5. Live MCP verification confirms:
    - `project_truth_audit` is exposed in active runtime
    - `project_truth_audit` returns `status: ok` with `drifts: []`
    - `code_runtime_map` is exposed in active runtime
    - `code_runtime_map` returns `status: ok` with active entrypoints, module map, boundaries, and test links
+   - `deploy_decision_guard` is exposed in active runtime
+   - `deploy_decision_guard` returns `status: ok` for both repo-only and runtime-with-refresh scenarios
 
 ### Truth audit boundary
 
 - `project_truth_audit` is an exposed MCP tool but not a logical registry entry under `tool_registry_get_tool`
 - this is expected in the current architecture:
   - registry describes registered logical tools such as `code_analysis`
-  - `project_truth_audit` and `code_runtime_map` are direct MCP runtime tools for drift detection and runtime orientation
+  - `project_truth_audit`, `code_runtime_map`, and `deploy_decision_guard` are direct MCP runtime tools for drift detection, runtime orientation, and workflow classification
 
 Therefore:
 

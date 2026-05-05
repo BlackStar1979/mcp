@@ -2,7 +2,7 @@
 
 Data: 2026-05-05
 Status: canonical_current
-Zakres: aktualny stan projektu `C:\Work\mcp` po rolloutach registry execute v7.1, web tools v1c, domknięciu test coverage dla web tools, korekcie testów registry execute v1.1 na aktywny runtime oraz wdrożeniu `project_truth_audit` i `code_runtime_map`
+Zakres: aktualny stan projektu `C:\Work\mcp` po rolloutach registry execute v7.1, web tools v1c, domknięciu test coverage dla web tools, korekcie testów registry execute v1.1 na aktywny runtime oraz wdrożeniu `project_truth_audit`, `code_runtime_map` i `deploy_decision_guard`
 
 ## 1. Stan repo i lokalnego runtime
 
@@ -54,6 +54,7 @@ Potwierdzone aktywne narzędzie tej warstwy:
 
 - `project_truth_audit`
 - `code_runtime_map`
+- `deploy_decision_guard`
 
 ## 3. Auth i tunel
 
@@ -89,12 +90,15 @@ Potwierdzone aktywne narzędzie tej warstwy:
 
 - `project_truth_audit`
 - `code_runtime_map`
+- `deploy_decision_guard`
 
 Rola:
 
 - porównanie `runtime truth`, `docs truth`, `test truth` i `deploy truth`
 - wykrywanie driftu między aktywnym runtime, canonical docs i kluczowymi testami
 - mapowanie entrypointów, aktywnych modułów runtime, protected boundaries, legacy/staging areas i relacji test->runtime
+- klasyfikacja zmiany jako `repo_only`, `test_only`, `runtime` albo `runtime_with_client_refresh`
+- zwracanie minimalnego bezpiecznego workflow wdrożeniowego i powodów decyzji
 - narzędzie read-only, local-world, bez dispatch i bez side effects poza audytem
 
 ### Faktyczny model registry dziś
@@ -204,11 +208,15 @@ Aktualny checkpoint potwierdzony lokalnie po korektach test surface:
   - `npm test` — PASS `74/74`
 - repo validation po wdrożeniu `code_runtime_map`:
   - `npm test` — PASS `76/76`
+- repo validation po wdrożeniu `deploy_decision_guard`:
+  - `npm test` — PASS `79/79`
 - live MCP verification po restarcie `server_tools.js`:
   - `project_truth_audit` — `status: ok`
   - `drifts: []`
   - `code_runtime_map` — `status: ok`
   - aktywne grupy runtime obejmują `truth tools`
+  - `deploy_decision_guard` — `status: ok`
+  - poprawna klasyfikacja scenariuszy `repo_only` i `runtime_with_client_refresh`
 
 Obszary objęte testami:
 
@@ -228,6 +236,7 @@ Obszary objęte testami:
 - registry outputSchema runtime guards, w tym `tool_registry_execute`
 - truth tools contract i handler baseline dla `project_truth_audit`
 - truth tools contract i handler baseline dla `code_runtime_map`
+- truth tools contract i handler baseline dla `deploy_decision_guard`
 - web tools static/runtime-shape guards
 
 ### Ważne ograniczenie

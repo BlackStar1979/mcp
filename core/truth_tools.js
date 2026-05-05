@@ -74,6 +74,19 @@ const CODE_RUNTIME_MAP_OUTPUT = z.object({
   }).strict()),
 }).strict();
 
+const DEPLOY_DECISION_GUARD_OUTPUT = z.object({
+  status: z.string(),
+  guard_version: z.string(),
+  classification: z.enum(["repo_only", "test_only", "runtime", "runtime_with_client_refresh"]),
+  changed_paths: z.array(z.string()),
+  requires_manifest: z.boolean(),
+  requires_prepare_execute: z.boolean(),
+  requires_restart_mcp: z.boolean(),
+  requires_client_refresh: z.boolean(),
+  workflow: z.array(z.string()),
+  reasons: z.array(z.string()),
+}).strict();
+
 const RUNTIME_GROUPS = [
   "index tools",
   "filesystem tools",
@@ -319,6 +332,78 @@ async function runCodeRuntimeMap() {
   return result;
 }
 
+function normalizePathValue(value) {
+  return String(value || "").replaceAll("\\", "/").replace(/^\/+/, "");
+}
+
+function inferDeployDecision({ changed_paths = [], descriptor_change = false, schema_change = false, tool_surface_change = false } = {}) {
+  const normalizedPaths = changed_paths.map(normalizePathValue).filter(Boolean);
+
+  const touchesDocs = normalizedPaths.some((p) => p.startsWith("docs/"));
+  const touchesTests = normalizedPaths.some((p) => p.startsWith("tests/"));
+  const touchesRuntime =
+    normalizedPaths.some((p) => p === "server.js" || p === "server_tools.js" || p.startsWith("core/"));
+  const touchesControlPlane =
+    normalizedPaths.some((p) => p === "deploy.ps1" || p === "rollback.ps1" || p === "perf.ps1");
+
+  const effectiveRuntime = touchesRuntime || touchesControlPlane;
+  const effectiveClientRefresh = tool_surface_change || descriptor_change || schema_change;
+
+  let classification = "repo_only";
+  if (effectiveRuntime && effectiveClientRefresh) classification = "runtime_with_client_refresh";
+  else if (effectiveRuntime) classification = "runtime";
+  else if (touchesTests && !touchesDocs) classification = "test_only";
+  else if (touchesTests && touchesDocs) classification = "repo_only";
+
+  const requiresManifest = effectiveRuntime;
+  const requiresPrepareExecute = effectiveRuntime;
+  const requiresRestartMcp = effectiveRuntime;
+  const requiresClientRefresh = effectiveRuntime && effectiveClientRefresh;
+
+  const reasons = [];
+  if (touchesRuntime) reasons.push("active runtime files changed");
+  if (touchesControlPlane) reasons.push("control-plane script changed");
+  if (touchesTests) reasons.push("test files changed");
+  if (touchesDocs) reasons.push("documentation files changed");
+  if (descriptor_change) reasons.push("descriptor metadata changed");
+  if (schema_change) reasons.push("schema contract changed");
+  if (tool_surface_change) reasons.push("tool surface changed");
+  if (!reasons.length) reasons.push("no recognized path class; defaulting to repo_only");
+
+  const workflow = effectiveRuntime
+    ? [
+        "prepare change in .mcp_warzone",
+        "validate staged files",
+        "create manifest in .mcp_deploy",
+        "deploy.ps1 -Mode Prepare",
+        "deploy.ps1 -Mode Execute",
+        "restart MCP",
+        ...(requiresClientRefresh ? ["refresh client connector"] : []),
+        "runtime verification",
+        "rollback if verification fails",
+      ]
+    : [
+        "edit tracked repo files",
+        "run repo validation",
+        "update canonical docs if needed",
+        "commit",
+        "push",
+      ];
+
+  return {
+    status: "ok",
+    guard_version: "v1",
+    classification,
+    changed_paths: normalizedPaths,
+    requires_manifest: requiresManifest,
+    requires_prepare_execute: requiresPrepareExecute,
+    requires_restart_mcp: requiresRestartMcp,
+    requires_client_refresh: requiresClientRefresh,
+    workflow,
+    reasons,
+  };
+}
+
 export function registerTruthTools(server) {
   registerSafeTool(
     server,
@@ -344,5 +429,33 @@ export function registerTruthTools(server) {
       annotations: READ_ONLY_LOCAL,
     },
     async () => runCodeRuntimeMap()
+  );
+
+  registerSafeTool(
+    server,
+    "deploy_decision_guard",
+    {
+      title: "Deploy decision guard",
+      description: "Classify a planned change as repo-only, test-only, runtime, or runtime with client refresh, and return the minimal safe workflow.",
+      inputSchema: z.object({
+        changed_paths: z.array(z.string()).min(1),
+        descriptor_change: z.boolean().optional().default(false),
+        schema_change: z.boolean().optional().default(false),
+        tool_surface_change: z.boolean().optional().default(false),
+      }).strict(),
+      outputSchema: DEPLOY_DECISION_GUARD_OUTPUT,
+      annotations: READ_ONLY_LOCAL,
+    },
+    async (args) => {
+      const result = inferDeployDecision(args || {});
+      await audit("deploy_decision_guard", {
+        source: "truth_tools_v1",
+        event: "deploy_decision_guard",
+        classification: result.classification,
+        requires_restart_mcp: result.requires_restart_mcp,
+        requires_client_refresh: result.requires_client_refresh,
+      });
+      return result;
+    }
   );
 }

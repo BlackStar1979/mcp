@@ -18,6 +18,12 @@ test("truth tools expose code_runtime_map with explicit outputSchema", () => {
   assert.match(truthTools, /description:\s*"Map active runtime entrypoints, registered modules, protected boundaries, legacy\/staging areas, and key test-to-runtime links\."/);
 });
 
+test("truth tools expose deploy_decision_guard with explicit outputSchema", () => {
+  assert.match(truthTools, /"deploy_decision_guard"/);
+  assert.match(truthTools, /outputSchema:\s*DEPLOY_DECISION_GUARD_OUTPUT/);
+  assert.match(truthTools, /classification:\s*z\.enum\(\["repo_only", "test_only", "runtime", "runtime_with_client_refresh"\]\)/);
+});
+
 test("project_truth_audit is read-only and local-world", () => {
   assert.match(truthTools, /readOnlyHint:\s*true/);
   assert.match(truthTools, /destructiveHint:\s*false/);
@@ -74,4 +80,54 @@ test("code_runtime_map handler returns active runtime mapping baseline", async (
   assert.ok(payload.server_tools_runtime.active_groups.includes("web tools"));
   assert.ok(payload.legacy_and_staging.legacy_files.includes("core/code_tools.js"));
   assert.ok(payload.test_runtime_links.some((item) => item.test_file === "tests/truth_tools_v1.test.js"));
+});
+
+test("deploy_decision_guard classifies repo-only docs and tests change", async () => {
+  let captured;
+  const server = {
+    registerTool(name, config, handler) {
+      if (name === "deploy_decision_guard") captured = { name, config, handler };
+    },
+  };
+
+  registerTruthTools(server);
+  assert.equal(captured.name, "deploy_decision_guard");
+
+  const result = await captured.handler({
+    changed_paths: ["docs/CURRENT_STATE.md", "tests/truth_tools_v1.test.js"],
+    descriptor_change: false,
+    schema_change: false,
+    tool_surface_change: false,
+  });
+  const payload = result.structuredContent || result;
+
+  assert.equal(payload.classification, "repo_only");
+  assert.equal(payload.requires_manifest, false);
+  assert.equal(payload.requires_restart_mcp, false);
+  assert.equal(payload.requires_client_refresh, false);
+});
+
+test("deploy_decision_guard classifies runtime tool-surface change", async () => {
+  let captured;
+  const server = {
+    registerTool(name, config, handler) {
+      if (name === "deploy_decision_guard") captured = { name, config, handler };
+    },
+  };
+
+  registerTruthTools(server);
+  const result = await captured.handler({
+    changed_paths: ["core/truth_tools.js", "server_tools.js"],
+    descriptor_change: true,
+    schema_change: true,
+    tool_surface_change: true,
+  });
+  const payload = result.structuredContent || result;
+
+  assert.equal(payload.classification, "runtime_with_client_refresh");
+  assert.equal(payload.requires_manifest, true);
+  assert.equal(payload.requires_prepare_execute, true);
+  assert.equal(payload.requires_restart_mcp, true);
+  assert.equal(payload.requires_client_refresh, true);
+  assert.ok(payload.workflow.includes("deploy.ps1 -Mode Prepare"));
 });

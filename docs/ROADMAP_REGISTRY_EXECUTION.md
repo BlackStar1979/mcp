@@ -470,13 +470,13 @@ Priority order:
    - map entrypoints, import graph, runtime-critical paths, legacy residue, and test-to-runtime coverage
    - outcome achieved: live MCP tool returns `status: ok` with entrypoints, module map, boundaries, legacy/staging markers, and test links
 
-3. `deploy_decision_guard`
+3. `CLOSED` — `deploy_decision_guard`
    - classify change as:
      - repo-only
      - test-only
      - runtime
      - runtime + client refresh
-   - expected outcome: fewer workflow mistakes and fewer unnecessary deploy/restart cycles
+   - outcome achieved: live MCP tool returns `status: ok` and correct workflow decisions for repo-only and runtime-with-refresh cases
 
 4. `change_workflow_simulator`
    - simulate the minimal safe validation/deploy/restart/reconnect sequence for a planned change
