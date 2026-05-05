@@ -68,6 +68,7 @@ test("contract surface includes project truth audit tool", () => {
   const names = collectRegisteredTools().map(({ name }) => name).sort();
 
   assert.ok(names.includes("project_truth_audit"), "contract surface must include project_truth_audit");
+  assert.ok(names.includes("code_runtime_map"), "contract surface must include code_runtime_map");
 });
 
 test("read-only descriptor semantics are internally consistent", () => {

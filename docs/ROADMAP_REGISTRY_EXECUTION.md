@@ -466,9 +466,9 @@ Priority order:
    - compare runtime truth, docs truth, test truth, and deploy truth
    - outcome achieved: live MCP tool returns `status: ok` and `drifts: []`
 
-2. `code_runtime_map`
+2. `CLOSED` — `code_runtime_map`
    - map entrypoints, import graph, runtime-critical paths, legacy residue, and test-to-runtime coverage
-   - expected outcome: stronger code/dependency analysis and faster orientation
+   - outcome achieved: live MCP tool returns `status: ok` with entrypoints, module map, boundaries, legacy/staging markers, and test links
 
 3. `deploy_decision_guard`
    - classify change as:

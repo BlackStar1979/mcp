@@ -2,7 +2,7 @@
 
 Data: 2026-05-05
 Status: canonical_current
-Zakres: aktualny stan projektu `C:\Work\mcp` po rolloutach registry execute v7.1, web tools v1c, domknięciu test coverage dla web tools, korekcie testów registry execute v1.1 na aktywny runtime i wdrożeniu `project_truth_audit`
+Zakres: aktualny stan projektu `C:\Work\mcp` po rolloutach registry execute v7.1, web tools v1c, domknięciu test coverage dla web tools, korekcie testów registry execute v1.1 na aktywny runtime oraz wdrożeniu `project_truth_audit` i `code_runtime_map`
 
 ## 1. Stan repo i lokalnego runtime
 
@@ -53,6 +53,7 @@ Rejestrowane aktywne grupy tooli:
 Potwierdzone aktywne narzędzie tej warstwy:
 
 - `project_truth_audit`
+- `code_runtime_map`
 
 ## 3. Auth i tunel
 
@@ -87,11 +88,13 @@ Potwierdzone aktywne narzędzie tej warstwy:
 ### Potwierdzone aktywne truth tools
 
 - `project_truth_audit`
+- `code_runtime_map`
 
 Rola:
 
 - porównanie `runtime truth`, `docs truth`, `test truth` i `deploy truth`
 - wykrywanie driftu między aktywnym runtime, canonical docs i kluczowymi testami
+- mapowanie entrypointów, aktywnych modułów runtime, protected boundaries, legacy/staging areas i relacji test->runtime
 - narzędzie read-only, local-world, bez dispatch i bez side effects poza audytem
 
 ### Faktyczny model registry dziś
@@ -199,9 +202,13 @@ Aktualny checkpoint potwierdzony lokalnie po korektach test surface:
   - `npm test` — PASS `69/69`
 - repo validation po wdrożeniu `project_truth_audit`:
   - `npm test` — PASS `74/74`
+- repo validation po wdrożeniu `code_runtime_map`:
+  - `npm test` — PASS `76/76`
 - live MCP verification po restarcie `server_tools.js`:
   - `project_truth_audit` — `status: ok`
   - `drifts: []`
+  - `code_runtime_map` — `status: ok`
+  - aktywne grupy runtime obejmują `truth tools`
 
 Obszary objęte testami:
 
@@ -220,6 +227,7 @@ Obszary objęte testami:
 - registry execute v1.1 assertions czytające aktywny runtime `core/registry_tools_safe.js`, nie staging artifact
 - registry outputSchema runtime guards, w tym `tool_registry_execute`
 - truth tools contract i handler baseline dla `project_truth_audit`
+- truth tools contract i handler baseline dla `code_runtime_map`
 - web tools static/runtime-shape guards
 
 ### Ważne ograniczenie

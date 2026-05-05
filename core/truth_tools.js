@@ -41,6 +41,39 @@ const PROJECT_TRUTH_AUDIT_OUTPUT = z.object({
   }).strict()),
 }).strict();
 
+const CODE_RUNTIME_MAP_OUTPUT = z.object({
+  status: z.string(),
+  map_version: z.string(),
+  repo_root: z.string(),
+  entrypoints: z.array(z.object({
+    file: z.string(),
+    role: z.string(),
+    port: z.number().optional(),
+  }).strict()),
+  server_tools_runtime: z.object({
+    active_modules: z.array(z.object({
+      file: z.string(),
+      register: z.string(),
+      category: z.string(),
+    }).strict()),
+    active_groups: z.array(z.string()),
+  }).strict(),
+  protected_boundaries: z.object({
+    protected_files: z.array(z.string()),
+    blocked_top_level_dirs: z.array(z.string()),
+    skipped_scan_dirs: z.array(z.string()),
+  }).strict(),
+  legacy_and_staging: z.object({
+    legacy_files: z.array(z.string()),
+    staging_dirs: z.array(z.string()),
+  }).strict(),
+  test_runtime_links: z.array(z.object({
+    test_file: z.string(),
+    covers: z.array(z.string()),
+    kind: z.string(),
+  }).strict()),
+}).strict();
+
 const RUNTIME_GROUPS = [
   "index tools",
   "filesystem tools",
@@ -198,6 +231,94 @@ async function runProjectTruthAudit() {
   return result;
 }
 
+async function runCodeRuntimeMap() {
+  const [serverTools, configFile] = await Promise.all([
+    readLocal("server_tools.js"),
+    readLocal("core/config.js"),
+  ]);
+
+  const activeModules = [
+    { file: "core/tools_index.js", register: "registerIndexTools", category: "index tools" },
+    { file: "core/tools_fs.js", register: "registerFsTools", category: "filesystem tools" },
+    { file: "core/science_tools.js", register: "registerScienceTools", category: "science tools" },
+    { file: "core/code_tools_safe.js", register: "registerCodeTools", category: "connector-safe code tools" },
+    { file: "core/registry_tools_safe.js", register: "registerRegistryTools", category: "connector-safe registry tools" },
+    { file: "core/web_tools.js", register: "registerWebTools", category: "web tools" },
+    { file: "core/truth_tools.js", register: "registerTruthTools", category: "truth tools" },
+  ].filter(({ register }) => serverTools.includes(`${register}(server)`));
+
+  const testRuntimeLinks = [
+    {
+      test_file: "tests/mcp_contract_surface.test.js",
+      covers: ["server_tools tool registration surface", "web tools", "truth tools"],
+      kind: "contract surface",
+    },
+    {
+      test_file: "tests/registry_execute_v1_1.test.js",
+      covers: ["core/registry_tools_safe.js", "tool_registry_execute"],
+      kind: "runtime-source guard",
+    },
+    {
+      test_file: "tests/registry_outputschema_runtime_guard.test.js",
+      covers: ["core/registry_tools_safe.js", "registry outputSchema rollout"],
+      kind: "runtime-schema guard",
+    },
+    {
+      test_file: "tests/truth_tools_v1.test.js",
+      covers: ["core/truth_tools.js", "server_tools.js", "project_truth_audit"],
+      kind: "tool contract + handler baseline",
+    },
+  ];
+
+  const protectedFilesMatch = configFile.match(/PROTECTED_PATHS = new Set\(\[([\s\S]*?)\]\)/);
+  const blockedTopLevelDirsMatch = configFile.match(/BLOCKED_TOP_LEVEL_DIRS = new Set\(\[([\s\S]*?)\]\)/);
+  const skippedScanDirsMatch = configFile.match(/SKIPPED_SCAN_DIRS = new Set\(\[([\s\S]*?)\]\)/);
+
+  const extractList = (match) =>
+    (match?.[1] || "")
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line.startsWith('"'))
+      .map((line) => line.replace(/["',]/g, ""))
+      .filter(Boolean);
+
+  const result = {
+    status: "ok",
+    map_version: "v1",
+    repo_root: BASE_DIR,
+    entrypoints: [
+      { file: "server.js", role: "read-only MCP", port: 3000 },
+      { file: "server_tools.js", role: "tools MCP", port: 3001 },
+      { file: "deploy.ps1", role: "deploy control-plane" },
+      { file: "rollback.ps1", role: "rollback control-plane" },
+      { file: "perf.ps1", role: "perf control-plane" },
+    ],
+    server_tools_runtime: {
+      active_modules: activeModules,
+      active_groups: activeModules.map((item) => item.category),
+    },
+    protected_boundaries: {
+      protected_files: extractList(protectedFilesMatch),
+      blocked_top_level_dirs: extractList(blockedTopLevelDirsMatch),
+      skipped_scan_dirs: extractList(skippedScanDirsMatch),
+    },
+    legacy_and_staging: {
+      legacy_files: ["core/code_tools.js"],
+      staging_dirs: [".mcp_warzone", ".mcp_deploy", ".mcp_deploy_backup"],
+    },
+    test_runtime_links: testRuntimeLinks,
+  };
+
+  await audit("code_runtime_map", {
+    source: "truth_tools_v1",
+    event: "code_runtime_map",
+    status: result.status,
+    active_module_count: result.server_tools_runtime.active_modules.length,
+  });
+
+  return result;
+}
+
 export function registerTruthTools(server) {
   registerSafeTool(
     server,
@@ -210,5 +331,18 @@ export function registerTruthTools(server) {
       annotations: READ_ONLY_LOCAL,
     },
     async () => runProjectTruthAudit()
+  );
+
+  registerSafeTool(
+    server,
+    "code_runtime_map",
+    {
+      title: "Code runtime map",
+      description: "Map active runtime entrypoints, registered modules, protected boundaries, legacy/staging areas, and key test-to-runtime links.",
+      inputSchema: z.object({}).strict(),
+      outputSchema: CODE_RUNTIME_MAP_OUTPUT,
+      annotations: READ_ONLY_LOCAL,
+    },
+    async () => runCodeRuntimeMap()
   );
 }
