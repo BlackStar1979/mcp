@@ -426,9 +426,9 @@ Short operational queue:
    - verify `CURRENT_STATE.md`, `REGISTRY.md`, `RUNTIME_CONTRACTS_CURRENT.md`, `DOCS_CATALOG.md`
    - canonical docs now match active runtime and test boundary after `project_truth_audit` rollout
 
-2. `OPEN` — D2 test names vs actual coverage review
+2. `CLOSED` — D2 test names vs actual coverage review
    - check whether test names imply stronger coverage than they really provide
-   - tighten test or rename expectation if needed
+   - tightened misleading test titles while preserving milestone-oriented file structure
 
 3. `OPEN` — D3 registry control-plane consistency review
    - compare docs, outputSchema, tests, and runtime expectations for:
