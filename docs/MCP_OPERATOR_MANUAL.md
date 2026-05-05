@@ -18,12 +18,22 @@ Instrukcja operacyjna dla lokalnego MCP control plane.
 ## 2. Zasady krytyczne
 
 1. Nie kopiować plików ręcznie do runtime.
-2. Zmiany produkcyjne przechodzą przez `deploy.ps1`.
-3. Każda zmiana ma manifest w `.mcp_deploy`.
+2. Zmiany runtime przechodzą przez `deploy.ps1`.
+3. Manifest w `.mcp_deploy` jest wymagany dla zmian runtime, nie dla `repo-only` docs/testów.
 4. Każdy deploy ma `Prepare`, `Execute`, backup, hash tracking i audit log.
 5. Po deployu kodu trzeba zrestartować MCP, bo Node.js nie ładuje ponownie modułów automatycznie.
-6. Po zmianach repo-only w testach i dokumentacji restart MCP nie jest wymagany; po zmianach runtime jest wymagany.
-7. Tokeny i sekrety nie mogą trafiać do logów; po wycieku token należy rotować.
+6. Po zmianach `repo-only` w testach i dokumentacji restart MCP nie jest wymagany; po zmianach runtime jest wymagany.
+7. Reconnect klienta jest wymagany tylko wtedy, gdy zmienia się aktywny tool surface, descriptor metadata lub schema handshake widoczny dla klienta.
+8. Tokeny i sekrety nie mogą trafiać do logów; po wycieku token należy rotować.
+
+## 2.1 Klasy zmian
+
+| Klasa zmiany | Deploy | Restart MCP | Reconnect klienta |
+|---|---:|---:|---:|
+| `repo_only` | no | no | no |
+| `test_only` | no | no | no |
+| `runtime` | yes | yes | no |
+| `runtime_with_client_refresh` | yes | yes | yes |
 
 ## 3. Standardowy cykl zmiany
 

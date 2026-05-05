@@ -445,13 +445,17 @@ Short operational queue:
      - `REGISTRY.md` now records the 2026-05-05 manual live verification pass explicitly
      - remaining runtime evidence is manual MCP invocation, not full automated end-to-end test coverage
 
-4. `OPEN` — D4 operator workflow consistency review
+4. `CLOSED` — D4 operator workflow consistency review
    - align `MCP_OPERATOR_MANUAL.md`, `OPERATIONS_DEPLOY.md`, and `LLM_IDIOT_PROOF_PROTOCOL_2026-05-04.md`
    - keep explicit distinction:
      - runtime change
      - repo-only docs/test change
      - restart required
      - reconnect required
+   - result:
+     - deploy pipeline is now described only for runtime changes
+     - `repo_only` and `test_only` are explicitly exempt from manifest / deploy / restart / reconnect flow
+     - reconnect is now described as required only when tool surface, descriptors, or schema handshake change
 
 5. `OPEN` — D5 decision gate for V7.2
    - decide whether V7.2 starts now, is postponed, or needs additional prerequisites

@@ -32,7 +32,7 @@ Użytkownik robi tylko trzy rzeczy:
 1. wykonuje komendy w PowerShell, jeśli trzeba,
 2. restartuje serwer:
    - `node C:\Work\mcp\server_tools.js`
-3. odświeża aplikację kliencką po deployu.
+3. odświeża aplikację kliencką wtedy, gdy po zmianie trzeba odnowić handshake narzędzi.
 
 Nie przerzucaj na użytkownika:
 
@@ -45,13 +45,15 @@ Nie przerzucaj na użytkownika:
 
 Nie wolno kopiować zmian bezpośrednio do runtime.
 
-Każda zmiana idzie najpierw do:
+Każda zmiana runtime idzie najpierw do:
 
 - `C:\Work\mcp\.mcp_warzone`
 
+Zmiany `repo-only` i `test-only` nie wymagają `.mcp_warzone`, manifestu ani deploy pipeline, ale nadal wymagają walidacji i aktualizacji canonical docs, jeśli zmieniają opis systemu.
+
 ## Zasada numer 2
 
-Po `.mcp_warzone` zawsze idzie:
+Po zmianie runtime w `.mcp_warzone` zawsze idzie:
 
 1. validation
 2. manifest
@@ -61,6 +63,13 @@ Po `.mcp_warzone` zawsze idzie:
 6. refresh klienta
 7. runtime verification
 8. rollback, jeśli trzeba
+
+Jeśli zmiana jest tylko `repo-only` albo `test-only`, właściwy przebieg jest krótszy:
+
+1. lokalna walidacja
+2. aktualizacja canonical docs, jeśli trzeba
+3. commit
+4. push
 
 Jeśli pominiesz którykolwiek z tych kroków, pracujesz źle.
 
@@ -139,9 +148,9 @@ Wybierz jeden mały krok, który:
 
 ### Krok 4. Zrób staging
 
-Przygotuj zmianę w `.mcp_warzone`.
+Jeśli zmiana jest runtime, przygotuj ją w `.mcp_warzone`.
 
-Nie dotykaj runtime bezpośrednio.
+Jeśli zmiana jest `repo-only` albo `test-only`, nie twórz sztucznie stagingu i nie uruchamiaj deployu bez potrzeby.
 
 ### Krok 5. Zwaliduj staging
 
@@ -160,6 +169,8 @@ Przez:
 - `deploy.ps1 -Mode Prepare`
 - `deploy.ps1 -Mode Execute`
 
+Ten krok dotyczy tylko zmian runtime.
+
 ### Krok 7. Poproś użytkownika tylko o to, co musi zrobić
 
 Powiedz dokładnie:
@@ -177,6 +188,8 @@ Jeśli zmieniałeś tool:
 
 - wywołaj ten tool po restarcie MCP
 - sprawdź, czy runtime zachowuje się tak jak opisuje kontrakt
+
+Jeśli nie zmieniałeś runtime, nie udawaj, że repo-only zmiana wymaga restartu lub reconnectu.
 
 ### Krok 9. Zaktualizuj dokumentację canonical
 
@@ -221,7 +234,7 @@ Dopiero po A i B ruszaj:
 1. Nie zakładaj, że dokument jest aktualny tylko dlatego, że ma sensowny tytuł.
 2. Nie zakładaj, że test pokrywa runtime tylko dlatego, że ma dobrą nazwę.
 3. Nie zakładaj, że staging file i runtime file są identyczne.
-4. Nie wdrażaj niczego bez deploy/rollback.
+4. Nie wdrażaj zmian runtime bez deploy/rollback.
 5. Nie każ użytkownikowi samemu zrozumieć, co masz zrobić.
 
 ## Co masz powiedzieć w pierwszej odpowiedzi
