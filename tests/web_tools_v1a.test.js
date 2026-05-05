@@ -12,6 +12,7 @@ test("web_tools_v1a has no forbidden schema constructs", () => {
 
 test("web_tools_v1a exposes outputSchema for tools", () => {
   assert.match(src, /http_get[\s\S]*outputSchema:\s*HTTP_GET_OUTPUT/);
+  assert.match(src, /pypi_info[\s\S]*outputSchema:\s*PYPI_PACKAGE_OUTPUT/);
   assert.match(src, /check_pypi_package[\s\S]*outputSchema:\s*PYPI_PACKAGE_OUTPUT/);
 });
 

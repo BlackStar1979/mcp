@@ -72,6 +72,7 @@ Ten dokument zastępuje używanie `MCP_TOOL_CONTRACTS.md` jako bieżącego sourc
 ### Web tools
 
 - `http_get`
+- `pypi_info`
 - `check_pypi_package`
 
 ### Truth tools
@@ -110,6 +111,7 @@ Confirmed current coverage:
 
 1. `tests/mcp_contract_surface.test.js` includes `registerWebTools` and asserts active web tools:
    - `http_get`
+   - `pypi_info`
    - `check_pypi_package`
 2. `tests/registry_execute_v1_1.test.js` reads active runtime source:
    - `core/registry_tools_safe.js`
@@ -127,6 +129,10 @@ Confirmed current coverage:
    - `deploy_decision_guard` returns `status: ok` for both repo-only and runtime-with-refresh scenarios
    - `change_workflow_simulator` is exposed in active runtime
    - `change_workflow_simulator` returns `status: ok` for both repo-only and runtime-with-refresh simulations
+   - `pypi_info` is exposed in active runtime
+   - `pypi_info("zod")` returns `status: ok`
+   - `check_pypi_package("zod")` returns `status: ok`
+   - `http_get("https://pypi.org/pypi/zod/json")` returns `status: ok`
    - full registry control-plane was manually invoked through active MCP on 2026-05-05:
      - `tool_registry_status`
      - `tool_registry_list`

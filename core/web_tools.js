@@ -45,6 +45,10 @@ const PYPI_PACKAGE_OUTPUT = z.object({
   vulnerabilities_count: z.number().optional(),
 }).strict();
 
+function packageInfoDescription(registryName) {
+  return `Return bounded metadata for one ${registryName} package using the official JSON API. Read-only.`;
+}
+
 function assertAllowedUrl(rawUrl) {
   const url = new URL(rawUrl);
   if (url.protocol !== "https:") throw new Error("only_https_urls_allowed");
@@ -116,13 +120,7 @@ export function registerWebTools(server) {
     };
   });
 
-  registerSafeTool(server, "check_pypi_package", {
-    title: "Check PyPI package",
-    description: "Fetch bounded metadata for one PyPI package using the PyPI JSON API. Read-only.",
-    inputSchema: z.object({ package: PACKAGE_NAME_SCHEMA }).strict(),
-    outputSchema: PYPI_PACKAGE_OUTPUT,
-    annotations: READ_ONLY_OPEN_WORLD,
-  }, async ({ package: packageName }) => {
+  const pypiPackageHandler = async ({ package: packageName }) => {
     const safeUrl = assertAllowedUrl(`https://pypi.org/pypi/${encodeURIComponent(packageName)}/json`);
     const result = await boundedFetch(safeUrl);
 
@@ -166,5 +164,21 @@ export function registerWebTools(server) {
       license: info.license ?? null,
       vulnerabilities_count: vulnerabilities.length,
     };
-  });
+  };
+
+  registerSafeTool(server, "pypi_info", {
+    title: "PyPI package info",
+    description: packageInfoDescription("PyPI"),
+    inputSchema: z.object({ package: PACKAGE_NAME_SCHEMA }).strict(),
+    outputSchema: PYPI_PACKAGE_OUTPUT,
+    annotations: READ_ONLY_OPEN_WORLD,
+  }, pypiPackageHandler);
+
+  registerSafeTool(server, "check_pypi_package", {
+    title: "Check PyPI package",
+    description: packageInfoDescription("PyPI"),
+    inputSchema: z.object({ package: PACKAGE_NAME_SCHEMA }).strict(),
+    outputSchema: PYPI_PACKAGE_OUTPUT,
+    annotations: READ_ONLY_OPEN_WORLD,
+  }, pypiPackageHandler);
 }

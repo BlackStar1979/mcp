@@ -61,6 +61,7 @@ test("contract surface includes web tools registered by server_tools", () => {
   const names = collectRegisteredTools().map(({ name }) => name).sort();
 
   assert.ok(names.includes("http_get"), "contract surface must include active web tool: http_get");
+  assert.ok(names.includes("pypi_info"), "contract surface must include active web tool: pypi_info");
   assert.ok(names.includes("check_pypi_package"), "contract surface must include active web tool: check_pypi_package");
 });
 

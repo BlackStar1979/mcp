@@ -500,6 +500,8 @@ Priority order:
 
 5. stronger web/research tools
    - expand only after truth/audit/deploy discipline is stable
+   - current sub-step: harden existing web tools before adding new ones
+   - latest hardening step: add `pypi_info` as a compatibility-preserving alias for `check_pypi_package`
    - expected outcome: better research throughput without outrunning control
 
 Deferred by design:
