@@ -150,7 +150,6 @@ Implemented tools:
 
 Deferred tools:
 
-- `fetch_github_file`
 - `download_docs`
 - generic crawling
 - recursive docs fetch
@@ -502,6 +501,7 @@ Priority order:
    - current sub-step: bounded package metadata lookups for major developer registries
    - latest hardening step: add `pypi_info` as a compatibility-preserving alias for `check_pypi_package`
    - latest bounded expansion step: add `check_npm_package` using the `/latest` endpoint instead of the full package document, so common packages stay inside response limits
+   - latest bounded expansion step: add `fetch_github_file` for one raw public file via `raw.githubusercontent.com` with explicit `owner/repo/ref/path`
    - expected outcome: better research throughput without outrunning control
 
 Deferred by design:

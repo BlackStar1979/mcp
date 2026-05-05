@@ -64,6 +64,7 @@ test("contract surface includes web tools registered by server_tools", () => {
   assert.ok(names.includes("pypi_info"), "contract surface must include active web tool: pypi_info");
   assert.ok(names.includes("check_pypi_package"), "contract surface must include active web tool: check_pypi_package");
   assert.ok(names.includes("check_npm_package"), "contract surface must include active web tool: check_npm_package");
+  assert.ok(names.includes("fetch_github_file"), "contract surface must include active web tool: fetch_github_file");
 });
 
 test("contract surface includes project truth audit tool", () => {

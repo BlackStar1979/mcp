@@ -15,6 +15,7 @@ test("web_tools_v1a exposes outputSchema for tools", () => {
   assert.match(src, /pypi_info[\s\S]*outputSchema:\s*PYPI_PACKAGE_OUTPUT/);
   assert.match(src, /check_pypi_package[\s\S]*outputSchema:\s*PYPI_PACKAGE_OUTPUT/);
   assert.match(src, /check_npm_package[\s\S]*outputSchema:\s*NPM_PACKAGE_OUTPUT/);
+  assert.match(src, /fetch_github_file[\s\S]*outputSchema:\s*GITHUB_FILE_OUTPUT/);
 });
 
 test("web_tools_v1c parses PyPI JSON from full bounded text", () => {
@@ -25,4 +26,10 @@ test("web_tools_v1c parses PyPI JSON from full bounded text", () => {
 
 test("web_tools_v1d uses bounded npm latest endpoint", () => {
   assert.match(src, /https:\/\/registry\.npmjs\.org\/\$\{encodeURIComponent\(packageName\)\}\/latest/);
+});
+
+test("web_tools_v1e uses raw github content endpoint with structured segments", () => {
+  assert.match(src, /raw\.githubusercontent\.com/);
+  assert.match(src, /https:\/\/raw\.githubusercontent\.com\/\$\{owner\}\/\$\{repo\}\/\$\{ref\}\/\$\{path\}/);
+  assert.doesNotMatch(src, /github\.com\/.*\/blob\//);
 });

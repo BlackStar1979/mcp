@@ -10,13 +10,20 @@ const READ_ONLY_OPEN_WORLD = {
   openWorldHint: true,
 };
 
-const ALLOWED_HOSTS = new Set(["pypi.org", "registry.npmjs.org"]);
+const ALLOWED_HOSTS = new Set(["pypi.org", "registry.npmjs.org", "raw.githubusercontent.com"]);
 const HTTP_TIMEOUT_MS = 10000;
 const MAX_RESPONSE_BYTES = 256000;
 const MAX_TEXT_CHARS = 20000;
 
 const URL_SCHEMA = z.string().url().max(2048);
 const PACKAGE_NAME_SCHEMA = z.string().min(1).max(214).regex(/^[A-Za-z0-9_.@\/-]+$/);
+const GITHUB_SEGMENT_SCHEMA = z.string().min(1).max(200).regex(/^[A-Za-z0-9_.-]+$/);
+const GITHUB_REF_SCHEMA = z.string().min(1).max(200).regex(/^[A-Za-z0-9._\/-]+$/);
+const GITHUB_PATH_SCHEMA = z.string().min(1).max(2000).refine((value) => {
+  if (value.startsWith("/")) return false;
+  if (value.includes("..")) return false;
+  return true;
+}, "github_path_must_be_relative_without_dotdot");
 
 const HTTP_GET_OUTPUT = z.object({
   status: z.string(),
@@ -57,6 +64,21 @@ const NPM_PACKAGE_OUTPUT = z.object({
   homepage: z.string().nullable().optional(),
   repository_url: z.string().nullable().optional(),
   license: z.string().nullable().optional(),
+}).strict();
+
+const GITHUB_FILE_OUTPUT = z.object({
+  status: z.string(),
+  owner: z.string(),
+  repo: z.string(),
+  ref: z.string(),
+  path: z.string(),
+  url: z.string(),
+  http_status: z.number(),
+  found: z.boolean(),
+  content_type: z.string().optional(),
+  bytes: z.number().optional(),
+  truncated: z.boolean().optional(),
+  text: z.string().optional(),
 }).strict();
 
 function packageInfoDescription(registryName) {
@@ -247,6 +269,57 @@ export function registerWebTools(server) {
       homepage: parsed?.homepage ? String(parsed.homepage) : null,
       repository_url: repositoryUrl,
       license: parsed?.license ? String(parsed.license) : null,
+    };
+  });
+
+  registerSafeTool(server, "fetch_github_file", {
+    title: "Fetch GitHub file",
+    description: "Fetch one bounded raw text file from a public GitHub repository via raw.githubusercontent.com. Read-only, no auth, no disk writes.",
+    inputSchema: z.object({
+      owner: GITHUB_SEGMENT_SCHEMA,
+      repo: GITHUB_SEGMENT_SCHEMA,
+      ref: GITHUB_REF_SCHEMA,
+      path: GITHUB_PATH_SCHEMA,
+    }).strict(),
+    outputSchema: GITHUB_FILE_OUTPUT,
+    annotations: READ_ONLY_OPEN_WORLD,
+  }, async ({ owner, repo, ref, path }) => {
+    const safeUrl = assertAllowedUrl(`https://raw.githubusercontent.com/${owner}/${repo}/${ref}/${path}`);
+    const result = await boundedFetch(safeUrl);
+
+    await audit("fetch_github_file", {
+      source: "web_tools_v1e",
+      event: "fetch_github_file",
+      owner,
+      repo,
+      ref,
+      path,
+      http_status: result.response.status,
+      bytes: result.bytes,
+      truncated: result.truncated,
+    });
+
+    if (result.response.status === 404) {
+      return { status: "not_found", owner, repo, ref, path, url: safeUrl.toString(), http_status: 404, found: false };
+    }
+
+    if (!result.response.ok) {
+      return { status: "http_error", owner, repo, ref, path, url: safeUrl.toString(), http_status: result.response.status, found: false };
+    }
+
+    return {
+      status: "ok",
+      owner,
+      repo,
+      ref,
+      path,
+      url: safeUrl.toString(),
+      http_status: result.response.status,
+      found: true,
+      content_type: result.contentType,
+      bytes: result.bytes,
+      truncated: result.truncated,
+      text: result.text,
     };
   });
 }

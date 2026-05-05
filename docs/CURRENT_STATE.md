@@ -2,7 +2,7 @@
 
 Data: 2026-05-05
 Status: canonical_current
-Zakres: aktualny stan projektu `C:\Work\mcp` po rolloutach registry execute v7.1, web tools v1c, domknięciu test coverage dla web tools, korekcie testów registry execute v1.1 na aktywny runtime oraz wdrożeniu `project_truth_audit`, `code_runtime_map`, `deploy_decision_guard` i `change_workflow_simulator`
+Zakres: aktualny stan projektu `C:\Work\mcp` po rolloutach registry execute v7.1, bounded web tools (`pypi_info`, `check_npm_package`, `fetch_github_file`), domknięciu test coverage dla web tools, korekcie testów registry execute v1.1 na aktywny runtime oraz wdrożeniu `project_truth_audit`, `code_runtime_map`, `deploy_decision_guard` i `change_workflow_simulator`
 
 ## 1. Stan repo i lokalnego runtime
 
@@ -147,6 +147,7 @@ Potwierdzone aktywne toole:
 - `pypi_info`
 - `check_pypi_package`
 - `check_npm_package`
+- `fetch_github_file`
 
 Model bezpieczeństwa:
 
@@ -166,6 +167,7 @@ Test coverage:
   - `pypi_info`
   - `check_pypi_package`
   - `check_npm_package`
+  - `fetch_github_file`
 
 Znana uwaga operacyjna:
 
@@ -173,6 +175,7 @@ Znana uwaga operacyjna:
 - `pypi_info` został dodany jako bardziej neutralny alias dla `check_pypi_package`, żeby zmniejszyć ryzyko heurystycznych blokad bez zrywania kompatybilności wstecznej
 - live MCP verification z 2026-05-05 potwierdziła, że `pypi_info`, `check_pypi_package` i `http_get` poprawnie zwracają dane dla `https://pypi.org/pypi/zod/json`; to wzmacnia wniosek, że historyczne blokady były connector-dependent, a nie runtime-dependent
 - `check_npm_package` został wdrożony jako bounded lookup po endpointcie `https://registry.npmjs.org/<package>/latest`, a nie po pełnym dokumencie pakietu; live MCP verification z 2026-05-05 potwierdziła `status: ok` dla `is-number` i `zod`
+- `fetch_github_file` jest zawężony do `raw.githubusercontent.com` i przyjmuje jawne segmenty `owner/repo/ref/path`; nie pobiera HTML z `github.com`, nie używa auth i nie zapisuje nic na dysk
 
 ## 6. Recovery i legacy separation
 
@@ -235,6 +238,8 @@ Aktualny checkpoint potwierdzony lokalnie po korektach test surface:
   - `npm test` — PASS `82/82`
 - repo validation po wdrożeniu bounded `check_npm_package`:
   - `npm test` — PASS `83/83`
+- repo validation po wdrożeniu `fetch_github_file`:
+  - `npm test` — PASS `84/84`
 - live MCP verification po restarcie `server_tools.js`:
   - `project_truth_audit` — `status: ok`
   - `drifts: []`
@@ -246,6 +251,7 @@ Aktualny checkpoint potwierdzony lokalnie po korektach test surface:
   - poprawna symulacja scenariuszy `repo_only` i `runtime_with_client_refresh`
   - `check_npm_package("is-number")` — `status: ok`
   - `check_npm_package("zod")` — `status: ok`
+  - `fetch_github_file("colinhacks/zod", "main", "package.json")` — `status: ok`
 
 Obszary objęte testami:
 
@@ -269,6 +275,7 @@ Obszary objęte testami:
 - truth tools contract i handler baseline dla `change_workflow_simulator`
 - web tools static/runtime-shape guards
 - bounded npm package metadata guard
+- bounded GitHub raw file guard
 
 ### Ważne ograniczenie
 

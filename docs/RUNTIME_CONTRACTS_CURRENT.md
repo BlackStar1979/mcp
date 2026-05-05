@@ -2,7 +2,7 @@
 
 Data: 2026-05-05
 Status: canonical_current
-Zakres: aktualne kontrakty i granice odpowiedzialności dla aktywnego runtime `server_tools.js` oraz bieżący status test boundary po korektach coverage i wdrożeniu `project_truth_audit`, `code_runtime_map`, `deploy_decision_guard` oraz `change_workflow_simulator`
+Zakres: aktualne kontrakty i granice odpowiedzialności dla aktywnego runtime `server_tools.js`, bounded web tools (`pypi_info`, `check_npm_package`, `fetch_github_file`) oraz bieżący status test boundary po korektach coverage i wdrożeniu `project_truth_audit`, `code_runtime_map`, `deploy_decision_guard` oraz `change_workflow_simulator`
 
 ## Cel
 
@@ -75,6 +75,7 @@ Ten dokument zastępuje używanie `MCP_TOOL_CONTRACTS.md` jako bieżącego sourc
 - `pypi_info`
 - `check_pypi_package`
 - `check_npm_package`
+- `fetch_github_file`
 
 ### Truth tools
 
@@ -120,7 +121,7 @@ Confirmed current coverage:
 3. `tests/registry_outputschema_runtime_guard.test.js` covers the active registry rollout set including:
    - `tool_registry_execute`
 4. Latest repo validation:
-   - `npm test` PASS `83/83`
+   - `npm test` PASS `84/84`
 5. Live MCP verification confirms:
    - `project_truth_audit` is exposed in active runtime
    - `project_truth_audit` returns `status: ok` with `drifts: []`
@@ -135,6 +136,7 @@ Confirmed current coverage:
    - `check_pypi_package("zod")` returns `status: ok`
    - `check_npm_package("is-number")` returns `status: ok`
    - `check_npm_package("zod")` returns `status: ok`
+   - `fetch_github_file("colinhacks/zod", "main", "package.json")` returns `status: ok`
    - `http_get("https://pypi.org/pypi/zod/json")` returns `status: ok`
    - full registry control-plane was manually invoked through active MCP on 2026-05-05:
      - `tool_registry_status`
