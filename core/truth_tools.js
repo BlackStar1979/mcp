@@ -525,7 +525,19 @@ function simulateWorkflow(args = {}) {
 }
 
 async function runToolUsageSnapshot() {
-  const perfLog = await readLocal(".mcp_perf.log");
+  let perfLog = "";
+  let logAvailable = true;
+  try {
+    perfLog = await readLocal(".mcp_perf.log");
+  } catch (error) {
+    if (error && error.code === "ENOENT") {
+      logAvailable = false;
+      perfLog = "";
+    } else {
+      throw error;
+    }
+  }
+
   const lines = perfLog.split(/\r?\n/).filter(Boolean);
 
   const toolEntries = lines
@@ -575,6 +587,9 @@ async function runToolUsageSnapshot() {
   const lastTs = toolEntries.length ? String(toolEntries[toolEntries.length - 1].ts || null) : null;
 
   const notes = [];
+  if (!logAvailable) {
+    notes.push("perf log is not present in this environment; returning an empty observed-usage snapshot");
+  }
   if (truthCount > 0) {
     notes.push("truth tools dominate recent observed MCP decision support usage");
   }
