@@ -1,8 +1,8 @@
 import fs from "fs/promises";
 import path from "path";
-import { BASE_DIR, PERF_LOG_FILE, PERF_SLOW_MS } from "./config.js";
+import { PERF_LOG_FILE, PERF_SLOW_MS, RUNTIME_DIR } from "./config.js";
 
-const PERF_FLAG_FILE = path.join(BASE_DIR, ".mcp_perf_on");
+const PERF_FLAG_FILE = path.join(RUNTIME_DIR, ".mcp_perf_on");
 
 function nowNs() {
   return process.hrtime.bigint();

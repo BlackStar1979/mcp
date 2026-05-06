@@ -223,5 +223,9 @@ test("tool_usage_snapshot summarizes observed tool usage from perf log", async (
   assert.ok(payload.unique_tool_count > 0);
   assert.ok(payload.top_tools.length > 0);
   assert.ok(payload.family_counts.truth_tools > 0);
+  assert.ok(payload.notes.some((item) => item.includes("truth tools dominate") || item.includes("web/research usage is currently bounded") || item.includes("no evidence of demand")));
   assert.ok(payload.web_tool_counts.some((item) => item.name === "fetch_github_file" || item.name === "check_npm_package" || item.name === "http_get"));
 });
+
+
+

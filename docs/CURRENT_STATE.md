@@ -1,6 +1,6 @@
 # Current State
 
-Data: 2026-05-05
+Data: 2026-05-06
 Status: canonical_current
 Zakres: aktualny stan projektu `C:\Work\mcp` po rolloutach registry execute v7.1, bounded web tools (`pypi_info`, `check_npm_package`, `fetch_github_file`), domknięciu test coverage dla web tools, korekcie testów registry execute v1.1 na aktywny runtime oraz wdrożeniu `project_truth_audit`, `code_runtime_map`, `deploy_decision_guard` i `change_workflow_simulator`
 
@@ -27,7 +27,7 @@ Potwierdzone:
 
 - read-only MCP
 - port `3000`
-- zakres ograniczony do `C:\Work\mcp`
+- zakres plików rozszerzony do `C:\Work`, przy zachowaniu runtime/control-plane w `C:\Work\mcp`
 
 ### `server_tools.js`
 
@@ -192,6 +192,20 @@ Wniosek:
 
 - poprzednia luka „safe runtime zależy startowo od legacy full profile” została zamknięta na poziomie kodu runtime i testów
 
+## 6.5. Workspace scope
+
+Potwierdzone lokalnie w kodzie i repo validation:
+
+- filesystem, index i science path policy są liczone względem `C:\Work`
+- runtime repo, docs canonical, logi, deploy control-plane i truth tools pozostają zakotwiczone w `C:\Work\mcp`
+- ochrona runtime pozostaje aktywna dla `mcp/core`, `mcp/server.js`, `mcp/server_tools.js`, `mcp/package.json` i `mcp/package-lock.json`
+
+Potwierdzone live przez aktywny MCP po restarcie `server_tools.js` dnia 2026-05-06:
+
+- `list_directory(".")` pokazuje root `C:\Work`, a nie dawny root `C:\Work\mcp`
+- `list_directory("romionsim")` działa poprawnie i zwraca zawartość `C:\Work\romionsim`
+- `get_info("mcp")` nadal wskazuje katalog runtime repo jako podkatalog workspace
+
 ## 7. Deploy / rollback / perf
 
 Potwierdzone:
@@ -322,3 +336,6 @@ Jeśli potrzebujesz:
 - aktualnego stanu registry: `REGISTRY.md`
 - aktualnych kontraktów runtime: `RUNTIME_CONTRACTS_CURRENT.md`
 - idiotoodpornego protokołu dla kolejnego LLM: `LLM_IDIOT_PROOF_PROTOCOL_2026-05-04.md`
+
+
+

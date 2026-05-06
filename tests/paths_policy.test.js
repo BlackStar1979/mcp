@@ -4,22 +4,22 @@ import assert from "node:assert/strict";
 import { safePath, toRel, assertWritablePath } from "../core/paths.js";
 import { evaluatePolicyRisk, enforcePolicyDecision } from "../core/policy/engine.js";
 
-test("safePath stays inside BASE_DIR", () => {
+test("safePath stays inside C:\\Work workspace root", () => {
   assert.equal(toRel(safePath(".")), ".");
-  assert.equal(toRel(safePath("server_tools.js")), "server_tools.js");
+  assert.equal(toRel(safePath("mcp/server_tools.js")), "mcp/server_tools.js");
   assert.throws(() => safePath("../outside.txt"), /Access denied/);
 });
 
-test("write guard blocks core and protected entrypoints", () => {
-  assert.throws(() => assertWritablePath("core/config.js"), /Blocked path: core/);
-  assert.throws(() => assertWritablePath("server_tools.js"), /Protected file: server_tools\.js/);
-  assert.equal(assertWritablePath(".mcp_warzone/tmp.txt"), ".mcp_warzone/tmp.txt");
+test("write guard blocks runtime core and protected entrypoints under mcp/", () => {
+  assert.throws(() => assertWritablePath("mcp/core/config.js"), /Blocked path: mcp\/core/);
+  assert.throws(() => assertWritablePath("mcp/server_tools.js"), /Protected file: mcp\/server_tools\.js/);
+  assert.equal(assertWritablePath("mcp/.mcp_warzone/tmp.txt"), "mcp/.mcp_warzone/tmp.txt");
 });
 
 test("policy denies high-risk core patch without dry-run", () => {
   const policy = evaluatePolicyRisk({
     operation: "code_apply_patch",
-    target: "core/config.js",
+    target: "mcp/core/config.js",
     delta_bytes: 100,
     intent: "change_behavior",
     has_dry_run: false,
@@ -32,7 +32,7 @@ test("policy denies high-risk core patch without dry-run", () => {
 test("policy requires confirmation for high-risk patch with dry-run binding", () => {
   const policy = evaluatePolicyRisk({
     operation: "code_apply_patch",
-    target: "core/config.js",
+    target: "mcp/core/config.js",
     delta_bytes: 100,
     intent: "change_behavior",
     has_dry_run: true,

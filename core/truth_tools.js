@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import { z } from "zod";
 
-import { BASE_DIR } from "./config.js";
+import { BASE_DIR, RUNTIME_DIR } from "./config.js";
 import { registerSafeTool } from "./responses.js";
 import { audit } from "./audit.js";
 
@@ -142,7 +142,7 @@ const RUNTIME_GROUPS = [
 ];
 
 async function readLocal(relativePath) {
-  return fs.readFile(`${BASE_DIR}\\${relativePath.replaceAll("/", "\\")}`, "utf8");
+  return fs.readFile(`${RUNTIME_DIR}\\${relativePath.replaceAll("/", "\\")}`, "utf8");
 }
 
 function hasBulletBlock(text, heading, bullets) {
@@ -256,7 +256,7 @@ async function runProjectTruthAudit() {
   const result = {
     status: drifts.length ? "drift_detected" : "ok",
     audit_version: "v1",
-    repo_root: BASE_DIR,
+    repo_root: RUNTIME_DIR,
     runtime_truth: {
       server_profiles: ["server.js", "server_tools.js"],
       active_groups: RUNTIME_GROUPS,
@@ -342,7 +342,7 @@ async function runCodeRuntimeMap() {
   const result = {
     status: "ok",
     map_version: "v1",
-    repo_root: BASE_DIR,
+    repo_root: RUNTIME_DIR,
     entrypoints: [
       { file: "server.js", role: "read-only MCP", port: 3000 },
       { file: "server_tools.js", role: "tools MCP", port: 3001 },
@@ -536,7 +536,7 @@ async function runToolUsageSnapshot() {
 
   const counts = new Map();
   const webTools = new Set(["http_get", "pypi_info", "check_pypi_package", "check_npm_package", "fetch_github_file"]);
-  const truthTools = new Set(["project_truth_audit", "code_runtime_map", "deploy_decision_guard", "change_workflow_simulator"]);
+  const truthTools = new Set(["project_truth_audit", "code_runtime_map", "deploy_decision_guard", "change_workflow_simulator", "tool_usage_snapshot"]);
   const registryTools = new Set([
     "tool_registry_status",
     "tool_registry_list",
@@ -710,3 +710,5 @@ export function registerTruthTools(server) {
     async () => runToolUsageSnapshot()
   );
 }
+
+
