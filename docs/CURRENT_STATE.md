@@ -2,7 +2,7 @@
 
 Data: 2026-05-06
 Status: canonical_current
-Zakres: aktualny stan projektu `C:\Work\mcp` po rolloutach registry execute v7.1, bounded web tools (`pypi_info`, `check_npm_package`, `fetch_github_file`), domknięciu test coverage dla web tools, korekcie testów registry execute v1.1 na aktywny runtime, wdrożeniu `project_truth_audit`, `code_runtime_map`, `deploy_decision_guard` i `change_workflow_simulator` oraz redesignie do modelu multi-root z aliasami `@alias/...`
+Zakres: aktualny stan projektu `C:\Work\mcp` po rolloutach registry execute v7.1, bounded web tools (`pypi_info`, `check_npm_package`, `fetch_github_file`), domknięciu test coverage dla web tools, korekcie testów registry execute v1.1 na aktywny runtime, wdrożeniu `project_truth_audit`, `code_runtime_map`, `deploy_decision_guard`, `change_workflow_simulator` i `tool_usage_snapshot`, redesignie do modelu multi-root z aliasami `@alias/...` oraz domknięciu regresji CI portability z 2026-05-06
 
 ## 1. Stan repo i lokalnego runtime
 
@@ -207,6 +207,24 @@ Potwierdzone live przez aktywny MCP po restarcie `server_tools.js` dnia 2026-05-
 - `list_directory("romionsim")` działa poprawnie i zwraca zawartość `C:\Work\romionsim`
 - `get_info("mcp")` nadal wskazuje katalog runtime repo jako podkatalog primary workspace
 
+## 6.6. Zamknięte regresje CI (2026-05-06)
+
+Potwierdzone i zamknięte:
+
+- regresja 1: `truth_tools.js` budował ścieżki runtime przez ręczne `\\`, co na runnerze Ubuntu łamało `project_truth_audit`, `code_runtime_map`, `deploy_decision_guard`, `change_workflow_simulator` i `tool_usage_snapshot`
+- naprawa 1: przejście na `path.join(...)` i test regresyjny pilnujący platform-safe path joins
+- regresja 2: model multi-root zakładał Windowsowe domyślne rooty nawet na non-Windows hostach, więc CI traktowało `C:\Work` jako ścieżkę względną wewnątrz checkoutu
+- naprawa 2: host-aware fallback w `core/config.js`; na Windows pozostają `C:\Work` / `C:\Work\mcp`, a na non-Windows rooty są wyprowadzane z checkoutu repo albo z `MCP_WORK_ROOT` / `MCP_RUNTIME_DIR`
+- regresja 3: `tool_usage_snapshot` wymagał obecności lokalnego `.mcp_perf.log`, co nie jest gwarantowane na GitHub Actions
+- naprawa 3: brak `.mcp_perf.log` nie wywraca już narzędzia; zwracany jest pusty snapshot `status: ok` z jawną notą o braku logu
+
+Wniosek operacyjny:
+
+- nowe narzędzia read-only nie mogą zakładać Windows-only path semantics
+- testy config/path policy nie mogą hardcode'ować Windowsowych absolutnych ścieżek jako jedynego poprawnego środowiska wykonania
+- narzędzia obserwacyjne i pomocnicze nie mogą wymagać lokalnych artefaktów runtime jako warunku przejścia całego CI
+- po każdej większej zmianie path modelu albo truth tools trzeba sprawdzić nie tylko `npm test` lokalnie, ale też czy testy nie ukrywają założeń host-specific
+
 ## 7. Deploy / rollback / perf
 
 Potwierdzone:
@@ -337,4 +355,5 @@ Jeśli potrzebujesz:
 - aktualnego stanu registry: `REGISTRY.md`
 - aktualnych kontraktów runtime: `RUNTIME_CONTRACTS_CURRENT.md`
 - idiotoodpornego protokołu dla kolejnego LLM: `LLM_IDIOT_PROOF_PROTOCOL_2026-05-04.md`
+
 

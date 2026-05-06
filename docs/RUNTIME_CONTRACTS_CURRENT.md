@@ -131,7 +131,7 @@ Confirmed current coverage:
 3. `tests/registry_outputschema_runtime_guard.test.js` covers the active registry rollout set including:
    - `tool_registry_execute`
 4. Latest repo validation:
-   - `npm test` PASS `86/86`
+   - `npm test` PASS `94/94`
 5. Live MCP verification confirms:
    - `project_truth_audit` is exposed in active runtime
    - `project_truth_audit` returns `status: ok` with `drifts: []`
@@ -173,6 +173,16 @@ Therefore:
 - passing tests is still not a substitute for runtime invocation after runtime MCP changes
 - runtime verification after deploy remains mandatory for changes to handlers, descriptors, schemas, tool surface, or connector-facing behavior
 
+
+### CI portability rules (closed regressions from 2026-05-06)
+
+1. Runtime-local file reads in helper tools must use platform-safe joins, not manual `\\` concatenation.
+2. Default workspace/runtime roots must be host-aware:
+   - Windows local runtime may default to `C:\Work` / `C:\Work\mcp`
+   - non-Windows CI must derive defaults from checkout or explicit `MCP_WORK_ROOT` / `MCP_RUNTIME_DIR`
+3. Tests for config and path policy must validate semantics, not assume Windows-only absolute paths.
+4. Observability helpers such as `tool_usage_snapshot` must tolerate missing local artifacts like `.mcp_perf.log` and degrade to explicit empty snapshots instead of failing CI.
+5. A green local `npm test` after root-model changes is necessary but not sufficient; portability assumptions must be reviewed explicitly when code touches paths, logs, or host defaults.
 ## Deployment boundary
 
 Correct production path for runtime MCP changes:
@@ -192,4 +202,6 @@ Repo-only docs changes do not require runtime deploy, restart, or reconnect.
 Test/supporting repo changes require staging validation and repo validation, but do not require runtime deploy unless they modify active runtime files.
 
 Direct copy into active runtime code is forbidden for runtime MCP changes.
+
+
 

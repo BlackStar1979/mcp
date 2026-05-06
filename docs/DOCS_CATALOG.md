@@ -1,6 +1,6 @@
 # Documentation Catalog
 
-Data: 2026-05-04
+Data: 2026-05-06
 Status: canonical_current
 Cel: sklasyfikować wszystkie dokumenty w `docs/` według roli, czasu, świeżości i autorytetu
 
@@ -17,17 +17,17 @@ Cel: sklasyfikować wszystkie dokumenty w `docs/` według roli, czasu, świeżo�
 
 | Plik | Rola | Zakres czasu | Status | Jak czytać |
 |---|---|---|---|---|
-| `README.md` | indeks canonical | 2026-05-04 | `canonical_current` | zaczynać od tego |
-| `CURRENT_STATE.md` | bieżący stan systemu | 2026-05-05 | `canonical_current` | opis aktualnego runtime po web_tools, registry execute oraz czterech truth tools pierwszego rzutu |
+| `README.md` | indeks canonical | 2026-05-06 | `canonical_current` | zaczynać od tego; zawiera też model multi-root i host-aware fallback dla non-Windows |
+| `CURRENT_STATE.md` | bieżący stan systemu | 2026-05-06 | `canonical_current` | opis aktualnego runtime po web_tools, truth tools, modelu multi-root i zamknięciu regresji CI portability |
 | `AUDIT_2026-05-03_DEEP.md` | rozszerzony audyt findings + zalecenia | 2026-05-03 | `canonical_current` | główny dokument dla ryzyk, nieprawidłowości i zaleceń |
 | `OPENAI_MCP_CONFORMANCE_2026-05-03.md` | matryca zgodności MCP / Apps | 2026-05-03 | `canonical_current` | zgodność z wyciągami OpenAI na podstawie kodu |
-| `RUNTIME_CONTRACTS_CURRENT.md` | aktualne granice kontraktowe runtime | 2026-05-05 | `canonical_current` | czytać zamiast traktować `MCP_TOOL_CONTRACTS.md` jako source-of-truth |
+| `RUNTIME_CONTRACTS_CURRENT.md` | aktualne granice kontraktowe runtime | 2026-05-06 | `canonical_current` | czytać zamiast traktować `MCP_TOOL_CONTRACTS.md` jako source-of-truth; zawiera też reguły CI portability dla path/log helpers |
 | `LLM_IDIOT_PROOF_PROTOCOL_2026-05-04.md` | idiotoodporny protokół pracy dla kolejnego LLM | 2026-05-04/05 | `canonical_current` | najprostsza instrukcja wykonywania pracy krok po kroku |
 | `LLM_EXECUTION_BRIEF.md` | briefing wykonawczy dla kolejnego LLM | 2026-05-03 | `canonical_current` | zasady pracy, harmonogram i dyscyplina dokumentacyjna |
 | `LLM_FULL_HANDOFF_2026-05-04.md` | pełny handoff dla kolejnego LLM | 2026-05-04 | `canonical_current` | pełny kontekst, ustalenia i workflow |
 | `LLM_SESSION_TIMELINE_2026-05-04.md` | chronologia serii audytów | 2026-05-04 | `canonical_current` | skrócona ścieżka czasu wykonanych prac |
 | `AUDIT_2026-05-03.md` | pełny audyt | 2026-05-03 | `canonical_current` | główny wynik audytu |
-| `DOCS_CATALOG.md` | mapa i świeżość docs | 2026-05-03 | `canonical_current` | klasyfikacja wszystkich dokumentów |
+| `DOCS_CATALOG.md` | mapa i świeżość docs | 2026-05-06 | `canonical_current` | klasyfikacja wszystkich dokumentów |
 | `ARCHITECTURE_DECISIONS.md` | decyzje baseline repo/runtime | 2026-05-01 | `current_reference` | ważny dokument bazowy |
 | `MCP_OPERATOR_MANUAL.md` | control-plane operator manual | 2026-05-02/04/05 | `current_reference` | procedury operacyjne z rozróżnieniem runtime deploy vs repo-only changes |
 | `PYTHON_RUNTIME_REQUIREMENTS.md` | wymagania Python dla science tools | 2026-05-03 | `current_reference` | czytać przy pracy z `science_tools` |
@@ -105,3 +105,5 @@ Nowy dokument można dodać do `docs/` tylko wtedy, gdy od razu wiadomo:
 - czy opisuje tylko staging/local artifacts.
 
 Jeśli nie da się tego powiedzieć jednym zdaniem, dokument jest źle nazwany albo źle umieszczony.
+
+
