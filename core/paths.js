@@ -1,45 +1,158 @@
 import path from "path";
-import { BASE_DIR, BLOCKED_PATH_PREFIXES, BLOCKED_TOP_LEVEL_DIRS, PROTECTED_PATHS } from "./config.js";
+import {
+  BASE_DIR,
+  BLOCKED_PATH_PREFIXES,
+  BLOCKED_TOP_LEVEL_DIRS,
+  PRIMARY_WORK_ROOT_ALIAS,
+  PROTECTED_PATHS,
+  WORK_ROOTS,
+} from "./config.js";
 
-export function normalizeRel(relativePath = ".") {
-  return String(relativePath || ".")
-    .replaceAll("\\", "/")
-    .replace(/^\/+/, "");
+function canonicalize(fullPath) {
+  return path.resolve(fullPath).toLowerCase();
 }
 
-export function safePath(relativePath = ".") {
-  const clean = normalizeRel(relativePath);
-  const resolved = path.resolve(BASE_DIR, clean);
+function startsInside(candidate, root) {
+  const left = canonicalize(candidate);
+  const right = canonicalize(root);
+  return left === right || left.startsWith(right + path.sep.toLowerCase());
+}
 
-  if (resolved !== BASE_DIR && !resolved.startsWith(BASE_DIR + path.sep)) {
+function formatDisplayPath(rootAlias, rootRelativePath, primaryAlias) {
+  const rel = rootRelativePath && rootRelativePath !== "." ? rootRelativePath : "";
+  if (rootAlias === primaryAlias) return rel || ".";
+  return rel ? `@${rootAlias}/${rel}` : `@${rootAlias}`;
+}
+
+export function normalizeRel(relativePath = ".") {
+  const clean = String(relativePath || ".")
+    .trim()
+    .replaceAll("\\", "/")
+    .replace(/^\/+/, "");
+  return clean || ".";
+}
+
+export function listWorkspaceRoots(roots = WORK_ROOTS, primaryAlias = PRIMARY_WORK_ROOT_ALIAS) {
+  return [...roots.entries()].map(([alias, root]) => ({
+    alias,
+    path: root,
+    primary: alias === primaryAlias,
+  }));
+}
+
+export function resolveWorkspacePath(relativePath = ".", { roots = WORK_ROOTS, primaryAlias = PRIMARY_WORK_ROOT_ALIAS } = {}) {
+  const clean = normalizeRel(relativePath);
+  if (clean === ".") {
+    return {
+      requested: clean,
+      rootAlias: primaryAlias,
+      rootPath: roots.get(primaryAlias),
+      rootRelativePath: ".",
+      displayPath: ".",
+      usedAlias: false,
+    };
+  }
+
+  const aliasMatch = clean.match(/^@([a-z0-9_-]+)(?:\/(.*))?$/i);
+  if (aliasMatch) {
+    const rootAlias = aliasMatch[1].toLowerCase();
+    if (!roots.has(rootAlias)) {
+      throw new Error(`Unknown workspace root alias: @${rootAlias}`);
+    }
+    const rootRelativePath = aliasMatch[2] ? normalizeRel(aliasMatch[2]) : ".";
+    return {
+      requested: clean,
+      rootAlias,
+      rootPath: roots.get(rootAlias),
+      rootRelativePath,
+      displayPath: formatDisplayPath(rootAlias, rootRelativePath, primaryAlias),
+      usedAlias: true,
+    };
+  }
+
+  return {
+    requested: clean,
+    rootAlias: primaryAlias,
+    rootPath: roots.get(primaryAlias),
+    rootRelativePath: clean,
+    displayPath: clean,
+    usedAlias: false,
+  };
+}
+
+export function safePath(relativePath = ".", options = {}) {
+  const resolvedTarget = resolveWorkspacePath(relativePath, options);
+  const full = path.resolve(resolvedTarget.rootPath, resolvedTarget.rootRelativePath);
+
+  if (!startsInside(full, resolvedTarget.rootPath)) {
     throw new Error("Access denied");
   }
 
-  return resolved;
+  return full;
 }
 
-export function toRel(fullPath) {
-  return path.relative(BASE_DIR, fullPath).replaceAll("\\", "/") || ".";
+export function describeWorkspaceFullPath(fullPath, { roots = WORK_ROOTS, primaryAlias = PRIMARY_WORK_ROOT_ALIAS } = {}) {
+  const resolved = path.resolve(fullPath);
+  const matches = [...roots.entries()]
+    .filter(([, rootPath]) => startsInside(resolved, rootPath))
+    .sort((a, b) => b[1].length - a[1].length);
+
+  if (!matches.length) {
+    throw new Error("Access denied");
+  }
+
+  const [rootAlias, rootPath] = matches[0];
+  const rootRelativePath = path.relative(rootPath, resolved).replaceAll("\\", "/") || ".";
+
+  return {
+    rootAlias,
+    rootPath,
+    rootRelativePath,
+    displayPath: formatDisplayPath(rootAlias, rootRelativePath, primaryAlias),
+    isPrimary: rootAlias === primaryAlias,
+  };
 }
 
-function isBlockedPrefix(rel) {
-  for (const prefix of BLOCKED_PATH_PREFIXES) {
-    if (rel === prefix || rel.startsWith(prefix + "/")) return prefix;
+export function toRel(fullPath, options = {}) {
+  return describeWorkspaceFullPath(fullPath, options).displayPath;
+}
+
+function protectedEntries() {
+  return [...PROTECTED_PATHS].map((rel) => ({ rel, full: path.resolve(BASE_DIR, rel) }));
+}
+
+function blockedPrefixEntries() {
+  return [...BLOCKED_PATH_PREFIXES].map((prefix) => ({ prefix, full: path.resolve(BASE_DIR, prefix) }));
+}
+
+function findBlockedPrefix(fullPath) {
+  const resolved = path.resolve(fullPath);
+  for (const entry of blockedPrefixEntries()) {
+    if (startsInside(resolved, entry.full)) return entry.prefix;
   }
   return null;
 }
 
-export function assertWritablePath(relativePath, { allowProtected = false } = {}) {
-  const full = safePath(relativePath);
-  const rel = toRel(full);
-  const top = rel.split("/")[0];
-  const blockedPrefix = isBlockedPrefix(rel);
+function findProtectedPath(fullPath) {
+  const resolved = canonicalize(fullPath);
+  for (const entry of protectedEntries()) {
+    if (canonicalize(entry.full) === resolved) return entry.rel;
+  }
+  return null;
+}
 
-  if (rel === ".") throw new Error("Blocked path: root is not writable");
-  if (rel.startsWith("..")) throw new Error("Access denied");
+export function assertWritablePath(relativePath, { allowProtected = false, roots = WORK_ROOTS, primaryAlias = PRIMARY_WORK_ROOT_ALIAS } = {}) {
+  const full = safePath(relativePath, { roots, primaryAlias });
+  const location = describeWorkspaceFullPath(full, { roots, primaryAlias });
+  const top = location.rootRelativePath.split("/")[0];
+  const blockedPrefix = findBlockedPrefix(full);
+  const protectedRel = findProtectedPath(full);
+
+  if (location.rootRelativePath === ".") throw new Error("Blocked path: root is not writable");
+  if (location.rootRelativePath.startsWith("..")) throw new Error("Access denied");
   if (blockedPrefix) throw new Error(`Blocked path: ${blockedPrefix}`);
   if (BLOCKED_TOP_LEVEL_DIRS.has(top)) throw new Error(`Blocked path: ${top}`);
-  if (!allowProtected && PROTECTED_PATHS.has(rel)) throw new Error(`Protected file: ${rel}`);
+  if (!allowProtected && protectedRel) throw new Error(`Protected file: ${protectedRel}`);
 
-  return rel;
+  return location.displayPath;
 }

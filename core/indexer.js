@@ -8,6 +8,7 @@ import {
   BLOCKED_TOP_LEVEL_DIRS,
   SKIPPED_SCAN_DIRS,
   SKIPPED_SCAN_EXTENSIONS,
+  listWorkspaceRoots,
 } from "./config.js";
 import { safePath, toRel } from "./paths.js";
 
@@ -23,7 +24,11 @@ export async function loadIndex() {
 }
 
 function shouldSkipDir(rel) {
-  const parts = String(rel || ".").split("/");
+  const normalized = String(rel || ".");
+  const local = normalized.startsWith("@")
+    ? normalized.replace(/^@[a-z0-9_-]+\/?/i, "") || "."
+    : normalized;
+  const parts = local.split("/");
   const top = parts[0];
   if (BLOCKED_TOP_LEVEL_DIRS.has(top)) return true;
   for (const p of parts) {
@@ -35,6 +40,7 @@ function shouldSkipDir(rel) {
 export async function buildIndex(options = {}) {
   const maxFiles = Number.isInteger(options.max_files) ? options.max_files : DEFAULT_MAX_FILES;
   const maxDirs = Number.isInteger(options.max_dirs) ? options.max_dirs : DEFAULT_MAX_DIRS;
+  const roots = listWorkspaceRoots();
 
   const docs = [];
   const skipped = { oversized: 0, extension: 0, directories: 0 };
@@ -99,12 +105,16 @@ export async function buildIndex(options = {}) {
   }
 
   await fs.mkdir(path.dirname(INDEX_FILE), { recursive: true });
-  await walk(safePath("."));
+  for (const root of roots) {
+    await walk(safePath(root.primary ? "." : `@${root.alias}`));
+    if (truncated) break;
+  }
 
   const idx = {
-    version: 2,
+    version: 3,
     created_at: new Date().toISOString(),
     root: ".",
+    roots: roots.map((item) => ({ alias: item.alias, path: item.path, primary: item.primary })),
     docs,
     stats: {
       docs: docs.length,

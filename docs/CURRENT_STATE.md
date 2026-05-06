@@ -2,7 +2,7 @@
 
 Data: 2026-05-06
 Status: canonical_current
-Zakres: aktualny stan projektu `C:\Work\mcp` po rolloutach registry execute v7.1, bounded web tools (`pypi_info`, `check_npm_package`, `fetch_github_file`), domknięciu test coverage dla web tools, korekcie testów registry execute v1.1 na aktywny runtime oraz wdrożeniu `project_truth_audit`, `code_runtime_map`, `deploy_decision_guard` i `change_workflow_simulator`
+Zakres: aktualny stan projektu `C:\Work\mcp` po rolloutach registry execute v7.1, bounded web tools (`pypi_info`, `check_npm_package`, `fetch_github_file`), domknięciu test coverage dla web tools, korekcie testów registry execute v1.1 na aktywny runtime, wdrożeniu `project_truth_audit`, `code_runtime_map`, `deploy_decision_guard` i `change_workflow_simulator` oraz redesignie do modelu multi-root z aliasami `@alias/...`
 
 ## 1. Stan repo i lokalnego runtime
 
@@ -27,7 +27,7 @@ Potwierdzone:
 
 - read-only MCP
 - port `3000`
-- zakres plików rozszerzony do `C:\Work`, przy zachowaniu runtime/control-plane w `C:\Work\mcp`
+- read-only profile i tools profile używają wspólnego modelu workspace rootów: bare paths wskazują primary root `C:\Work`, a dodatkowe rooty mogą być dołączane przez `MCP_EXTRA_ROOTS` i adresowane jako `@alias/...`
 
 ### `server_tools.js`
 
@@ -196,15 +196,15 @@ Wniosek:
 
 Potwierdzone lokalnie w kodzie i repo validation:
 
-- filesystem, index i science path policy są liczone względem `C:\Work`
-- runtime repo, docs canonical, logi, deploy control-plane i truth tools pozostają zakotwiczone w `C:\Work\mcp`
+- filesystem, index i science path policy są liczone względem primary root `C:\Work`, a dodatkowe rooty są jawnie adresowane przez `@alias/...`
+- runtime repo, docs canonical, logi, deploy control-plane i truth tools pozostają zakotwiczone w `C:\Work\mcp` niezależnie od liczby workspace rootów
 - ochrona runtime pozostaje aktywna dla `mcp/core`, `mcp/server.js`, `mcp/server_tools.js`, `mcp/package.json` i `mcp/package-lock.json`
 
 Potwierdzone live przez aktywny MCP po restarcie `server_tools.js` dnia 2026-05-06:
 
-- `list_directory(".")` pokazuje root `C:\Work`, a nie dawny root `C:\Work\mcp`
+- `list_directory(".")` pokazuje primary root `C:\Work`, a nie dawny root `C:\Work\mcp`
 - `list_directory("romionsim")` działa poprawnie i zwraca zawartość `C:\Work\romionsim`
-- `get_info("mcp")` nadal wskazuje katalog runtime repo jako podkatalog workspace
+- `get_info("mcp")` nadal wskazuje katalog runtime repo jako podkatalog primary workspace
 
 ## 7. Deploy / rollback / perf
 
@@ -284,7 +284,7 @@ Obszary objęte testami:
 - perf script
 - recovery no-legacy import
 - MCP descriptor contract dla pełnego aktywnego surface `server_tools.js`, w tym web tools
-- MCP descriptor contract dla pełnego aktywnego surface `server_tools.js`, w tym truth tools
+- MCP descriptor contract dla pełnego aktywnego surface `server_tools.js`, w tym truth tools`r`n- multi-root config parsing i alias-based path policy
 - MCP result-shape helpers
 - registry safe layer
 - registry execute simulation
@@ -336,6 +336,7 @@ Jeśli potrzebujesz:
 - aktualnego stanu registry: `REGISTRY.md`
 - aktualnych kontraktów runtime: `RUNTIME_CONTRACTS_CURRENT.md`
 - idiotoodpornego protokołu dla kolejnego LLM: `LLM_IDIOT_PROOF_PROTOCOL_2026-05-04.md`
+
 
 
 

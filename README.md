@@ -4,7 +4,7 @@ Lokalny projekt MCP oparty o Node.js, Express i `@modelcontextprotocol/sdk`.
 
 Repozytorium zawiera dwa serwery MCP:
 
-- `server.js` — podstawowy read-only MCP dla plików w `C:\Work\mcp`.
+- `server.js` — podstawowy read-only MCP dla skonfigurowanych workspace rootów. Bare paths i `.` wskazują primary root `C:\Work`, a dodatkowe rooty są adresowane jawnie jako `@alias/...`.
 - `server_tools.js` — modularny MCP tools profile z narzędziami FS, index, science, connector-safe code tools i connector-safe registry control-plane.
 
 ## Status
@@ -23,7 +23,7 @@ https://github.com/BlackStar1979/mcp
 
 - Node.js 18 lub nowszy
 - npm
-- Windows, z katalogiem roboczym `C:\Work\mcp`
+- Windows, z katalogiem roboczym `C:\Work\mcp`, primary workspace root `C:\Work` i runtime/control-plane w `C:\Work\mcp`
 
 ### Python dla narzędzi science
 
@@ -74,10 +74,29 @@ node C:\Work\mcp\server_tools.js
 node server.js
 ```
 
-Read-only MCP działa lokalnie i ogranicza zakres do:
+## Workspace roots
+
+Domyślny model:
 
 ```text
-C:\Work\mcp
+primary root: C:\Work
+runtime/control-plane: C:\Work\mcp
+```
+
+Dodatkowe rooty można dodać bez kolejnego redesignu przez zmienną środowiskową:
+
+```text
+MCP_EXTRA_ROOTS=portfolio=C:\Portfolio;thesis=C:\Users\mczyz\Documents\Praca licencjacka
+```
+
+Adresowanie:
+
+```text
+.                    -> C:\Work
+romionsim/docs       -> C:\Work\romionsim\docs
+@portfolio           -> C:\Portfolio
+@portfolio/assets    -> C:\Portfolio\assets
+@thesis/chapters     -> C:\Users\mczyz\Documents\Praca licencjacka\chapters
 ```
 
 ## Testy
@@ -89,6 +108,7 @@ npm test
 Testy sprawdzają między innymi:
 
 - konfigurację ścieżek runtime,
+- multi-root config parsing i alias-based path policy,
 - blokady zapisu w katalogach chronionych,
 - przekierowanie importów do modułów w `core`,
 - brak startup dependency od legacy `core/code_tools.js`,

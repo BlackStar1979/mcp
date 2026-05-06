@@ -111,7 +111,7 @@ function importantRomionsimDocs(index) {
 export function registerIndexTools(server) {
   registerSafeTool(server, "index_status", {
     title: "Show index status",
-    description: "Show current index metadata and statistics.",
+    description: "Show current index metadata, configured workspace roots, and statistics.",
     inputSchema: z.object({}),
     annotations: READ_ONLY,
   }, async () => {
@@ -131,7 +131,7 @@ export function registerIndexTools(server) {
 
   registerSafeTool(server, "build_index", {
     title: "Build index",
-    description: "Build index.",
+    description: "Build index across configured workspace roots.",
     inputSchema: z.object({}),
     annotations: STATE_CHANGING,
   }, async () => {
@@ -228,3 +228,4 @@ export function registerIndexTools(server) {
     };
   });
 }
+

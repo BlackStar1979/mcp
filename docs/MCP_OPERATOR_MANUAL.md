@@ -25,6 +25,7 @@ Instrukcja operacyjna dla lokalnego MCP control plane.
 6. Po zmianach `repo-only` w testach i dokumentacji restart MCP nie jest wymagany; po zmianach runtime jest wymagany.
 7. Reconnect klienta jest wymagany tylko wtedy, gdy zmienia się aktywny tool surface, descriptor metadata lub schema handshake widoczny dla klienta.
 8. Tokeny i sekrety nie mogą trafiać do logów; po wycieku token należy rotować.
+9. Dodatkowe workspace rooty dodaje się przez `MCP_EXTRA_ROOTS` i adresuje jawnie przez `@alias/...`; nie dokłada się ich przez kolejny redesign ścieżek.
 
 ## 2.1 Klasy zmian
 
@@ -34,6 +35,27 @@ Instrukcja operacyjna dla lokalnego MCP control plane.
 | `test_only` | no | no | no |
 | `runtime` | yes | yes | no |
 | `runtime_with_client_refresh` | yes | yes | yes |
+
+## 2.2 Workspace roots
+
+Domyślny model:
+
+- primary root: `C:\Work`
+- runtime/control-plane: `C:\Work\mcp`
+- dodatkowe rooty: przez `MCP_EXTRA_ROOTS`
+
+Przykład:
+
+```powershell
+$env:MCP_EXTRA_ROOTS = "portfolio=C:\Portfolio;thesis=C:\Users\mczyz\Documents\Praca licencjacka"
+node C:\Work\mcp\server_tools.js
+```
+
+Adresowanie:
+
+- bare paths i `.` -> `C:\Work`
+- `@portfolio/...` -> `C:\Portfolio\...`
+- `@thesis/...` -> `C:\Users\mczyz\Documents\Praca licencjacka\...`
 
 ## 3. Standardowy cykl zmiany
 
@@ -328,3 +350,5 @@ Po zamknięciu bieżącego rozdziału kolejne prace powinny dotyczyć optymaliza
 - odchudzenie `content` względem `structuredContent`,
 - testy result-shape na realnych handlerach,
 - opcjonalny `requirements.txt` albo test środowiska Python.
+
+

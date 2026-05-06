@@ -2,13 +2,16 @@ import express from "express";
 import { z } from "zod";
 import fs from "fs/promises";
 import path from "path";
+import { pathToFileURL } from "url";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 
+import { ALLOWED_INDEX_EXTENSIONS, listWorkspaceRoots, workspaceAccessHint } from "./core/config.js";
+import { safePath, toRel } from "./core/paths.js";
+
 const PORT = 3000;
-const BASE_DIR = path.resolve("C:\\Work\\mcp");
-const BASE_DIR_LABEL = "C:\\Work\\mcp";
-const BASE_FILE_URL = "file:///C:/Work/mcp";
+const ROOTS = listWorkspaceRoots();
+const PRIMARY_ROOT = ROOTS.find((item) => item.primary);
 
 const READ_ONLY = {
   readOnlyHint: true,
@@ -17,38 +20,16 @@ const READ_ONLY = {
   openWorldHint: false,
 };
 
-const ALLOWED_EXTENSIONS = new Set([
-  ".txt", ".md", ".csv", ".json", ".xml", ".html", ".htm",
-  ".js", ".ts", ".py", ".ps1", ".bat", ".cmd",
-  ".log", ".ini", ".yml", ".yaml"
-]);
-
 const SKIPPED_DIRECTORIES = new Set([
   "node_modules",
   ".git",
   ".mcp_backups",
   ".mcp_index",
-  ".mcp_trash"
+  ".mcp_trash",
 ]);
 
-function safePath(relativePath = ".") {
-  const clean = String(relativePath).replaceAll("\\", "/");
-  const resolved = path.resolve(BASE_DIR, clean);
-
-  if (resolved !== BASE_DIR && !resolved.startsWith(BASE_DIR + path.sep)) {
-    throw new Error(`Access denied: outside ${BASE_DIR_LABEL}.`);
-  }
-
-  return resolved;
-}
-
-function toRel(fullPath) {
-  return path.relative(BASE_DIR, fullPath).replaceAll("\\", "/") || ".";
-}
-
-function fileUrl(relativePath) {
-  const rel = relativePath.replaceAll("\\", "/");
-  return rel === "." ? BASE_FILE_URL : `${BASE_FILE_URL}/${rel}`;
+function fileUrl(fullPath) {
+  return pathToFileURL(fullPath).href;
 }
 
 async function* walkFiles(dir) {
@@ -66,6 +47,12 @@ async function* walkFiles(dir) {
   }
 }
 
+async function* walkAllRoots() {
+  for (const root of ROOTS) {
+    yield* walkFiles(root.path);
+  }
+}
+
 async function fileInfo(fullPath) {
   const stat = await fs.stat(fullPath);
   const rel = toRel(fullPath);
@@ -78,19 +65,20 @@ async function fileInfo(fullPath) {
     size: stat.size,
     created: stat.birthtime.toISOString(),
     modified: stat.mtime.toISOString(),
-    url: fileUrl(rel),
+    url: fileUrl(fullPath),
   };
 }
 
 function createServer() {
+  const rootsHint = workspaceAccessHint();
   const server = new McpServer(
     {
       name: "local-mcp-readonly-files",
-      version: "1.1.2",
+      version: "1.1.3",
     },
     {
       instructions:
-        `Read-only MCP server for files in ${BASE_DIR_LABEL}. Use search/fetch for knowledge retrieval and list_directory/read_file/get_info for direct file inspection.`,
+        `Read-only MCP server for configured workspace roots. ${rootsHint} Use search/fetch for knowledge retrieval and list_directory/read_file/get_info for direct file inspection.`,
     }
   );
 
@@ -98,7 +86,7 @@ function createServer() {
     "search",
     {
       title: "Search local MCP files",
-      description: `Search file names and text contents inside ${BASE_DIR_LABEL}.`,
+      description: `Search file names and text contents across configured workspace roots. ${rootsHint}`,
       inputSchema: z.object({
         query: z.string(),
       }),
@@ -116,9 +104,9 @@ function createServer() {
         };
       }
 
-      for await (const filePath of walkFiles(BASE_DIR)) {
+      for await (const filePath of walkAllRoots()) {
         const ext = path.extname(filePath).toLowerCase();
-        if (!ALLOWED_EXTENSIONS.has(ext)) continue;
+        if (!ALLOWED_INDEX_EXTENSIONS.has(ext)) continue;
 
         const rel = toRel(filePath);
 
@@ -142,7 +130,7 @@ function createServer() {
             id: rel,
             title: rel,
             text: snippet,
-            url: fileUrl(rel),
+            url: fileUrl(filePath),
           });
         }
 
@@ -162,7 +150,7 @@ function createServer() {
     "fetch",
     {
       title: "Fetch local MCP file",
-      description: `Fetch full UTF-8 text content of a file from ${BASE_DIR_LABEL} by ID returned from search.`,
+      description: `Fetch full UTF-8 text content of a file by ID returned from search. ${rootsHint}`,
       inputSchema: z.object({
         id: z.string(),
       }),
@@ -181,10 +169,10 @@ function createServer() {
         id: rel,
         title: rel,
         text,
-        url: fileUrl(rel),
+        url: fileUrl(filePath),
         metadata: {
           source: "local_filesystem",
-          base_dir: BASE_DIR_LABEL,
+          workspace_access: rootsHint,
           size: stat.size,
           modified: stat.mtime.toISOString(),
         },
@@ -201,7 +189,7 @@ function createServer() {
     "list_directory",
     {
       title: "List directory",
-      description: `List files and folders inside ${BASE_DIR_LABEL}.`,
+      description: `List files and folders inside configured workspace roots. Bare paths resolve under ${PRIMARY_ROOT.path}; use @alias/... for secondary roots.`,
       inputSchema: z.object({
         path: z.string().default("."),
       }),
@@ -237,7 +225,7 @@ function createServer() {
     "read_file",
     {
       title: "Read file",
-      description: `Read full UTF-8 text content of a file inside ${BASE_DIR_LABEL}.`,
+      description: `Read full UTF-8 text content of a file inside configured workspace roots. ${rootsHint}`,
       inputSchema: z.object({
         path: z.string(),
       }),
@@ -271,7 +259,7 @@ function createServer() {
     "get_info",
     {
       title: "Get file or directory info",
-      description: `Get metadata for a file or folder inside ${BASE_DIR_LABEL}.`,
+      description: `Get metadata for a file or folder inside configured workspace roots. ${rootsHint}`,
       inputSchema: z.object({
         path: z.string(),
       }),
@@ -317,5 +305,6 @@ app.all("/mcp", async (req, res) => {
 
 app.listen(PORT, "127.0.0.1", () => {
   console.log(`Read-only MCP server running at http://127.0.0.1:${PORT}/mcp`);
-  console.log(`Base directory: ${BASE_DIR}`);
+  console.log(`Primary workspace root: ${PRIMARY_ROOT.path}`);
+  console.log(`Configured workspace roots: ${ROOTS.map((item) => `${item.primary ? '*' : ''}${item.alias}=${item.path}`).join(', ')}`);
 });

@@ -2,7 +2,7 @@
 
 Data: 2026-05-06
 Status: canonical_current
-Zakres: aktualne kontrakty i granice odpowiedzialności dla aktywnego runtime `server_tools.js`, bounded web tools (`pypi_info`, `check_npm_package`, `fetch_github_file`) oraz bieżący status test boundary po korektach coverage i wdrożeniu `project_truth_audit`, `code_runtime_map`, `deploy_decision_guard` oraz `change_workflow_simulator`
+Zakres: aktualne kontrakty i granice odpowiedzialności dla aktywnego runtime `server_tools.js`, bounded web tools (`pypi_info`, `check_npm_package`, `fetch_github_file`), modelu multi-root z aliasami `@alias/...` oraz bieżący status test boundary po korektach coverage i wdrożeniu `project_truth_audit`, `code_runtime_map`, `deploy_decision_guard` oraz `change_workflow_simulator`
 
 ## Cel
 
@@ -15,10 +15,11 @@ Ten dokument zastępuje używanie `MCP_TOOL_CONTRACTS.md` jako bieżącego sourc
 1. Runtime truth ma pierwszeństwo nad dokumentem.
 2. Sama obecność pliku nie jest wdrożeniem.
 3. `.mcp_warzone` jest stagingiem, nie aktywnym runtime.
-4. Workspace root dla filesystem, index i science to `C:\Work`, ale runtime, control-plane, docs canonical i logi pozostają w `C:\Work\mcp`.
-5. Zmiany runtime MCP wdraża się przez manifest + deploy/rollback.
-6. Zmiany testów i dokumentacji repo nie są automatycznie zmianami runtime MCP.
-7. `structuredContent` jest kanałem operacyjnym; `content` jest warstwą prezentacyjną.
+4. Primary workspace root dla filesystem, index i science to `C:\Work`; dodatkowe rooty mogą być dołączane przez `MCP_EXTRA_ROOTS` i są adresowane jawnie jako `@alias/...`.
+5. Runtime, control-plane, docs canonical i logi pozostają w `C:\Work\mcp`, niezależnie od liczby workspace rootów.
+6. Zmiany runtime MCP wdraża się przez manifest + deploy/rollback.
+7. Zmiany testów i dokumentacji repo nie są automatycznie zmianami runtime MCP.
+8. `structuredContent` jest kanałem operacyjnym; `content` jest warstwą prezentacyjną.
 
 ## Aktywny tool surface `server_tools.js`
 
@@ -32,6 +33,11 @@ Ten dokument zastępuje używanie `MCP_TOOL_CONTRACTS.md` jako bieżącego sourc
 - `collect_romionsim_context`
 
 ### Filesystem
+
+Adresowanie ścieżek:
+
+- `.` i bare paths -> primary root `C:\Work`
+- `@alias/...` -> jawnie wskazany dodatkowy root z `MCP_EXTRA_ROOTS`
 
 - `get_info`
 - `list_directory`
@@ -184,5 +190,8 @@ Repo-only docs changes do not require runtime deploy, restart, or reconnect.
 Test/supporting repo changes require staging validation and repo validation, but do not require runtime deploy unless they modify active runtime files.
 
 Direct copy into active runtime code is forbidden for runtime MCP changes.
+
+
+
 
 

@@ -127,7 +127,7 @@ function applyTextPatch(source, { mode, anchor, content }) {
 export function registerFsTools(server) {
   registerSafeTool(server, "get_info", {
     title: "Get file or directory info",
-    description: "Get metadata for a file or folder inside C:\\Work.",
+    description: "Get metadata for a file or folder inside configured workspace roots.",
     inputSchema: z.object({ path: z.string() }),
     annotations: READ_ONLY,
   }, async ({ path: requestedPath }) => {
@@ -139,7 +139,7 @@ export function registerFsTools(server) {
 
   registerSafeTool(server, "list_directory", {
     title: "List directory",
-    description: "List files and folders inside C:\\Work.",
+    description: "List files and folders inside configured workspace roots.",
     inputSchema: z.object({ path: z.string().default(".") }),
     annotations: READ_ONLY,
   }, async ({ path: requestedPath }) => {
@@ -157,7 +157,7 @@ export function registerFsTools(server) {
 
   server.registerTool("read_file", {
     title: "Read file",
-    description: "Read bounded UTF-8 file content inside C:\\Work. For large files use read_file_lines or read_file_chunk.",
+    description: "Read bounded UTF-8 file content inside configured workspace roots. For large files use read_file_lines or read_file_chunk.",
     inputSchema: z.object({
       path: z.string(),
       max_chars: z.number().int().min(1000).max(100000).default(MAX_READ_FILE_CHARS),
@@ -202,7 +202,7 @@ export function registerFsTools(server) {
 
   server.registerTool("read_file_lines", {
     title: "Read file lines",
-    description: "Read selected 1-based line range from a UTF-8 file inside C:\\Work. Bounded text is returned both in content.text and structuredContent.text for agent compatibility.",
+    description: "Read selected 1-based line range from a UTF-8 file inside configured workspace roots. Bounded text is returned both in content.text and structuredContent.text for agent compatibility.",
     inputSchema: z.object({
       path: z.string(),
       start_line: z.number().int().min(1),
@@ -269,7 +269,7 @@ export function registerFsTools(server) {
 
   server.registerTool("read_file_chunk", {
     title: "Read file chunk",
-    description: "Read a bounded character chunk from a UTF-8 file inside C:\\Work. Offset and length are character-based, not byte-based. Text is also included in structuredContent.text for agent compatibility.",
+    description: "Read a bounded character chunk from a UTF-8 file inside configured workspace roots. Offset and length are character-based, not byte-based. Text is also included in structuredContent.text for agent compatibility.",
     inputSchema: z.object({
       path: z.string(),
       offset: z.number().int().min(0).default(0),
@@ -316,7 +316,7 @@ export function registerFsTools(server) {
 
   registerSafeTool(server, "write_file", {
     title: "Write file",
-    description: "Create or overwrite a UTF-8 file inside C:\\Work. Creates a backup when overwriting existing files.",
+    description: "Create or overwrite a UTF-8 file inside configured workspace roots. Creates a backup when overwriting existing files.",
     inputSchema: z.object({
       path: z.string(),
       content: z.string(),
@@ -348,7 +348,7 @@ export function registerFsTools(server) {
 
   registerSafeTool(server, "append_file", {
     title: "Append file",
-    description: "Append UTF-8 text to a file inside C:\\Work. Creates a backup when appending to existing files.",
+    description: "Append UTF-8 text to a file inside configured workspace roots. Creates a backup when appending to existing files.",
     inputSchema: z.object({
       path: z.string(),
       content: z.string(),
@@ -380,7 +380,7 @@ export function registerFsTools(server) {
 
   registerSafeTool(server, "copy_path", {
     title: "Copy path",
-    description: "Copy a file or directory inside C:\\Work.",
+    description: "Copy a file or directory inside configured workspace roots.",
     inputSchema: z.object({
       from: z.string(),
       to: z.string(),
@@ -409,7 +409,7 @@ export function registerFsTools(server) {
 
   registerSafeTool(server, "move_path", {
     title: "Move path",
-    description: "Move or rename a file/folder inside C:\\Work.",
+    description: "Move or rename a file/folder inside configured workspace roots.",
     inputSchema: z.object({
       from: z.string(),
       to: z.string(),
@@ -438,7 +438,7 @@ export function registerFsTools(server) {
 
   registerSafeTool(server, "delete_path", {
     title: "Delete path",
-    description: "Soft-delete a file or directory inside C:\\Work by moving it to .mcp_trash and writing restore metadata.",
+    description: "Soft-delete a file or directory inside configured workspace roots by moving it to .mcp_trash and writing restore metadata.",
     inputSchema: z.object({
       path: z.string(),
       allow_protected: z.boolean().default(false),
@@ -476,7 +476,7 @@ export function registerFsTools(server) {
 
   registerSafeTool(server, "edit_file_patch", {
     title: "Patch text file by anchor",
-    description: "Safely edit a UTF-8 text file inside C:\\Work using an exact single anchor. Creates a backup; supports dry-run.",
+    description: "Safely edit a UTF-8 text file inside configured workspace roots using an exact single anchor. Creates a backup; supports dry-run.",
     inputSchema: z.object({
       path: z.string(),
       anchor: z.string().min(1),
@@ -585,3 +585,4 @@ export function registerFsTools(server) {
     return { status: "restored", from: trashRel, to: toRel(destFull) };
   });
 }
+
