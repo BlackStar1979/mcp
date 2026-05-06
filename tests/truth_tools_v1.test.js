@@ -38,6 +38,12 @@ test("truth tools expose tool_usage_snapshot with explicit outputSchema", () => 
   assert.match(truthTools, /web_tool_counts:\s*z\.array\(/);
 });
 
+
+test("truth tools use platform-safe runtime path joins", () => {
+  assert.match(truthTools, /import\s+path\s+from\s+"node:path"/);
+  assert.match(truthTools, /path\.join\(RUNTIME_DIR, \.\.\.segments\)/);
+  assert.doesNotMatch(truthTools, /RUNTIME_DIR}\\\\\$\{relativePath/);
+});
 test("project_truth_audit is read-only and local-world", () => {
   assert.match(truthTools, /readOnlyHint:\s*true/);
   assert.match(truthTools, /destructiveHint:\s*false/);
@@ -226,6 +232,4 @@ test("tool_usage_snapshot summarizes observed tool usage from perf log", async (
   assert.ok(payload.notes.some((item) => item.includes("truth tools dominate") || item.includes("web/research usage is currently bounded") || item.includes("no evidence of demand")));
   assert.ok(payload.web_tool_counts.some((item) => item.name === "fetch_github_file" || item.name === "check_npm_package" || item.name === "http_get"));
 });
-
-
 

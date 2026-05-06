@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import path from "node:path";
 import { z } from "zod";
 
 import { BASE_DIR, RUNTIME_DIR } from "./config.js";
@@ -142,7 +143,10 @@ const RUNTIME_GROUPS = [
 ];
 
 async function readLocal(relativePath) {
-  return fs.readFile(`${RUNTIME_DIR}\\${relativePath.replaceAll("/", "\\")}`, "utf8");
+  const segments = String(relativePath || "")
+    .split(/[\\/]+/)
+    .filter(Boolean);
+  return fs.readFile(path.join(RUNTIME_DIR, ...segments), "utf8");
 }
 
 function hasBulletBlock(text, heading, bullets) {
@@ -710,5 +714,4 @@ export function registerTruthTools(server) {
     async () => runToolUsageSnapshot()
   );
 }
-
 
