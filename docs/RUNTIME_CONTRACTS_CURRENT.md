@@ -16,10 +16,12 @@ Ten dokument zastępuje używanie `MCP_TOOL_CONTRACTS.md` jako bieżącego sourc
 2. Sama obecność pliku nie jest wdrożeniem.
 3. `.mcp_warzone` jest stagingiem, nie aktywnym runtime.
 4. Primary workspace root dla filesystem, index i science to `C:\Work`; dodatkowe rooty mogą być dołączane przez `MCP_EXTRA_ROOTS` i są adresowane jawnie jako `@alias/...`.
-5. Runtime, control-plane, docs canonical i logi pozostają w `C:\Work\mcp`, niezależnie od liczby workspace rootów.
-6. Zmiany runtime MCP wdraża się przez manifest + deploy/rollback.
-7. Zmiany testów i dokumentacji repo nie są automatycznie zmianami runtime MCP.
-8. `structuredContent` jest kanałem operacyjnym; `content` jest warstwą prezentacyjną.
+5. W środowiskach nie-Windows domyślne rooty są wyprowadzane z checkoutu repo albo z `MCP_WORK_ROOT` / `MCP_RUNTIME_DIR`, ale model aliasów pozostaje identyczny.
+6. Runtime, control-plane, docs canonical i logi pozostają w `C:\Work\mcp`, niezależnie od liczby workspace rootów.
+7. Zmiany runtime MCP wdraża się przez manifest + deploy/rollback.
+8. Zmiany testów i dokumentacji repo nie są automatycznie zmianami runtime MCP.
+9. `structuredContent` jest kanałem operacyjnym; `content` jest warstwą prezentacyjną.
+
 
 ## Aktywny tool surface `server_tools.js`
 
@@ -190,8 +192,4 @@ Repo-only docs changes do not require runtime deploy, restart, or reconnect.
 Test/supporting repo changes require staging validation and repo validation, but do not require runtime deploy unless they modify active runtime files.
 
 Direct copy into active runtime code is forbidden for runtime MCP changes.
-
-
-
-
 

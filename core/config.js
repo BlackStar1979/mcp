@@ -1,10 +1,52 @@
 import path from "path";
+import { fileURLToPath } from "url";
 
 export const PORT = 3001;
 export const PRIMARY_WORK_ROOT_ALIAS = "work";
-export const DEFAULT_WORK_ROOT = path.resolve("C:\\Work");
-export const RUNTIME_DIR = path.resolve("C:\\Work\\mcp");
 export const WORK_ROOTS_ENV_VAR = "MCP_EXTRA_ROOTS";
+
+const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
+const REPO_RUNTIME_FALLBACK = path.resolve(MODULE_DIR, "..");
+const REPO_WORKSPACE_FALLBACK = path.resolve(REPO_RUNTIME_FALLBACK, "..");
+
+function stripQuotes(value) {
+  return String(value || "").trim().replace(/^['"]|['"]$/g, "");
+}
+
+function looksLikeWindowsAbsolute(value) {
+  return /^[a-zA-Z]:[\\/]/.test(value) || /^\\\\[^\\]+[\\/][^\\/]+/.test(value);
+}
+
+function comparePath(value) {
+  return String(value || "")
+    .replaceAll("\\", "/")
+    .replace(/\/+$/, "")
+    .toLowerCase();
+}
+
+function hostResolveAbsolute(value) {
+  const raw = stripQuotes(value);
+  if (!raw) throw new Error("Workspace root path cannot be empty.");
+  if (looksLikeWindowsAbsolute(raw)) {
+    return path.win32.normalize(raw);
+  }
+  return path.resolve(raw);
+}
+
+function defaultHostWorkRoot() {
+  if (process.env.MCP_WORK_ROOT) return hostResolveAbsolute(process.env.MCP_WORK_ROOT);
+  if (process.platform === "win32") return hostResolveAbsolute("C:\\Work");
+  return hostResolveAbsolute(REPO_WORKSPACE_FALLBACK);
+}
+
+function defaultHostRuntimeDir() {
+  if (process.env.MCP_RUNTIME_DIR) return hostResolveAbsolute(process.env.MCP_RUNTIME_DIR);
+  if (process.platform === "win32") return hostResolveAbsolute("C:\\Work\\mcp");
+  return hostResolveAbsolute(REPO_RUNTIME_FALLBACK);
+}
+
+export const DEFAULT_WORK_ROOT = defaultHostWorkRoot();
+export const RUNTIME_DIR = defaultHostRuntimeDir();
 
 function normalizeAlias(value) {
   const alias = String(value || "").trim().toLowerCase();
@@ -16,15 +58,13 @@ function normalizeAlias(value) {
 }
 
 function normalizeRootPath(value) {
-  const normalized = path.resolve(String(value || "").trim().replace(/^['"]|['"]$/g, ""));
-  if (!normalized) throw new Error("Workspace root path cannot be empty.");
-  return normalized;
+  return hostResolveAbsolute(value);
 }
 
 function overlaps(a, b) {
-  const left = a.toLowerCase();
-  const right = b.toLowerCase();
-  return left === right || left.startsWith(right + path.sep.toLowerCase()) || right.startsWith(left + path.sep.toLowerCase());
+  const left = comparePath(a);
+  const right = comparePath(b);
+  return left === right || left.startsWith(right + "/") || right.startsWith(left + "/");
 }
 
 export function parseExtraWorkRoots(raw = "") {
@@ -178,3 +218,4 @@ export const BLOCKED_PATH_PREFIXES = new Set([
   "mcp/.mcp_backups",
   "mcp/.mcp_index",
 ]);
+

@@ -28,6 +28,7 @@ Potwierdzone:
 - read-only MCP
 - port `3000`
 - read-only profile i tools profile używają wspólnego modelu workspace rootów: bare paths wskazują primary root `C:\Work`, a dodatkowe rooty mogą być dołączane przez `MCP_EXTRA_ROOTS` i adresowane jako `@alias/...`
+- w środowiskach nie-Windows domyślne rooty są wyprowadzane z checkoutu repo lub jawnych override `MCP_WORK_ROOT` / `MCP_RUNTIME_DIR`, żeby CI i testy nie traktowały `C:\Work` jako ścieżki względnej
 
 ### `server_tools.js`
 
@@ -336,7 +337,4 @@ Jeśli potrzebujesz:
 - aktualnego stanu registry: `REGISTRY.md`
 - aktualnych kontraktów runtime: `RUNTIME_CONTRACTS_CURRENT.md`
 - idiotoodpornego protokołu dla kolejnego LLM: `LLM_IDIOT_PROOF_PROTOCOL_2026-05-04.md`
-
-
-
 

@@ -2,31 +2,35 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import path from "node:path";
 
-import { buildWorkRoots, PRIMARY_WORK_ROOT_ALIAS } from "../core/config.js";
+import { BASE_DIR, buildWorkRoots, PRIMARY_WORK_ROOT_ALIAS } from "../core/config.js";
 import { safePath, toRel, assertWritablePath, resolveWorkspacePath, describeWorkspaceFullPath } from "../core/paths.js";
 import { evaluatePolicyRisk, enforcePolicyDecision } from "../core/policy/engine.js";
 
+const PORTFOLIO_ROOT = path.resolve(path.sep, "portfolio-root");
+const THESIS_ROOT = path.resolve(path.sep, "thesis-root");
+
 const multiRoots = buildWorkRoots({
-  extraRootsEnv: 'portfolio=C:\\Portfolio;thesis=C:\\Users\\mczyz\\Documents\\Praca licencjacka',
+  primaryPath: BASE_DIR,
+  extraRootsEnv: `portfolio=${PORTFOLIO_ROOT};thesis=${THESIS_ROOT}`,
 });
 
-test("safePath stays inside the primary C:\\Work workspace root", () => {
-  assert.equal(toRel(safePath(".")), ".");
-  assert.equal(toRel(safePath("mcp/server_tools.js")), "mcp/server_tools.js");
-  assert.throws(() => safePath("../outside.txt"), /Access denied/);
+test("safePath stays inside the configured primary workspace root", () => {
+  assert.equal(toRel(safePath(".", { roots: multiRoots, primaryAlias: PRIMARY_WORK_ROOT_ALIAS }), { roots: multiRoots, primaryAlias: PRIMARY_WORK_ROOT_ALIAS }), ".");
+  assert.equal(toRel(safePath("mcp/server_tools.js", { roots: multiRoots, primaryAlias: PRIMARY_WORK_ROOT_ALIAS }), { roots: multiRoots, primaryAlias: PRIMARY_WORK_ROOT_ALIAS }), "mcp/server_tools.js");
+  assert.throws(() => safePath("../outside.txt", { roots: multiRoots, primaryAlias: PRIMARY_WORK_ROOT_ALIAS }), /Access denied/);
 });
 
 test("secondary roots use explicit @alias addressing", () => {
   assert.equal(
     safePath("@portfolio", { roots: multiRoots, primaryAlias: PRIMARY_WORK_ROOT_ALIAS }),
-    path.resolve("C:\\Portfolio")
+    PORTFOLIO_ROOT
   );
   assert.equal(
     safePath("@thesis/chapters", { roots: multiRoots, primaryAlias: PRIMARY_WORK_ROOT_ALIAS }),
-    path.resolve("C:\\Users\\mczyz\\Documents\\Praca licencjacka\\chapters")
+    path.join(THESIS_ROOT, "chapters")
   );
   assert.equal(
-    toRel(path.resolve("C:\\Portfolio\\notes\\plan.md"), { roots: multiRoots, primaryAlias: PRIMARY_WORK_ROOT_ALIAS }),
+    toRel(path.join(PORTFOLIO_ROOT, "notes", "plan.md"), { roots: multiRoots, primaryAlias: PRIMARY_WORK_ROOT_ALIAS }),
     "@portfolio/notes/plan.md"
   );
   assert.throws(
@@ -46,15 +50,15 @@ test("workspace path resolution keeps bare paths on primary root and aliases on 
   assert.equal(secondary.rootRelativePath, "assets");
   assert.equal(secondary.displayPath, "@portfolio/assets");
 
-  const described = describeWorkspaceFullPath(path.resolve("C:\\Portfolio\\assets\\logo.svg"), { roots: multiRoots, primaryAlias: PRIMARY_WORK_ROOT_ALIAS });
+  const described = describeWorkspaceFullPath(path.join(PORTFOLIO_ROOT, "assets", "logo.svg"), { roots: multiRoots, primaryAlias: PRIMARY_WORK_ROOT_ALIAS });
   assert.equal(described.displayPath, "@portfolio/assets/logo.svg");
   assert.equal(described.isPrimary, false);
 });
 
 test("write guard blocks runtime core and protected entrypoints under mcp/ but allows secondary-root files", () => {
-  assert.throws(() => assertWritablePath("mcp/core/config.js"), /Blocked path: mcp\/core/);
-  assert.throws(() => assertWritablePath("mcp/server_tools.js"), /Protected file: mcp\/server_tools\.js/);
-  assert.equal(assertWritablePath("mcp/.mcp_warzone/tmp.txt"), "mcp/.mcp_warzone/tmp.txt");
+  assert.throws(() => assertWritablePath("mcp/core/config.js", { roots: multiRoots, primaryAlias: PRIMARY_WORK_ROOT_ALIAS }), /Blocked path: mcp\/core/);
+  assert.throws(() => assertWritablePath("mcp/server_tools.js", { roots: multiRoots, primaryAlias: PRIMARY_WORK_ROOT_ALIAS }), /Protected file: mcp\/server_tools\.js/);
+  assert.equal(assertWritablePath("mcp/.mcp_warzone/tmp.txt", { roots: multiRoots, primaryAlias: PRIMARY_WORK_ROOT_ALIAS }), "mcp/.mcp_warzone/tmp.txt");
   assert.equal(
     assertWritablePath("@portfolio/notes/todo.txt", { roots: multiRoots, primaryAlias: PRIMARY_WORK_ROOT_ALIAS }),
     "@portfolio/notes/todo.txt"
@@ -87,3 +91,4 @@ test("policy requires confirmation for high-risk patch with dry-run binding", ()
   assert.throws(() => enforcePolicyDecision(policy, { confirm: false }), /policy_confirmation_required/);
   assert.doesNotThrow(() => enforcePolicyDecision(policy, { confirm: true }));
 });
+

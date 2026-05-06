@@ -24,6 +24,7 @@ https://github.com/BlackStar1979/mcp
 - Node.js 18 lub nowszy
 - npm
 - Windows, z katalogiem roboczym `C:\Work\mcp`, primary workspace root `C:\Work` i runtime/control-plane w `C:\Work\mcp`
+- w środowiskach nie-Windows (np. CI na Ubuntu) domyślne rooty są wyprowadzane z checkoutu repo, chyba że jawnie ustawisz `MCP_WORK_ROOT` i `MCP_RUNTIME_DIR`
 
 ### Python dla narzędzi science
 
@@ -83,7 +84,10 @@ primary root: C:\Work
 runtime/control-plane: C:\Work\mcp
 ```
 
-Dodatkowe rooty można dodać bez kolejnego redesignu przez zmienną środowiskową:
+Dodatkowe rooty można dodać bez kolejnego redesignu przez zmienną środowiskową.
+W środowiskach nie-Windows domyślne rooty bazują na checkoutcie repo, ale model aliasów i `MCP_EXTRA_ROOTS` pozostaje taki sam.
+
+Przez zmienną środowiskową:
 
 ```text
 MCP_EXTRA_ROOTS=portfolio=C:\Portfolio;thesis=C:\Users\mczyz\Documents\Praca licencjacka
@@ -213,3 +217,4 @@ Serwer wykonuje operacje na lokalnym systemie plików, dlatego powinien być uru
 Licencja nie została jeszcze wybrana. Do czasu dodania pliku `LICENSE` projekt należy traktować jako kod bez udzielonej publicznej licencji.
 
 ⚠️ Registry uses controlled outputSchema rollout (deploy + runtime validation required).
+
