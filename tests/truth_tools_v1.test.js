@@ -73,6 +73,7 @@ test("project_truth_audit handler returns healthy baseline on current repo", asy
   assert.equal(payload.docs_truth.current_state_matches_runtime, true);
   assert.equal(payload.docs_truth.runtime_contracts_matches_runtime, true);
   assert.equal(payload.test_truth.contract_surface_covers_web_tools, true);
+  assert.equal(payload.test_truth.contract_surface_covers_process_tools, true);
   assert.equal(payload.test_truth.registry_execute_reads_runtime_source, true);
   assert.equal(payload.test_truth.registry_outputschema_covers_execute, true);
   assert.equal(payload.deploy_truth.deploy_prepare_execute_present, true);
@@ -97,9 +98,11 @@ test("code_runtime_map handler returns active runtime mapping baseline", async (
   assert.equal(payload.status, "ok");
   assert.ok(payload.entrypoints.some((item) => item.file === "server_tools.js"));
   assert.ok(payload.server_tools_runtime.active_groups.includes("truth tools"));
+  assert.ok(payload.server_tools_runtime.active_groups.includes("process tools"));
   assert.ok(payload.server_tools_runtime.active_groups.includes("web tools"));
   assert.ok(payload.legacy_and_staging.legacy_files.includes("core/code_tools.js"));
   assert.ok(payload.test_runtime_links.some((item) => item.test_file === "tests/truth_tools_v1.test.js"));
+  assert.ok(payload.test_runtime_links.some((item) => item.test_file === "tests/process_tools_safe.test.js"));
 });
 
 test("deploy_decision_guard classifies repo-only docs and tests change", async () => {
@@ -229,6 +232,7 @@ test("tool_usage_snapshot summarizes observed tool usage from perf log", async (
   assert.ok(payload.unique_tool_count >= 0);
   assert.ok(payload.top_tools.length >= 0);
   assert.ok(payload.family_counts.truth_tools >= 0);
+  assert.ok(payload.family_counts.process_tools >= 0);
   assert.ok(payload.notes.some((item) => item.includes("truth tools dominate") || item.includes("web/research usage is currently bounded") || item.includes("no evidence of demand") || item.includes("perf log is not present")));
   if (payload.total_tool_invocations > 0) {
     assert.ok(payload.web_tool_counts.some((item) => item.name === "fetch_github_file" || item.name === "check_npm_package" || item.name === "http_get"));

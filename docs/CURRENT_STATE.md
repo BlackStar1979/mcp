@@ -1,8 +1,8 @@
 # Current State
 
-Data: 2026-05-06
+Data: 2026-05-07
 Status: canonical_current
-Zakres: aktualny stan projektu `C:\Work\mcp` po rolloutach registry execute v7.1, bounded web tools (`pypi_info`, `check_npm_package`, `fetch_github_file`), domknięciu test coverage dla web tools, korekcie testów registry execute v1.1 na aktywny runtime, wdrożeniu `project_truth_audit`, `code_runtime_map`, `deploy_decision_guard`, `change_workflow_simulator` i `tool_usage_snapshot`, redesignie do modelu multi-root z aliasami `@alias/...` oraz domknięciu regresji CI portability z 2026-05-06
+Zakres: aktualny stan projektu `C:\Work\mcp` po rolloutach registry execute v7.1, bounded web tools (`pypi_info`, `check_npm_package`, `fetch_github_file`), domknięciu test coverage dla web tools, korekcie testów registry execute v1.1 na aktywny runtime, wdrożeniu `project_truth_audit`, `code_runtime_map`, `deploy_decision_guard`, `change_workflow_simulator`, `tool_usage_snapshot`, procesu multi-root z aliasami `@alias/...`, domknięciu regresji CI portability oraz integracji bounded process runner (`run_process`, `process_runner_status`)
 
 ## 1. Stan repo i lokalnego runtime
 
@@ -50,14 +50,31 @@ Rejestrowane aktywne grupy tooli:
 - connector-safe registry tools
 - web tools
 - truth tools
+- process tools
 
-Potwierdzone aktywne narzędzie tej warstwy:
+Potwierdzone aktywne narzędzia warstwy truth tools:
 
 - `project_truth_audit`
 - `code_runtime_map`
 - `deploy_decision_guard`
 - `change_workflow_simulator`
 - `tool_usage_snapshot`
+
+Potwierdzone aktywne narzędzia warstwy process tools:
+
+- `run_process`
+- `process_runner_status`
+
+Model bezpieczeństwa tej warstwy:
+
+- allowlisted bare executables
+- `shell: false`
+- bounded `cwd` przez workspace policy
+- bounded stdout/stderr
+- timeout
+- audyt `process_start` / `process_finish`
+- brak dziedziczenia pełnego `process.env` do child process
+- PowerShell domyślnie tylko przez `-File` do workspace-local `.ps1`
 
 ## 3. Auth i tunel
 
@@ -278,6 +295,8 @@ Aktualny checkpoint potwierdzony lokalnie po korektach test surface:
   - `npm test` — PASS `84/84`
 - repo validation po wdrożeniu `tool_usage_snapshot`:
   - `npm test` — PASS `86/86`
+- repo validation po integracji bounded process runner:
+  - `npm test` — PASS `101/101`
 - live MCP verification po restarcie `server_tools.js`:
   - `project_truth_audit` — `status: ok`
   - `drifts: []`
@@ -292,6 +311,7 @@ Aktualny checkpoint potwierdzony lokalnie po korektach test surface:
   - `fetch_github_file("colinhacks/zod", "main", "package.json")` — `status: ok`
   - `tool_usage_snapshot()` — `status: ok`
   - snapshot potwierdził, że bieżące web/research usage pozostaje bounded i nie daje jeszcze dowodu potrzeby `download_docs`
+- live MCP verification po restarcie `server_tools.js` i restarcie Codexa na `2026-05-07` potwierdziła obecność `run_process` i `process_runner_status` w aktywnym tool surface oraz `status: ok` dla `run_process(command=node, args=[--version], cwd=mcp)`; `process_runner_status` potwierdził też politykę `inherits_full_parent_env: false`
 
 Obszary objęte testami:
 
@@ -314,6 +334,7 @@ Obszary objęte testami:
 - truth tools contract i handler baseline dla `deploy_decision_guard`
 - truth tools contract i handler baseline dla `change_workflow_simulator`
 - truth tools contract i handler baseline dla `tool_usage_snapshot`
+- process tools contract i handler baseline dla `run_process` i `process_runner_status`
 - web tools static/runtime-shape guards
 - bounded npm package metadata guard
 - bounded GitHub raw file guard

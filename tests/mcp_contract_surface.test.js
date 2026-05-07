@@ -8,6 +8,7 @@ import { registerCodeTools } from "../core/code_tools_safe.js";
 import { registerRegistryTools } from "../core/registry_tools_safe.js";
 import { registerWebTools } from "../core/web_tools.js";
 import { registerTruthTools } from "../core/truth_tools.js";
+import { registerProcessTools } from "../core/process_tools_safe.js";
 
 function collectRegisteredTools() {
   const tools = [];
@@ -30,6 +31,7 @@ function collectRegisteredTools() {
   registerRegistryTools(server);
   registerWebTools(server);
   registerTruthTools(server);
+  registerProcessTools(server);
 
   return tools;
 }
@@ -75,6 +77,13 @@ test("contract surface includes project truth audit tool", () => {
   assert.ok(names.includes("deploy_decision_guard"), "contract surface must include deploy_decision_guard");
   assert.ok(names.includes("change_workflow_simulator"), "contract surface must include change_workflow_simulator");
   assert.ok(names.includes("tool_usage_snapshot"), "contract surface must include tool_usage_snapshot");
+});
+
+test("contract surface includes process tools", () => {
+  const names = collectRegisteredTools().map(({ name }) => name).sort();
+
+  assert.ok(names.includes("run_process"), "contract surface must include run_process");
+  assert.ok(names.includes("process_runner_status"), "contract surface must include process_runner_status");
 });
 
 test("read-only descriptor semantics are internally consistent", () => {

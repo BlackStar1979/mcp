@@ -11,6 +11,7 @@ import { registerCodeTools } from "./core/code_tools_safe.js";
 import { registerRegistryTools } from "./core/registry_tools_safe.js";
 import { registerWebTools } from "./core/web_tools.js";
 import { registerTruthTools } from "./core/truth_tools.js";
+import { registerProcessTools } from "./core/process_tools_safe.js";
 import { timeTool, timeRequest, perfStatus } from "./core/perf.js";
 import { runRecovery } from "./core/orchestration/recovery.js";
 import { rollbackPatchForRecovery } from "./core/recovery_rollback.js";
@@ -36,6 +37,7 @@ function createServer() {
   registerRegistryTools(server);
   registerWebTools(server);
   registerTruthTools(server);
+  registerProcessTools(server);
 
   return server;
 }

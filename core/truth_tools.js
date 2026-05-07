@@ -28,6 +28,7 @@ const PROJECT_TRUTH_AUDIT_OUTPUT = z.object({
   }).strict(),
   test_truth: z.object({
     contract_surface_covers_web_tools: z.boolean(),
+    contract_surface_covers_process_tools: z.boolean(),
     registry_execute_reads_runtime_source: z.boolean(),
     registry_outputschema_covers_execute: z.boolean(),
   }).strict(),
@@ -121,6 +122,7 @@ const TOOL_USAGE_SNAPSHOT_OUTPUT = z.object({
   }).strict()),
   family_counts: z.object({
     truth_tools: z.number(),
+    process_tools: z.number(),
     registry_tools: z.number(),
     web_tools: z.number(),
     other_tools: z.number(),
@@ -140,6 +142,7 @@ const RUNTIME_GROUPS = [
   "connector-safe registry tools",
   "web tools",
   "truth tools",
+  "process tools",
 ];
 
 async function readLocal(relativePath) {
@@ -191,8 +194,10 @@ async function runProjectTruthAudit() {
     "### Code safe",
     "### Registry safe",
     "### Web tools",
+    "### Process tools",
     "- `http_get`",
     "- `check_pypi_package`",
+    "- `run_process`",
     "- `tool_registry_execute`",
   ].every((needle) => runtimeContracts.includes(needle));
 
@@ -206,6 +211,11 @@ async function runProjectTruthAudit() {
     contractSurfaceTest.includes('registerWebTools(server);') &&
     contractSurfaceTest.includes('names.includes("http_get")') &&
     contractSurfaceTest.includes('names.includes("check_pypi_package")');
+
+  const contractSurfaceCoversProcessTools =
+    contractSurfaceTest.includes('registerProcessTools(server);') &&
+    contractSurfaceTest.includes('names.includes("run_process")') &&
+    contractSurfaceTest.includes('names.includes("process_runner_status")');
 
   const registryExecuteReadsRuntimeSource =
     registryExecuteTest.includes('fs.readFileSync("core/registry_tools_safe.js", "utf8")') &&
@@ -241,6 +251,10 @@ async function runProjectTruthAudit() {
     drifts.push(drift("test_truth", "contract surface test does not fully cover active web tools"));
   }
 
+  if (!contractSurfaceCoversProcessTools) {
+    drifts.push(drift("test_truth", "contract surface test does not fully cover active process tools"));
+  }
+
   if (!registryExecuteReadsRuntimeSource) {
     drifts.push(drift("test_truth", "registry execute v1.1 test does not read active runtime source cleanly"));
   }
@@ -272,6 +286,7 @@ async function runProjectTruthAudit() {
     },
     test_truth: {
       contract_surface_covers_web_tools: contractSurfaceCoversWebTools,
+      contract_surface_covers_process_tools: contractSurfaceCoversProcessTools,
       registry_execute_reads_runtime_source: registryExecuteReadsRuntimeSource,
       registry_outputschema_covers_execute: registryOutputschemaCoversExecute,
     },
@@ -306,6 +321,7 @@ async function runCodeRuntimeMap() {
     { file: "core/registry_tools_safe.js", register: "registerRegistryTools", category: "connector-safe registry tools" },
     { file: "core/web_tools.js", register: "registerWebTools", category: "web tools" },
     { file: "core/truth_tools.js", register: "registerTruthTools", category: "truth tools" },
+    { file: "core/process_tools_safe.js", register: "registerProcessTools", category: "process tools" },
   ].filter(({ register }) => serverTools.includes(`${register}(server)`));
 
   const testRuntimeLinks = [
@@ -327,6 +343,11 @@ async function runCodeRuntimeMap() {
     {
       test_file: "tests/truth_tools_v1.test.js",
       covers: ["core/truth_tools.js", "server_tools.js", "project_truth_audit"],
+      kind: "tool contract + handler baseline",
+    },
+    {
+      test_file: "tests/process_tools_safe.test.js",
+      covers: ["core/process_tools_safe.js", "server_tools.js", "run_process", "process_runner_status"],
       kind: "tool contract + handler baseline",
     },
   ];
@@ -553,6 +574,7 @@ async function runToolUsageSnapshot() {
   const counts = new Map();
   const webTools = new Set(["http_get", "pypi_info", "check_pypi_package", "check_npm_package", "fetch_github_file"]);
   const truthTools = new Set(["project_truth_audit", "code_runtime_map", "deploy_decision_guard", "change_workflow_simulator", "tool_usage_snapshot"]);
+  const processTools = new Set(["run_process", "process_runner_status"]);
   const registryTools = new Set([
     "tool_registry_status",
     "tool_registry_list",
@@ -565,6 +587,7 @@ async function runToolUsageSnapshot() {
   ]);
 
   let truthCount = 0;
+  let processCount = 0;
   let registryCount = 0;
   let webCount = 0;
   let otherCount = 0;
@@ -573,6 +596,7 @@ async function runToolUsageSnapshot() {
     counts.set(entry.name, (counts.get(entry.name) || 0) + 1);
 
     if (truthTools.has(entry.name)) truthCount += 1;
+    else if (processTools.has(entry.name)) processCount += 1;
     else if (registryTools.has(entry.name)) registryCount += 1;
     else if (webTools.has(entry.name)) webCount += 1;
     else otherCount += 1;
@@ -613,6 +637,7 @@ async function runToolUsageSnapshot() {
     top_tools: sortedCounts.slice(0, 10),
     family_counts: {
       truth_tools: truthCount,
+      process_tools: processCount,
       registry_tools: registryCount,
       web_tools: webCount,
       other_tools: otherCount,

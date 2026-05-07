@@ -1,8 +1,8 @@
 # Runtime Contracts — Current
 
-Data: 2026-05-06
+Data: 2026-05-07
 Status: canonical_current
-Zakres: aktualne kontrakty i granice odpowiedzialności dla aktywnego runtime `server_tools.js`, bounded web tools (`pypi_info`, `check_npm_package`, `fetch_github_file`), modelu multi-root z aliasami `@alias/...` oraz bieżący status test boundary po korektach coverage i wdrożeniu `project_truth_audit`, `code_runtime_map`, `deploy_decision_guard` oraz `change_workflow_simulator`
+Zakres: aktualne kontrakty i granice odpowiedzialności dla aktywnego runtime `server_tools.js`, bounded web tools (`pypi_info`, `check_npm_package`, `fetch_github_file`), bounded process runner (`run_process`, `process_runner_status`), modelu multi-root z aliasami `@alias/...` oraz bieżący status test boundary po korektach coverage i wdrożeniu `project_truth_audit`, `code_runtime_map`, `deploy_decision_guard`, `change_workflow_simulator` i `tool_usage_snapshot`
 
 ## Cel
 
@@ -94,6 +94,11 @@ Adresowanie ścieżek:
 - `change_workflow_simulator`
 - `tool_usage_snapshot`
 
+### Process tools
+
+- `run_process`
+- `process_runner_status`
+
 ## Critical boundaries
 
 ### Registry boundary
@@ -109,6 +114,14 @@ Adresowanie ścieżek:
 - they are read-only
 - they are open-world
 - they are not generic browser automation
+
+### Process boundary
+
+- process tools are local-world and bounded
+- `run_process` uses an allowlisted bare executable name, not a generic shell
+- `run_process` captures bounded stdout/stderr, enforces timeout, and audits start/finish events
+- child processes do not inherit the full parent environment; only a small safe inherited key set is forwarded, plus sanitized caller-supplied env
+- PowerShell defaults to workspace-local `.ps1` via `-File`; `-EncodedCommand` remains forbidden unless policy is explicitly relaxed outside normal operation
 
 ### Recovery boundary
 
@@ -131,7 +144,7 @@ Confirmed current coverage:
 3. `tests/registry_outputschema_runtime_guard.test.js` covers the active registry rollout set including:
    - `tool_registry_execute`
 4. Latest repo validation:
-   - `npm test` PASS `94/94`
+   - `npm test` PASS `101/101`
 5. Live MCP verification confirms:
    - `project_truth_audit` is exposed in active runtime
    - `project_truth_audit` returns `status: ok` with `drifts: []`
@@ -143,6 +156,8 @@ Confirmed current coverage:
    - `change_workflow_simulator` returns `status: ok` for both repo-only and runtime-with-refresh simulations
    - `tool_usage_snapshot` is exposed in active runtime
    - `tool_usage_snapshot()` returns `status: ok`
+   - `process_runner_status` is exposed in active runtime and returns `status: ok` with `inherits_full_parent_env: false`
+   - `run_process` is exposed in active runtime and returns `status: ok` for `command=node`, `args=[--version]`, `cwd=mcp`
    - `pypi_info` is exposed in active runtime
    - `pypi_info("zod")` returns `status: ok`
    - `check_pypi_package("zod")` returns `status: ok`
@@ -166,6 +181,7 @@ Confirmed current coverage:
 - this is expected in the current architecture:
   - registry describes registered logical tools such as `code_analysis`
   - `project_truth_audit`, `code_runtime_map`, `deploy_decision_guard`, `change_workflow_simulator`, and `tool_usage_snapshot` are direct MCP runtime tools for drift detection, runtime orientation, workflow classification, operator-step simulation, and observed usage monitoring
+- `run_process` and `process_runner_status` are direct MCP runtime tools for bounded local process execution and policy/status inspection; they are not part of registry simulation-only execution
 
 Therefore:
 
