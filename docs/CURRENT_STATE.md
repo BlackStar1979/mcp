@@ -36,7 +36,7 @@ Potwierdzone:
 
 - tools profile
 - port `3001`
-- auth przez `MCP_TOKEN`
+- auth hybrydowy: Cloudflare Access assertion dla publicznego hosta + lokalny fallback `MCP_TOKEN`
 - `StreamableHTTPServerTransport`
 - startup recovery
 - runtime timing/perf hooks
@@ -80,13 +80,14 @@ Model bezpieczeństwa tej warstwy:
 
 ### Potwierdzone
 
-- `MCP_TOKEN` jest czytany z environment
-- auth akceptuje:
+- `MCP_TOKEN` jest nadal czytany z environment jako lokalny fallback
+- publiczny host `https://modular-mcp.romionologic.dev/mcp` jest chroniony przez Cloudflare Access `SERVICE AUTH`
+- request przepuszczony przez Cloudflare Access dociera do origin z `Cf-Access-Jwt-Assertion`; aktywny runtime traktuje ten header jako publiczny tor autoryzacji
+- lokalny direct-access fallback nadal akceptuje:
   - query string `?token=...`
   - bearer header
-- użytkownik operacyjnie używa:
-  - `cloudflared tunnel --url http://127.0.0.1:3001`
-- ChatGPT Desktop używa publicznego URL do `/mcp?token=...`
+- `CF-Access-Client-Id` i `CF-Access-Client-Secret` są używane po stronie klienta MCP/Codexa do wejścia przez Access, a nie jako jawny token URL
+- publiczny `POST https://modular-mcp.romionologic.dev/mcp` z nagłówkami Access i poprawnym `Accept: application/json, text/event-stream` zwraca `200` oraz poprawny MCP `initialize` dla `modular-tools v1.7.0`
 
 ### Nadal niepotwierdzone bezpośrednio z kodu
 
@@ -295,8 +296,8 @@ Aktualny checkpoint potwierdzony lokalnie po korektach test surface:
   - `npm test` — PASS `84/84`
 - repo validation po wdrożeniu `tool_usage_snapshot`:
   - `npm test` — PASS `86/86`
-- repo validation po integracji bounded process runner:
-  - `npm test` — PASS `101/101`
+- repo validation po integracji bounded process runner i migracji auth Cloudflare Access:
+  - `npm test` — PASS `105/105`
 - live MCP verification po restarcie `server_tools.js`:
   - `project_truth_audit` — `status: ok`
   - `drifts: []`
@@ -323,7 +324,8 @@ Obszary objęte testami:
 - perf script
 - recovery no-legacy import
 - MCP descriptor contract dla pełnego aktywnego surface `server_tools.js`, w tym web tools
-- MCP descriptor contract dla pełnego aktywnego surface `server_tools.js`, w tym truth tools`r`n- multi-root config parsing i alias-based path policy
+- MCP descriptor contract dla pełnego aktywnego surface `server_tools.js`, w tym truth tools
+- multi-root config parsing i alias-based path policy
 - MCP result-shape helpers
 - registry safe layer
 - registry execute simulation
@@ -376,5 +378,9 @@ Jeśli potrzebujesz:
 - aktualnego stanu registry: `REGISTRY.md`
 - aktualnych kontraktów runtime: `RUNTIME_CONTRACTS_CURRENT.md`
 - idiotoodpornego protokołu dla kolejnego LLM: `LLM_IDIOT_PROOF_PROTOCOL_2026-05-04.md`
+
+
+
+
 
 

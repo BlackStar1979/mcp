@@ -20,7 +20,8 @@ Ten dokument zastępuje używanie `MCP_TOOL_CONTRACTS.md` jako bieżącego sourc
 6. Runtime, control-plane, docs canonical i logi pozostają w `C:\Work\mcp`, niezależnie od liczby workspace rootów.
 7. Zmiany runtime MCP wdraża się przez manifest + deploy/rollback.
 8. Zmiany testów i dokumentacji repo nie są automatycznie zmianami runtime MCP.
-9. `structuredContent` jest kanałem operacyjnym; `content` jest warstwą prezentacyjną.
+9. Publiczny host https://modular-mcp.romionologic.dev/mcp używa Cloudflare Access SERVICE AUTH; origin akceptuje request po obecności Cf-Access-Jwt-Assertion, a MCP_TOKEN pozostaje lokalnym fallbackiem direct-to-localhost.
+10. structuredContent jest kanałem operacyjnym; content jest warstwą prezentacyjną.
 
 
 ## Aktywny tool surface `server_tools.js`
@@ -144,7 +145,7 @@ Confirmed current coverage:
 3. `tests/registry_outputschema_runtime_guard.test.js` covers the active registry rollout set including:
    - `tool_registry_execute`
 4. Latest repo validation:
-   - `npm test` PASS `101/101`
+   - `npm test` PASS `105/105`
 5. Live MCP verification confirms:
    - `project_truth_audit` is exposed in active runtime
    - `project_truth_audit` returns `status: ok` with `drifts: []`
@@ -158,6 +159,7 @@ Confirmed current coverage:
    - `tool_usage_snapshot()` returns `status: ok`
    - `process_runner_status` is exposed in active runtime and returns `status: ok` with `inherits_full_parent_env: false`
    - `run_process` is exposed in active runtime and returns `status: ok` for `command=node`, `args=[--version]`, `cwd=mcp`
+   - publiczny `POST https://modular-mcp.romionologic.dev/mcp` za Cloudflare Access `SERVICE AUTH` przechodzi `initialize` z `200` przy poprawnym `Accept: application/json, text/event-stream`
    - `pypi_info` is exposed in active runtime
    - `pypi_info("zod")` returns `status: ok`
    - `check_pypi_package("zod")` returns `status: ok`
@@ -218,6 +220,9 @@ Repo-only docs changes do not require runtime deploy, restart, or reconnect.
 Test/supporting repo changes require staging validation and repo validation, but do not require runtime deploy unless they modify active runtime files.
 
 Direct copy into active runtime code is forbidden for runtime MCP changes.
+
+
+
 
 
 

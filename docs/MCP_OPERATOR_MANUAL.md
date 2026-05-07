@@ -57,6 +57,18 @@ Adresowanie:
 - `@portfolio/...` -> `C:\Portfolio\...`
 - `@thesis/...` -> `C:\Users\mczyz\Documents\Praca licencjacka\...`
 
+
+## 2.3 Publiczny Access host
+
+Aktualny model dla publicznego modular MCP:
+
+- host: `https://modular-mcp.romionologic.dev/mcp`
+- edge auth: Cloudflare Access `SERVICE AUTH`
+- klient MCP/Codex wysyła:
+  - `CF-Access-Client-Id`
+  - `CF-Access-Client-Secret`
+- origin `server_tools.js` akceptuje request po obecności `Cf-Access-Jwt-Assertion`
+- `MCP_TOKEN` pozostaje wyłącznie lokalnym fallbackiem dla direct localhost, nie docelowym publicznym modelem auth
 ## 3. Standardowy cykl zmiany
 
 ### 3.1 Przygotowanie pliku
@@ -350,5 +362,6 @@ Po zamknięciu bieżącego rozdziału kolejne prace powinny dotyczyć optymaliza
 - odchudzenie `content` względem `structuredContent`,
 - testy result-shape na realnych handlerach,
 - opcjonalny `requirements.txt` albo test środowiska Python.
+
 
 

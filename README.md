@@ -210,11 +210,12 @@ Artefakty `.mcp_audit*` i `.mcp_perf*` są lokalnymi źródłami dowodowymi, ale
 
 Serwer wykonuje operacje na lokalnym systemie plików, dlatego powinien być uruchamiany wyłącznie w zaufanym środowisku.
 
-`server_tools.js` używa autoryzacji przez `MCP_TOKEN`. Token może być przekazywany przez query string albo bearer header zgodnie z aktualnym flow lokalnego connectora. Token w URL jest ryzykiem operacyjnym i powinien być chroniony przed ujawnieniem.
+`server_tools.js` używa teraz modelu hybrydowego. Publiczny host za Cloudflare Access akceptuje request przepuszczony przez Access po obecności `Cf-Access-Jwt-Assertion`, a bezpośredni localhost fallback pozostaje przez `MCP_TOKEN` (query string albo bearer header). Token w URL nie jest już wymaganym modelem dla publicznego hosta i powinien pozostać wyłącznie lokalnym fallbackiem, jeśli w ogóle jest używany.
 
 ## Licencja
 
 Licencja nie została jeszcze wybrana. Do czasu dodania pliku `LICENSE` projekt należy traktować jako kod bez udzielonej publicznej licencji.
 
 ⚠️ Registry uses controlled outputSchema rollout (deploy + runtime validation required).
+
 
