@@ -20,6 +20,37 @@ const READ_ONLY = {
 const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
 const INVENTORY_DEFAULT_MAX_FILES = 20000;
 
+const INVENTORY_GROUP_ENTRY = z.object({
+  count: z.number().int().nonnegative(),
+  bytes: z.number().int().nonnegative(),
+  human_bytes: z.string(),
+}).strict();
+
+const INVENTORY_TREE_OUTPUT = z.object({
+  path: z.string(),
+  files: z.number().int().nonnegative(),
+  directories: z.number().int().nonnegative(),
+  total_bytes: z.number().int().nonnegative(),
+  human_total_bytes: z.string(),
+  truncated: z.boolean(),
+  max_files: z.number().int().positive(),
+  by_extension: z.record(z.string(), INVENTORY_GROUP_ENTRY),
+  by_kind: z.record(z.string(), INVENTORY_GROUP_ENTRY),
+  by_directory: z.record(z.string(), INVENTORY_GROUP_ENTRY),
+  largest: z.array(z.object({
+    path: z.string(),
+    bytes: z.number().int().nonnegative(),
+    human_bytes: z.string(),
+    extension: z.string(),
+    kind: z.string(),
+    modified: z.string(),
+  }).strict()),
+}).strict();
+
+const SCIENCE_TEXT_OUTPUT = z.object({
+  text: z.string(),
+}).passthrough();
+
 function humanBytes(bytes) {
   const units = ["B", "KB", "MB", "GB", "TB"];
   let value = Number(bytes || 0);
@@ -133,6 +164,7 @@ export function registerScienceTools(server) {
       group_depth: z.number().int().min(1).max(10).default(4),
       max_files: z.number().int().min(1).max(100000).default(INVENTORY_DEFAULT_MAX_FILES),
     }),
+    outputSchema: INVENTORY_TREE_OUTPUT,
     annotations: READ_ONLY,
   }, async ({ path: requestedPath, max_depth, top_n_largest, group_depth, max_files }) => {
     const root = safePath(requestedPath);
@@ -224,6 +256,7 @@ export function registerScienceTools(server) {
       max_header_cards: z.number().int().min(0).max(300).default(80),
       max_columns: z.number().int().min(0).max(500).default(120),
     }),
+    outputSchema: SCIENCE_TEXT_OUTPUT,
     annotations: READ_ONLY,
   }, async ({ path: requestedPath, max_header_cards, max_columns }) => {
     const full = safePath(requestedPath);
@@ -251,6 +284,7 @@ export function registerScienceTools(server) {
       include_attrs: z.boolean().default(true),
       max_attrs: z.number().int().min(0).max(100).default(20),
     }),
+    outputSchema: SCIENCE_TEXT_OUTPUT,
     annotations: READ_ONLY,
   }, async ({ path: requestedPath, max_items, include_attrs, max_attrs }) => {
     const full = safePath(requestedPath);
@@ -279,6 +313,7 @@ export function registerScienceTools(server) {
       max_lines: z.number().int().min(10).max(200000).default(10000),
       sample_rows: z.number().int().min(1).max(100).default(20),
     }),
+    outputSchema: SCIENCE_TEXT_OUTPUT,
     annotations: READ_ONLY,
   }, async ({ path: requestedPath, max_lines, sample_rows }) => {
     const full = safePath(requestedPath);

@@ -36,6 +36,20 @@ const DESTRUCTIVE = {
   openWorldHint: false,
 };
 
+const FILE_INFO_OUTPUT = z.object({
+  path: z.string(),
+  type: z.enum(["file", "directory"]),
+  size: z.number().int().nonnegative(),
+  created: z.string(),
+  modified: z.string(),
+}).strict();
+
+const LIST_DIRECTORY_OUTPUT = z.object({
+  path: z.string(),
+  count: z.number().int().nonnegative(),
+  entries: z.array(FILE_INFO_OUTPUT),
+}).strict();
+
 // STEP 5 — output schemas for IO readers. These schemas protect RULE-IO-001.
 const READ_FILE_OUTPUT = z.object({
   path: z.string(),
@@ -129,6 +143,7 @@ export function registerFsTools(server) {
     title: "Get file or directory info",
     description: "Get metadata for a file or folder inside configured workspace roots.",
     inputSchema: z.object({ path: z.string() }),
+    outputSchema: FILE_INFO_OUTPUT,
     annotations: READ_ONLY,
   }, async ({ path: requestedPath }) => {
     const full = safePath(requestedPath);
@@ -141,6 +156,7 @@ export function registerFsTools(server) {
     title: "List directory",
     description: "List files and folders inside configured workspace roots.",
     inputSchema: z.object({ path: z.string().default(".") }),
+    outputSchema: LIST_DIRECTORY_OUTPUT,
     annotations: READ_ONLY,
   }, async ({ path: requestedPath }) => {
     const dir = safePath(requestedPath);

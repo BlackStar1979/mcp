@@ -213,7 +213,7 @@ Confirmed current coverage:
 3. `tests/registry_outputschema_runtime_guard.test.js` covers the active registry rollout set including:
    - `tool_registry_execute`
 4. Latest repo validation:
-   - `npm test` PASS `174/174`
+   - `npm test` PASS `179/179`
 6. Live MCP verification confirms:
    - `project_truth_audit` is exposed in active runtime
    - `project_truth_audit` returns `status: ok` with `drifts: []`
@@ -230,6 +230,10 @@ Confirmed current coverage:
    - both `3001` (`--auth access`) and `3002` (`--auth bearer --token-file ...`) return the same MCP protocol version `2025-03-26`, the same `text/event-stream` transport, the same tool count (`55` during audit), and non-empty results for `project_truth_audit` and `search_index`
    - `stc_safe.js --self-test` returns `self-test ok (2025-05-strict-v1)`
    - `tests/stc_safe_contract.test.js` verifies strict connector-safe shape, version exposure, and absence of mutation-capable tools
+   - raw `POST http://127.0.0.1:3010/mcp` verification confirms:
+     - `tools/list` returns only `search` and `fetch`
+     - `search("Cloudflare Access")` returns non-empty `structuredContent.results[]` and JSON mirror in `content[0].text`
+     - `fetch("docs/runtime_contracts_current")` returns non-empty `structuredContent`, JSON mirror, and expected truncation metadata
    - publiczny `https://mcp-stc-safe.romionologic.dev/mcp` przechodzi `initialize` z `200`
    - ChatGPT Desktop potwierdził poprawny handshake i widoczność `search` / `fetch` dla `https://mcp-stc-safe.romionologic.dev/mcp`
    - publiczny `POST https://modular-mcp.romionologic.dev/mcp` za Cloudflare Access `SERVICE AUTH` przechodzi `initialize` z `200` przy poprawnym `Accept: application/json, text/event-stream`
@@ -301,6 +305,32 @@ Therefore:
    - `search`
    - `fetch`
 4. Do not infer from current evidence that Desktop formally requires exactly two tools; what is confirmed is that strict shape plus minimal surface is stable.
+
+### OutputSchema rollout status
+
+Confirmed after the first two staged rollout slices and the first filesystem read/info subslice:
+
+- active `server_tools.js` surface still contains `55` tools
+- missing `outputSchema` count is now `14`
+- the following groups now expose `outputSchema`:
+  - all `index` tools
+  - all `science` tools
+  - all `code_tools_safe` tools
+  - filesystem read/info:
+    - `get_info`
+    - `list_directory`
+
+Current remaining gap clusters:
+
+- filesystem info + mutation tools
+- remote site mutation/read tools
+
+Rule for next slices:
+
+- advance one tool family at a time
+- update contract tests in the same slice
+- rerun full `npm test`
+- sync canonical state docs if coverage assumptions change
 
 ### SDK-derived auth and transport learnings
 

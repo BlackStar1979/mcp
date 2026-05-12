@@ -124,6 +124,28 @@ Potwierdzone założenia kontraktu connector-safe po lekturze `C:\Work\mcp-tests
   - mutation tools
   - approval-bridge debugging przez narzędzia wykonawcze
 
+Potwierdzone praktycznie po surowych wywołaniach `POST /mcp` na `3010`:
+
+- `tools/list` zwraca tylko:
+  - `search`
+  - `fetch`
+- `search("Cloudflare Access")` zwraca:
+  - niepuste `structuredContent.results[]`
+  - poprawny JSON mirror w `content[0].text`
+  - publiczne URL-e oparte o `https://mcp-stc-safe.romionologic.dev/...`
+- `fetch("docs/runtime_contracts_current")` zwraca:
+  - niepuste `structuredContent`
+  - poprawny JSON mirror w `content[0].text`
+  - expected truncation metadata:
+    - `truncated: true`
+    - `original_chars: 16146`
+    - `cap_chars: 2500`
+
+Wniosek praktyczny:
+
+- po stronie samego `stc_safe.js` nie udało się odtworzyć server-side "pustej odpowiedzi"
+- jeśli ChatGPT Desktop nadal pokazuje pusty wynik w części scenariuszy, silniejszą hipotezą pozostaje warstwa klienta niż pusty payload z connector-safe runtime
+
 Granica potwierdzenia i rola:
 
 - `stc_safe.js` nie zastępuje `server.js`
@@ -535,6 +557,60 @@ Wniosek procesowy:
 
 - sam pass descriptor tests nie wystarcza przy zmianach powierzchni tooli i schem
 - każda zmiana dotykająca rejestracji tooli, `inputSchema`, `outputSchema` albo bootstrap sequence musi być traktowana jako niegotowa bez przejścia testu pełnego runtime bootstrapu
+
+## 6.12. Postęp rolloutu `outputSchema`
+
+Potwierdzone po etapach `7.1`, `7.2` i wczesnym podslicu `7.3`:
+
+- aktywny surface `server_tools.js` nadal ma `55` tooli
+- brakujące `outputSchema` spadły z `30` do `14`
+
+Domknięty slice:
+
+- `index`:
+  - `index_status`
+  - `build_index`
+  - `search_index`
+  - `search_index_context`
+  - `collect_context`
+  - `collect_romionsim_context`
+- `science`:
+  - `inventory_tree`
+  - `fits_info`
+  - `hdf5_info`
+  - `table_profile`
+
+Guardrail:
+
+- `tests/mcp_contract_surface.test.js` pilnuje teraz, że powyższe narzędzia mają `outputSchema`
+
+Walidacja:
+
+- `npm test` — PASS `178/178`
+
+Domknięty dodatkowy slice:
+
+- `code_tools_safe`:
+  - `code_symbols`
+  - `code_dependencies`
+  - `code_audit`
+  - `code_impact`
+
+Dodatkowa walidacja mid-test:
+
+- `node --test C:\Work\mcp\tests\server_bootstrap_runtime.test.js` — PASS
+- `node --check C:\Work\mcp\server_tools.js` — PASS
+- `node --check C:\Work\mcp\stc_safe.js` — PASS
+
+Domknięty dodatkowy podslice:
+
+- filesystem read/info:
+  - `get_info`
+  - `list_directory`
+
+Aktualne `npm test` po tym podslicu:
+
+- `npm test` — PASS `179/179`
 
 ## 7. Deploy / rollback / perf
 

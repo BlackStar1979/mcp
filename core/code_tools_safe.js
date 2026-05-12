@@ -17,6 +17,105 @@ const MAX_CODE_FILE_BYTES = 2 * 1024 * 1024;
 const MAX_SYMBOLS = 1000;
 const MAX_DEPENDENCIES = 500;
 
+const CODE_SYMBOL = z.object({
+  kind: z.string(),
+  name: z.string(),
+  line: z.number().int().positive(),
+  exported: z.boolean().optional(),
+  async: z.boolean().optional(),
+  source: z.string().optional(),
+}).strict();
+
+const CODE_SYMBOLS_OUTPUT = z.object({
+  path: z.string(),
+  language: z.string(),
+  bytes: z.number().int().nonnegative(),
+  total_lines: z.number().int().nonnegative(),
+  symbol_count: z.number().int().nonnegative(),
+  truncated: z.boolean(),
+  symbols: z.array(CODE_SYMBOL),
+}).strict();
+
+const CODE_GRAPH_NODE = z.object({
+  path: z.string(),
+  language: z.string(),
+  imports: z.number().int().nonnegative(),
+  symbols: z.number().int().nonnegative(),
+}).strict();
+
+const CODE_GRAPH_EDGE = z.object({
+  from: z.string(),
+  to: z.string(),
+  source: z.string(),
+  line: z.number().int().positive(),
+}).strict();
+
+const CODE_GRAPH_UNRESOLVED = z.object({
+  from: z.string(),
+  source: z.string(),
+  line: z.number().int().positive(),
+  candidates: z.array(z.string()),
+}).strict();
+
+const CODE_DEPENDENCIES_OUTPUT = z.object({
+  path: z.string(),
+  recursive: z.boolean(),
+  max_files: z.number().int().positive(),
+  visited_files: z.number().int().nonnegative(),
+  scanned_files: z.number().int().nonnegative(),
+  truncated: z.boolean(),
+  nodes_count: z.number().int().nonnegative(),
+  edges_count: z.number().int().nonnegative(),
+  unresolved_count: z.number().int().nonnegative(),
+  nodes: z.array(CODE_GRAPH_NODE),
+  edges: z.array(CODE_GRAPH_EDGE),
+  unresolved: z.array(CODE_GRAPH_UNRESOLVED),
+}).strict();
+
+const CODE_AUDIT_DEGREE = z.object({
+  path: z.string(),
+  degree: z.number().int().nonnegative(),
+}).strict();
+
+const CODE_AUDIT_OUTPUT = z.object({
+  path: z.string(),
+  recursive: z.boolean(),
+  max_files: z.number().int().positive(),
+  summary: z.object({
+    nodes: z.number().int().nonnegative(),
+    edges: z.number().int().nonnegative(),
+    unresolved: z.number().int().nonnegative(),
+    truncated: z.boolean(),
+  }).strict(),
+  high_fan_in: z.array(CODE_AUDIT_DEGREE),
+  high_fan_out: z.array(CODE_AUDIT_DEGREE),
+  unresolved: z.array(CODE_GRAPH_UNRESOLVED),
+}).strict();
+
+const CODE_IMPACT_ITEM = z.object({
+  path: z.string(),
+  depth: z.number().int().positive(),
+  via: z.string(),
+  line: z.number().int().positive(),
+}).strict();
+
+const CODE_IMPACT_OUTPUT = z.object({
+  scope: z.string(),
+  direction: z.enum(["both", "dependents", "dependencies"]),
+  max_depth: z.number().int().positive(),
+  graph: z.object({
+    nodes: z.number().int().nonnegative(),
+    edges: z.number().int().nonnegative(),
+    truncated: z.boolean(),
+  }).strict(),
+  target: z.string(),
+  found: z.boolean(),
+  affected_count: z.number().int().nonnegative(),
+  dependencies_count: z.number().int().nonnegative(),
+  affected: z.array(CODE_IMPACT_ITEM),
+  dependencies: z.array(CODE_IMPACT_ITEM),
+}).strict();
+
 function linesOf(text) {
   return String(text || "").split(/\r\n|\n|\r/);
 }
@@ -312,6 +411,7 @@ export function registerCodeTools(server) {
     title: "Extract code symbols",
     description: "Extract bounded structural symbols from JS/TS/Python files without executing user code.",
     inputSchema: z.object({ path: z.string() }),
+    outputSchema: CODE_SYMBOLS_OUTPUT,
     annotations: READ_ONLY,
   }, async ({ path: requestedPath }) => {
     const full = safePath(requestedPath);
@@ -334,6 +434,7 @@ export function registerCodeTools(server) {
     title: "Build code dependency graph",
     description: "Build bounded import dependency graph for JS/TS/Python files without executing user code.",
     inputSchema: z.object({ path: z.string(), recursive: z.boolean().default(true), max_files: z.number().int().min(1).max(5000).default(500) }),
+    outputSchema: CODE_DEPENDENCIES_OUTPUT,
     annotations: READ_ONLY,
   }, async ({ path: requestedPath, recursive, max_files }) => {
     const graph = await buildDependencyGraph(requestedPath, recursive, max_files);
@@ -354,6 +455,7 @@ export function registerCodeTools(server) {
     title: "Audit code dependency graph",
     description: "Summarize dependency graph structure: fan-in/fan-out and unresolved local imports.",
     inputSchema: z.object({ path: z.string(), recursive: z.boolean().default(true), max_files: z.number().int().min(1).max(5000).default(500), top_n: z.number().int().min(1).max(100).default(20) }),
+    outputSchema: CODE_AUDIT_OUTPUT,
     annotations: READ_ONLY,
   }, async ({ path: requestedPath, recursive, max_files, top_n }) => {
     const graph = await buildDependencyGraph(requestedPath, recursive, max_files);
@@ -372,6 +474,7 @@ export function registerCodeTools(server) {
     title: "Analyze code dependency impact",
     description: "Trace dependents and dependencies for one file inside a bounded JS/TS/Python import graph.",
     inputSchema: z.object({ path: z.string(), target: z.string(), recursive: z.boolean().default(true), max_files: z.number().int().min(1).max(5000).default(500), max_depth: z.number().int().min(1).max(20).default(5), direction: z.enum(["both", "dependents", "dependencies"]).default("both") }),
+    outputSchema: CODE_IMPACT_OUTPUT,
     annotations: READ_ONLY,
   }, async ({ path: requestedPath, target, recursive, max_files, max_depth, direction }) => {
     const graph = await buildDependencyGraph(requestedPath, recursive, max_files);

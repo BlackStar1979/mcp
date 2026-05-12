@@ -542,7 +542,7 @@ Priority order:
    - operating rule:
      - public MCP hosts intended for ChatGPT Desktop should use hyphenated hostnames, not underscore hostnames
 
-6.3 `NEXT` — connector-safe behavior verification
+6.3 `CLOSED` — connector-safe behavior verification
    - verify practical `search` / `fetch` behavior through ChatGPT Desktop
    - compare results with raw protocol checks and canary expectations
    - specifically watch for:
@@ -550,6 +550,16 @@ Priority order:
      - URL normalization issues
      - Desktop-side parsing differences between search and fetch
    - do not change auth during this step
+   - outcome achieved:
+     - raw `POST /mcp` verification on `3010` returned non-empty `search` and `fetch`
+     - `tools/list` confirms only:
+       - `search`
+       - `fetch`
+     - `search("Cloudflare Access")` returns non-empty `structuredContent.results[]` and JSON mirror in `content[0].text`
+     - `fetch("docs/runtime_contracts_current")` returns non-empty `structuredContent`, JSON mirror, and expected truncation metadata
+     - no server-side evidence of "empty result" was reproduced in `stc_safe`
+   - current interpretation:
+     - if ChatGPT Desktop still shows empty results in some scenarios, the strongest remaining hypothesis is client-side behavior, not an empty server payload in `stc_safe`
 
 6.4 `LATER` — optional SDK-native transport experiment
    - only if there is a concrete reason
@@ -560,9 +570,86 @@ Priority order:
    - keep this separate from connector-safe surface work
    - expected design inputs:
      - protected resource metadata
-     - clear `401 invalid_token` vs `403 insufficient_scope`
-     - resource-server style auth boundary
+   - clear `401 invalid_token` vs `403 insufficient_scope`
+   - resource-server style auth boundary
    - do not bind this work to `stc_safe.js`
+
+7. `CURRENT` — staged `outputSchema` rollout outside `stc_safe`
+   - goal:
+     - eliminate remaining missing `outputSchema` coverage in active MCP runtimes
+     - reduce connector warning surface without mixing this work with auth or transport changes
+   - confirmed current gap snapshot after early `7.3`:
+     - active `server_tools.js` surface: `55` tools
+     - missing `outputSchema`: `14`
+   - `CLOSED` 7.1 index + science
+     - outcome achieved:
+       - `outputSchema` added to:
+         - `index_status`
+         - `build_index`
+         - `search_index`
+         - `search_index_context`
+         - `collect_context`
+         - `collect_romionsim_context`
+         - `inventory_tree`
+         - `fits_info`
+         - `hdf5_info`
+         - `table_profile`
+       - contract guard added in:
+         - `tests/mcp_contract_surface.test.js`
+       - local validation:
+         - `npm test` PASS `177/177`
+   - `CLOSED` 7.2 code tools safe
+     - outcome achieved:
+       - `outputSchema` added to:
+         - `code_symbols`
+         - `code_dependencies`
+         - `code_audit`
+         - `code_impact`
+       - contract guard expanded in:
+         - `tests/mcp_contract_surface.test.js`
+       - mid-test validation:
+         - `npm test` PASS `178/178`
+       - `node --test C:\Work\mcp\tests\server_bootstrap_runtime.test.js` PASS
+        - `node --check C:\Work\mcp\server_tools.js` PASS
+        - `node --check C:\Work\mcp\stc_safe.js` PASS
+   - `CLOSED` early 7.3 filesystem read/info
+     - outcome achieved:
+       - `outputSchema` added to:
+         - `get_info`
+         - `list_directory`
+       - contract guard expanded in:
+         - `tests/mcp_contract_surface.test.js`
+       - mid-test validation:
+         - `npm test` PASS `179/179`
+         - `node --test C:\Work\mcp\tests\server_bootstrap_runtime.test.js` PASS
+         - `node --check C:\Work\mcp\server_tools.js` PASS
+   - confirmed missing groups/tools:
+     - filesystem mutation:
+       - `write_file`
+       - `append_file`
+       - `copy_path`
+       - `move_path`
+       - `delete_path`
+       - `restore_path`
+       - `edit_file_patch`
+     - remote site:
+       - `list_remote_site_files`
+       - `read_remote_site_file`
+       - `write_remote_site_file`
+       - `edit_remote_site_file`
+       - `move_remote_site_file`
+       - `delete_remote_site_file`
+       - `restore_remote_site_file`
+   - rollout order:
+     - `NEXT` 7.3 filesystem mutation
+     - `LATER` 7.4 remote site tools
+   - rules:
+     - do not mix with auth changes
+     - do not mix with transport changes
+     - each slice must end with:
+       - contract test update
+       - local `npm test`
+       - state doc sync if coverage assumptions changed
 
 Deferred by design:
 

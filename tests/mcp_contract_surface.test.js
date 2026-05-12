@@ -88,6 +88,55 @@ test("contract surface includes process tools", () => {
   assert.ok(names.includes("process_runner_status"), "contract surface must include process_runner_status");
 });
 
+test("index and science descriptors expose outputSchema", () => {
+  const byName = new Map(collectRegisteredTools().map((tool) => [tool.name, tool]));
+
+  for (const name of [
+    "index_status",
+    "build_index",
+    "search_index",
+    "search_index_context",
+    "collect_context",
+    "collect_romionsim_context",
+    "inventory_tree",
+    "fits_info",
+    "hdf5_info",
+    "table_profile",
+  ]) {
+    assert.ok(byName.has(name), `expected tool to be registered: ${name}`);
+    assert.equal(typeof byName.get(name).config.outputSchema, "object", `${name}: missing outputSchema`);
+  }
+});
+
+test("code descriptors expose outputSchema", () => {
+  const byName = new Map(collectRegisteredTools().map((tool) => [tool.name, tool]));
+
+  for (const name of [
+    "code_symbols",
+    "code_dependencies",
+    "code_audit",
+    "code_impact",
+  ]) {
+    assert.ok(byName.has(name), `expected tool to be registered: ${name}`);
+    assert.equal(typeof byName.get(name).config.outputSchema, "object", `${name}: missing outputSchema`);
+  }
+});
+
+test("filesystem read/info descriptors expose outputSchema", () => {
+  const byName = new Map(collectRegisteredTools().map((tool) => [tool.name, tool]));
+
+  for (const name of [
+    "get_info",
+    "list_directory",
+    "read_file",
+    "read_file_lines",
+    "read_file_chunk",
+  ]) {
+    assert.ok(byName.has(name), `expected tool to be registered: ${name}`);
+    assert.equal(typeof byName.get(name).config.outputSchema, "object", `${name}: missing outputSchema`);
+  }
+});
+
 test("contract surface includes remote site tools", () => {
   const names = collectRegisteredTools().map(({ name }) => name).sort();
 
@@ -115,6 +164,22 @@ test("outputSchema coverage is tracked without blocking current partial conforma
 
   assert.ok(withoutOutputSchema.length > 0, "current audit expects partial outputSchema coverage; update this test when full coverage lands");
   assert.ok(withoutOutputSchema.length < tools.length, "at least some tools should expose outputSchema");
+  assert.equal(withoutOutputSchema.includes("index_status"), false, "index_status should now expose outputSchema");
+  assert.equal(withoutOutputSchema.includes("build_index"), false, "build_index should now expose outputSchema");
+  assert.equal(withoutOutputSchema.includes("search_index"), false, "search_index should now expose outputSchema");
+  assert.equal(withoutOutputSchema.includes("search_index_context"), false, "search_index_context should now expose outputSchema");
+  assert.equal(withoutOutputSchema.includes("collect_context"), false, "collect_context should now expose outputSchema");
+  assert.equal(withoutOutputSchema.includes("collect_romionsim_context"), false, "collect_romionsim_context should now expose outputSchema");
+  assert.equal(withoutOutputSchema.includes("inventory_tree"), false, "inventory_tree should now expose outputSchema");
+  assert.equal(withoutOutputSchema.includes("fits_info"), false, "fits_info should now expose outputSchema");
+  assert.equal(withoutOutputSchema.includes("hdf5_info"), false, "hdf5_info should now expose outputSchema");
+  assert.equal(withoutOutputSchema.includes("table_profile"), false, "table_profile should now expose outputSchema");
+  assert.equal(withoutOutputSchema.includes("code_symbols"), false, "code_symbols should now expose outputSchema");
+  assert.equal(withoutOutputSchema.includes("code_dependencies"), false, "code_dependencies should now expose outputSchema");
+  assert.equal(withoutOutputSchema.includes("code_audit"), false, "code_audit should now expose outputSchema");
+  assert.equal(withoutOutputSchema.includes("code_impact"), false, "code_impact should now expose outputSchema");
+  assert.equal(withoutOutputSchema.includes("get_info"), false, "get_info should now expose outputSchema");
+  assert.equal(withoutOutputSchema.includes("list_directory"), false, "list_directory should now expose outputSchema");
 });
 
 

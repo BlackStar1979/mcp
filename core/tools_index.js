@@ -17,6 +17,68 @@ const STATE_CHANGING = {
   openWorldHint: false,
 };
 
+const INDEX_STATUS_OUTPUT = z.object({
+  status: z.enum(["ok", "missing"]),
+  count: z.number().int().nonnegative().optional(),
+  created_at: z.string().optional(),
+  root: z.string().optional(),
+  version: z.number().int().positive().optional(),
+}).strict();
+
+const BUILD_INDEX_OUTPUT = z.object({
+  status: z.literal("built"),
+  count: z.number().int().nonnegative(),
+  created_at: z.string(),
+}).strict();
+
+const SEARCH_INDEX_RESULT = z.object({
+  path: z.string(),
+  score: z.number(),
+  snippet: z.string(),
+}).strict();
+
+const SEARCH_INDEX_OUTPUT = z.object({
+  query: z.string(),
+  results: z.array(SEARCH_INDEX_RESULT),
+}).strict();
+
+const SEARCH_INDEX_CONTEXT_RESULT = z.object({
+  path: z.string(),
+  score: z.number(),
+  context: z.string(),
+}).strict();
+
+const SEARCH_INDEX_CONTEXT_OUTPUT = z.object({
+  query: z.string(),
+  results: z.array(SEARCH_INDEX_CONTEXT_RESULT),
+}).strict();
+
+const COLLECT_CONTEXT_FILE = z.object({
+  path: z.string(),
+  score: z.number(),
+  text: z.string(),
+}).strict();
+
+const COLLECT_CONTEXT_OUTPUT = z.object({
+  query: z.string(),
+  files: z.array(COLLECT_CONTEXT_FILE),
+}).strict();
+
+const COLLECT_ROMIONSIM_FILE = z.object({
+  path: z.string(),
+  score: z.number(),
+  snippet: z.string(),
+  role: z.string().optional(),
+}).strict();
+
+const COLLECT_ROMIONSIM_CONTEXT_OUTPUT = z.object({
+  query: z.string(),
+  scope: z.literal("romionsim/"),
+  mode: z.literal("retrieval_helper_only"),
+  count: z.number().int().nonnegative(),
+  files: z.array(COLLECT_ROMIONSIM_FILE),
+}).strict();
+
 function norm(text) {
   return String(text || "").toLowerCase();
 }
@@ -114,6 +176,7 @@ export function registerIndexTools(server) {
     title: "Show index status",
     description: "Show current index metadata, configured workspace roots, and statistics.",
     inputSchema: z.object({}),
+    outputSchema: INDEX_STATUS_OUTPUT,
     annotations: READ_ONLY,
   }, async () => {
     try {
@@ -140,6 +203,7 @@ export function registerIndexTools(server) {
     title: "Build index",
     description: "Build index across configured workspace roots.",
     inputSchema: z.object({}),
+    outputSchema: BUILD_INDEX_OUTPUT,
     annotations: STATE_CHANGING,
   }, async () => {
     const i = await buildIndex();
@@ -158,6 +222,7 @@ export function registerIndexTools(server) {
       query: z.string(),
       limit: z.number().int().min(1).max(50).default(10),
     }),
+    outputSchema: SEARCH_INDEX_OUTPUT,
     annotations: READ_ONLY,
   }, async ({ query, limit }) => {
     const i = await loadIndex();
@@ -174,6 +239,7 @@ export function registerIndexTools(server) {
       limit: z.number().int().min(1).max(20).default(5),
       context_lines: z.number().int().min(0).max(8).default(2),
     }),
+    outputSchema: SEARCH_INDEX_CONTEXT_OUTPUT,
     annotations: READ_ONLY,
   }, async ({ query, limit }) => {
     const i = await loadIndex();
@@ -194,6 +260,7 @@ export function registerIndexTools(server) {
       limit: z.number().int().min(1).max(20).default(8),
       max_chars_per_file: z.number().int().min(500).max(30000).default(8000),
     }),
+    outputSchema: COLLECT_CONTEXT_OUTPUT,
     annotations: READ_ONLY,
   }, async ({ query, limit, max_chars_per_file }) => {
     const i = await loadIndex();
@@ -224,6 +291,7 @@ export function registerIndexTools(server) {
       limit: z.number().int().min(1).max(30).default(12),
       include_pinned: z.boolean().default(true),
     }),
+    outputSchema: COLLECT_ROMIONSIM_CONTEXT_OUTPUT,
     annotations: READ_ONLY,
   }, async ({ query, limit, include_pinned }) => {
     const i = await loadIndex();
