@@ -151,6 +151,11 @@ Przy proponowaniu kolejnych warstw systemu pamiętaj:
    - plain JSON / json-response mode jest wspieranym wzorcem,
    - auth i protected-resource metadata to osobna warstwa,
    - stateless mode nie jest dobrym miejscem dla funkcji wymagających server-to-client round-trips.
+7. Findings dump z `C:\Work\mcp-tests\MCP_CONNECTOR_FINDINGS_DUMP_2026-05-12_v2.md` ma traktować approval/preflight ChatGPT Desktop jako osobną warstwę diagnostyczną:
+   - request może zostać zatrzymany zanim dotrze do MCP
+   - w takim przypadku serwer nie może go zalogować, odrzucić ani zsanityzować
+   - nie wolno używać payload smuggling ani kodowania fraz w celu obejścia tych blokad
+8. `stc_safe.js` ma być utrzymywany jako port wzorca z `mcp-tests/server.js`, a nie jako miejsce na mieszanie connector-safe shape z auth refactorami, Cloudflare zmianami albo mutation tools.
 
 ## Przykłady referencyjne SDK
 

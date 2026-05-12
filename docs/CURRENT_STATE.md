@@ -43,6 +43,9 @@ Potwierdzone:
 - `StreamableHTTPServerTransport`
 - startup recovery
 - runtime timing/perf hooks
+- pełny `server_tools.js` ma centralny perf wrapper:
+  - każde `server.registerTool(...)` jest mierzone przez `timeTool(...)`
+  - każdy `POST /mcp` request jest mierzony przez `timeRequest(...)`
 
 Rejestrowane aktywne grupy tooli:
 
@@ -76,6 +79,50 @@ Potwierdzone lokalnie w repo i publicznie:
 - ChatGPT Desktop connector potwierdził poprawny handshake i widoczność:
   - `search`
   - `fetch`
+- connector-safe runtime ma już jawne observability hooks:
+  - `rpc_received`
+  - `tool_call_start`
+  - `tool_call_end`
+  - `tool_call_error`
+  - `server_error`
+  - `server_start`
+  - oraz zdarzenia pomocnicze:
+    - `stc_safe_search`
+    - `stc_safe_fetch`
+    - `stc_safe_request`
+  - a do `.mcp_perf.log`:
+    - `timeTool(...)`
+    - `timeRequest(...)`
+
+Potwierdzone założenia kontraktu connector-safe po lekturze `C:\Work\mcp-tests\MCP_CONNECTOR_FINDINGS_DUMP_2026-05-12_v2.md`:
+
+- `stc_safe.js` ma naśladować `C:\Work\mcp-tests\server.js`, a nie pełny `server_tools.js`
+- `search` i `fetch` mają używać:
+  - `outputSchema`
+  - `structuredContent`
+  - JSON mirror w `content[0].text`
+- `fetch` ma twardy cap:
+  - `2500` znaków
+- `fetch.metadata` ma zawierać:
+  - `source`
+  - `kind`
+  - `connectorShapeVersion`
+  - `truncated`
+  - `original_chars`
+  - `cap_chars`
+- audit connector-safe nie loguje surowych:
+  - `query`
+  - `id`
+  tylko:
+  - `arg_sha256`
+  - długości
+  - klasyfikujące flagi markerów
+- canary docs diagnostyczne są wspierane, ale nie powinny być eksponowane w normalnym search bez jawnego trybu diagnostycznego
+- `stc_safe.js` nie jest miejscem na:
+  - bearer/OAuth redesign
+  - Cloudflare changes
+  - mutation tools
+  - approval-bridge debugging przez narzędzia wykonawcze
 
 Granica potwierdzenia i rola:
 
@@ -86,6 +133,7 @@ Granica potwierdzenia i rola:
   - `search`
   - `fetch`
 - nie jest potwierdzone, że ChatGPT Desktop wymaga dokładnie dwóch tooli jako takiego wymogu protokołu; potwierdzone jest tylko to, że minimalny profil z poprawnym shape działa stabilnie
+- niektóre wrażliwie wyglądające argumenty mogą być zatrzymywane przez ChatGPT Desktop approval/preflight zanim dotrą do MCP; taki request nie jest server-solvable i nie pojawi się w audit logu serwera
 
 Potwierdzone aktywne narzędzia warstwy truth tools:
 
@@ -122,6 +170,42 @@ Potwierdzone aktywne narzędzia warstwy remote site tools:
 - `restore_remote_site_file`
 - `remote_site_runtime_status`
 - `preview_remote_site_retention`
+
+## 2a. Logging coverage
+
+Potwierdzone po przeglądzie aktywnego runtime i touched modules:
+
+- `.mcp_perf.log`
+  - pełny `server_tools.js` loguje requesty i wszystkie zarejestrowane toole centralnie
+  - `stc_safe.js` loguje requesty MCP oraz wywołania:
+    - `search`
+    - `fetch`
+- `.mcp_audit.log`
+  - `filesystem`, `web`, `truth`, `process`, `registry`, `remote_site` miały już explicit audit
+  - domknięto brakujące audit coverage dla:
+    - `tools_index.js`
+    - `science_tools.js`
+    - `code_tools_safe.js`
+    - auth deny paths w:
+      - `auth.js`
+      - `auth_bearer.js`
+    - connector-safe runtime `stc_safe_runtime.js`
+
+Wniosek procesowy po review z 2026-05-12:
+
+- brak observability nie może być wykrywany dopiero ręcznie po feature work
+- nowy runtime/tool path ma być traktowany jako niegotowy, jeśli nie ma:
+  - perf trace
+  - audit trace
+  - testu coverage
+- szczególnie ważne jest to dla osobnych runtime, takich jak `stc_safe.js`, które nie dziedziczą automatycznie wrapperów z `server_tools.js`
+
+Ważna granica:
+
+- helpery wewnętrzne `remote_site_*` nie muszą każdy z osobna pisać do obu logów, jeśli observability jest domknięte na poziomie narzędzia/runtime
+- source-of-truth dla coverage loggerów pozostaje:
+  - aktywny runtime path
+  - test `tests/logging_coverage.test.js`
 
 ## 3. Auth i tunel
 

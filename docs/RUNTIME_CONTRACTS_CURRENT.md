@@ -26,6 +26,25 @@ Ten dokument zastępuje używanie `MCP_TOOL_CONTRACTS.md` jako bieżącego sourc
 12. structuredContent jest kanałem operacyjnym; content jest warstwą prezentacyjną.
 13. `stc_safe.js` jest osobnym connector-safe profilem na porcie `3010`, używa strict shape `2025-05-strict-v1`, wystawia tylko `search` i `fetch`, nie importuje mutation-capable modułów i używa zwykłego JSON-RPC over HTTP na `POST /mcp`.
 14. Publiczny connector-safe host dla ChatGPT Desktop powinien używać hostname bez underscore; w praktyce `mcp_stc_safe...` nie przechodził handshake w Desktop app mimo poprawnych odpowiedzi HTTP, a `mcp-stc-safe...` działa poprawnie.
+15. Perf logging w pełnym `server_tools.js` jest centralne i transportowe:
+   - każde `server.registerTool(...)` przechodzi przez `timeTool(...)`
+   - każdy `POST /mcp` request przechodzi przez `timeRequest(...)`
+16. Audit logging nie jest globalnie automatyczne; coverage musi być domknięte na poziomie handlerów tooli albo dedykowanego runtime wrappera.
+17. `stc_safe.js` ma własne observability:
+   - `.mcp_perf.log` przez `timeTool(...)` i `timeRequest(...)`
+   - `.mcp_audit.log` przez:
+     - `server_start`
+     - `rpc_received`
+     - `tool_call_start`
+     - `tool_call_end`
+     - `tool_call_error`
+     - `server_error`
+     - oraz pomocnicze:
+       - `stc_safe_search`
+       - `stc_safe_fetch`
+       - `stc_safe_request`
+18. `stc_safe.js` nie loguje surowych argumentów `query` i `id`; audit używa hash-only summary i klasyfikujących flag markerów.
+19. `stc_safe.js` ma być utrzymywany zgodnie z findings dump z `C:\Work\mcp-tests\MCP_CONNECTOR_FINDINGS_DUMP_2026-05-12_v2.md`; approval/preflight z ChatGPT Desktop, jeśli zatrzyma request przed wysłaniem, jest poza zakresem server-side fixów.
 
 
 ## Aktywny tool surface `server_tools.js`
@@ -149,6 +168,7 @@ Adresowanie ścieżek:
   - exactly one `content` item
   - `content[0].type === "text"`
   - valid JSON in `content[0].text`
+- `search` i `fetch` w `stc_safe.js` deklarują `outputSchema` i zwracają `structuredContent`; JSON w `content[0].text` jest lustrzanym kanałem kompatybilnościowym, nie jedynym kanałem danych
 - search results expose only:
   - `id`
   - `title`
@@ -159,8 +179,23 @@ Adresowanie ścieżek:
   - `text`
   - `url`
   - `metadata`
+- `fetch.metadata` w `stc_safe.js` musi zawierać:
+  - `source`
+  - `kind`
+  - `connectorShapeVersion`
+  - `truncated`
+  - `original_chars`
+  - `cap_chars`
+- `fetch` w `stc_safe.js` ma domyślny cap `2500` znaków i nie powinien być odpinany, dopóki:
+  - search nie jest stabilne
+  - fetch neutralny i real-doc nie są stabilne
+  - Desktop nie przestanie wykazywać approval/preflight instability
 - `strict-v1` today is intentionally limited to `search` and `fetch`, but this is an engineering isolation choice, not a proven protocol rule that ChatGPT Desktop requires exactly two tools in all cases
 - `stc_safe.js` currently behaves as a stateless connector-safe profile; do not plan server-to-client-dependent features there without revisiting the transport model
+- `stc_safe.js` is now expected to produce both:
+  - perf entries for MCP request/tool timing
+  - audit entries for connector-safe tool invocation paths
+- `stc_safe.js` may support diagnostic canary docs, but they should not be mixed into ordinary connector search unless diagnostic mode is explicitly enabled
 
 ## Test boundary
 
@@ -178,7 +213,7 @@ Confirmed current coverage:
 3. `tests/registry_outputschema_runtime_guard.test.js` covers the active registry rollout set including:
    - `tool_registry_execute`
 4. Latest repo validation:
-   - `npm test` PASS `170/170`
+   - `npm test` PASS `174/174`
 6. Live MCP verification confirms:
    - `project_truth_audit` is exposed in active runtime
    - `project_truth_audit` returns `status: ok` with `drifts: []`
@@ -239,10 +274,15 @@ Therefore:
 3. Tests for config and path policy must validate semantics, not assume Windows-only absolute paths.
 4. Observability helpers such as `tool_usage_snapshot` must tolerate missing local artifacts like `.mcp_perf.log` and degrade to explicit empty snapshots instead of failing CI.
 5. A green local `npm test` after root-model changes is necessary but not sufficient; portability assumptions must be reviewed explicitly when code touches paths, logs, or host defaults.
+6. Logging coverage is part of runtime correctness:
+   - if a new active tool group or runtime bypasses `.mcp_perf.log` or `.mcp_audit.log`, it should be treated as an observability regression
 
 ### Desktop connector learnings
 
 1. A public MCP server may answer correctly over HTTP and still fail Desktop connector creation for host-name-level reasons.
+2. `outputSchema + structuredContent + JSON mirror in content[0].text` is accepted by ChatGPT Desktop for connector-style `search` / `fetch`.
+3. Some sensitive-looking tool arguments may be blocked upstream by approval/preflight before they reach MCP; in such cases the server cannot validate, sanitize, reject, log, or return a controlled error because the request never arrives.
+4. Do not use payload smuggling or encoded phrases to bypass approval/preflight during diagnostics.
 2. For connector-safe diagnostics, compare:
    - raw `GET /healthz`
    - raw `POST /mcp initialize`

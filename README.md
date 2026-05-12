@@ -108,14 +108,24 @@ Profil `stc_safe.js`:
 - tylko `search` i `fetch`
 - bez mutation-capable imports
 - bez `StreamableHTTPServerTransport`
+- `outputSchema` + `structuredContent` + JSON mirror w `content[0].text`
+- `fetch` capped domyślnie do `2500` znaków z metadanymi:
+  - `connectorShapeVersion`
+  - `truncated`
+  - `original_chars`
+  - `cap_chars`
+- audit connector-safe nie loguje surowych `query` / `id`; używa hash-only summary i flag markerów
 - publiczny host sprawdzony praktycznie:
   - `https://mcp-stc-safe.romionologic.dev/mcp`
 - profil jest zgodny z kierunkiem przykładów stateless HTTP z oficjalnych SDK MCP; nie jest to jednorazowy hack tylko celowy, minimalny runtime
+- referencyjnym canary dla tego profilu pozostaje:
+  - `C:\Work\mcp-tests\server.js`
 
 Ważna uwaga:
 
 - dla publicznego MCP używanego przez ChatGPT Desktop preferuj hostname z myślnikami
 - hostname z underscore może działać po HTTP, a mimo to nie przejść procesu tworzenia łącznika w Desktop app
+- część wrażliwie wyglądających argumentów może zostać zatrzymana przez ChatGPT Desktop approval/preflight zanim trafi do serwera; to nie jest problem, który da się naprawić wyłącznie w samym MCP runtime
 
 ### Read-only MCP
 
