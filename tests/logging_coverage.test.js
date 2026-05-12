@@ -1,19 +1,24 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-async function read(filePath) {
-  return fs.readFile(filePath, "utf8");
+const TESTS_DIR = path.dirname(fileURLToPath(import.meta.url));
+const REPO_ROOT = path.resolve(TESTS_DIR, "..");
+
+async function readFromRepo(...relativeParts) {
+  return fs.readFile(path.join(REPO_ROOT, ...relativeParts), "utf8");
 }
 
 test("server_tools keeps central perf wrappers for requests and tools", async () => {
-  const source = await read("C:/Work/mcp/server_tools.js");
+  const source = await readFromRepo("server_tools.js");
   assert.match(source, /timeTool\(name, args, \(\) => handler\(args\)\)/);
   assert.match(source, /await timeRequest\(\{ method: req\.method, url: req\.url \}/);
 });
 
 test("connector-safe runtime logs requests and tool calls", async () => {
-  const source = await read("C:/Work/mcp/core/stc_safe_runtime.js");
+  const source = await readFromRepo("core", "stc_safe_runtime.js");
   assert.match(source, /import \{ audit \} from "\.\/audit\.js";/);
   assert.match(source, /import \{ timeRequest, timeTool \} from "\.\/perf\.js";/);
   assert.match(source, /await auditConnectorEvent\("rpc_received"/);
@@ -26,9 +31,9 @@ test("connector-safe runtime logs requests and tool calls", async () => {
 });
 
 test("index, science, and code tool groups contain audit logging", async () => {
-  const indexSource = await read("C:/Work/mcp/core/tools_index.js");
-  const scienceSource = await read("C:/Work/mcp/core/science_tools.js");
-  const codeSource = await read("C:/Work/mcp/core/code_tools_safe.js");
+  const indexSource = await readFromRepo("core", "tools_index.js");
+  const scienceSource = await readFromRepo("core", "science_tools.js");
+  const codeSource = await readFromRepo("core", "code_tools_safe.js");
 
   for (const pattern of [
     /await audit\("index_status"/,
@@ -61,8 +66,8 @@ test("index, science, and code tool groups contain audit logging", async () => {
 });
 
 test("auth modules leave audit traces on denied requests", async () => {
-  const accessSource = await read("C:/Work/mcp/core/auth.js");
-  const bearerSource = await read("C:/Work/mcp/core/auth_bearer.js");
+  const accessSource = await readFromRepo("core", "auth.js");
+  const bearerSource = await readFromRepo("core", "auth_bearer.js");
 
   assert.match(accessSource, /audit\("auth_access_denied"/);
   assert.match(bearerSource, /audit\("auth_bearer_error"/);
