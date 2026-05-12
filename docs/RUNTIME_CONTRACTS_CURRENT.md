@@ -276,6 +276,15 @@ Therefore:
 5. A green local `npm test` after root-model changes is necessary but not sufficient; portability assumptions must be reviewed explicitly when code touches paths, logs, or host defaults.
 6. Logging coverage is part of runtime correctness:
    - if a new active tool group or runtime bypasses `.mcp_perf.log` or `.mcp_audit.log`, it should be treated as an observability regression
+7. Descriptor/contract checks are not sufficient for schema-surface changes:
+   - a tool may still fail at real MCP bootstrap if final `inputSchema` is not an SDK-accepted schema object
+   - using `SomeSchema.shape` directly as final `inputSchema` is not treated as a safe registration pattern
+   - `.shape` is acceptable only as intermediate material used to build a final `z.object(...)` / `extend(...)` result
+8. `tests/server_bootstrap_runtime.test.js` is a required guardrail for:
+   - tool registration changes
+   - `inputSchema` / `outputSchema` changes
+   - runtime bootstrap sequence changes
+   because it instantiates a real `McpServer` and executes production registration functions instead of only validating descriptors statically
 
 ### Desktop connector learnings
 

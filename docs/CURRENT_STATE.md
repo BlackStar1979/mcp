@@ -498,6 +498,44 @@ Known issues / ryzyka wynikające z tego przeglądu:
 - jeśli kiedyś będziemy chcieli do `stc_safe` dołożyć funkcje zależne od server-to-client requests, to wejdziemy w konflikt z samą naturą stateless connector-safe profilu
 - jeśli będziemy implementować `oauth2` bez protected resource metadata, istnieje ryzyko rozminięcia z oczekiwaniami nowocześniejszych klientów i wzorcami SDK
 
+## 6.11. Lekcja z awarii bootstrapu MCP przez nieprawidłowe `inputSchema`
+
+Potwierdzone historycznie na 2026-05-10:
+
+- connector/runtime bootstrap potrafi wyłożyć się już podczas `registerRemoteSiteTools(server)`, zanim dojdzie do pierwszego poprawnego handshake MCP
+- rzeczywista awaria miała komunikat:
+  - `Error: inputSchema must be a Zod schema or raw shape, received an unrecognized object`
+
+Root cause:
+
+- jedno z rejestrowanych narzędzi użyło finalnie:
+  - `inputSchema: CONFIG_REF_INPUT.shape`
+- sam `.shape` nie był w tym miejscu poprawnym finalnym `inputSchema` akceptowanym przez SDK runtime
+
+Ważne rozróżnienie:
+
+- użycie `.shape` jako materiału wejściowego do zbudowania końcowego `z.object(...)` lub `extend(...)` jest poprawne
+- użycie `.shape` bezpośrednio jako finalnego `inputSchema` w rejestracji toola nie może być uznawane za bezpieczny wzorzec
+
+Dlaczego wcześniejsze testy tego nie złapały:
+
+- descriptor/contract tests przechodziły
+- brakowało obowiązkowego testu pełnego runtime bootstrapu z realnym `McpServer`
+
+Aktualna guardraila:
+
+- `tests/server_bootstrap_runtime.test.js`
+- test tworzy realny `McpServer`
+- wykonuje produkcyjne funkcje rejestrujące, w tym `registerRemoteSiteTools(server)`
+- ma failować natychmiast na:
+  - nieprawidłowym `inputSchema`
+  - błędzie runtime rejestracji
+
+Wniosek procesowy:
+
+- sam pass descriptor tests nie wystarcza przy zmianach powierzchni tooli i schem
+- każda zmiana dotykająca rejestracji tooli, `inputSchema`, `outputSchema` albo bootstrap sequence musi być traktowana jako niegotowa bez przejścia testu pełnego runtime bootstrapu
+
 ## 7. Deploy / rollback / perf
 
 Potwierdzone:
