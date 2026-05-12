@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import {
   SERVER_TOOLS_AUTH_PORTS,
@@ -9,6 +10,9 @@ import {
   parseServerToolsCliArgs,
   resolveAuthModulePath,
 } from "../core/server_tools_bootstrap.js";
+
+const TESTS_DIR = path.dirname(fileURLToPath(import.meta.url));
+const REPO_ROOT = path.resolve(TESTS_DIR, "..");
 
 test("server_tools CLI defaults to access mode", () => {
   assert.deepEqual(parseServerToolsCliArgs([]), {
@@ -20,7 +24,7 @@ test("server_tools CLI defaults to access mode", () => {
 test("server_tools CLI parses bearer token file and oauth2 mode", () => {
   const parsedBearer = parseServerToolsCliArgs(["--auth", "bearer", "--token-file", ".secrets/mcp_token.txt"]);
   assert.equal(parsedBearer.authMode, "bearer");
-  assert.equal(parsedBearer.tokenFile, path.resolve("C:\\Work\\mcp", ".secrets/mcp_token.txt"));
+  assert.equal(parsedBearer.tokenFile, path.resolve(REPO_ROOT, ".secrets/mcp_token.txt"));
 
   const parsedOauth = parseServerToolsCliArgs(["--auth", "oauth2"]);
   assert.equal(parsedOauth.authMode, "oauth2");
@@ -52,7 +56,7 @@ test("applyServerToolsCliConfig sets bearer mode token file cleanly", () => {
   const env = {
     MCP_TOKEN: "legacy",
   };
-  const tokenFile = path.resolve("C:\\Work\\mcp", ".secrets/mcp_token.txt");
+  const tokenFile = path.resolve(REPO_ROOT, ".secrets/mcp_token.txt");
   const runtime = applyServerToolsCliConfig({ authMode: "bearer", tokenFile }, { env });
 
   assert.equal(runtime.port, SERVER_TOOLS_AUTH_PORTS.bearer);
