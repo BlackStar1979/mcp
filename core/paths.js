@@ -5,6 +5,7 @@ import {
   BLOCKED_TOP_LEVEL_DIRS,
   PRIMARY_WORK_ROOT_ALIAS,
   PROTECTED_PATHS,
+  READ_BLOCKED_PATH_PREFIXES,
   WORK_ROOTS,
 } from "./config.js";
 
@@ -80,12 +81,29 @@ export function resolveWorkspacePath(relativePath = ".", { roots = WORK_ROOTS, p
   };
 }
 
+function blockedPrefixEntries(prefixes) {
+  return [...prefixes].map((prefix) => ({ prefix, full: path.resolve(BASE_DIR, prefix) }));
+}
+
+function findBlockedPrefix(fullPath, prefixes) {
+  const resolved = path.resolve(fullPath);
+  for (const entry of blockedPrefixEntries(prefixes)) {
+    if (startsInside(resolved, entry.full)) return entry.prefix;
+  }
+  return null;
+}
+
 export function safePath(relativePath = ".", options = {}) {
   const resolvedTarget = resolveWorkspacePath(relativePath, options);
   const full = path.resolve(resolvedTarget.rootPath, resolvedTarget.rootRelativePath);
 
   if (!startsInside(full, resolvedTarget.rootPath)) {
     throw new Error("Access denied");
+  }
+
+  const readBlockedPrefix = findBlockedPrefix(full, READ_BLOCKED_PATH_PREFIXES);
+  if (readBlockedPrefix) {
+    throw new Error(`Blocked path: ${readBlockedPrefix}`);
   }
 
   return full;
@@ -121,18 +139,6 @@ function protectedEntries() {
   return [...PROTECTED_PATHS].map((rel) => ({ rel, full: path.resolve(BASE_DIR, rel) }));
 }
 
-function blockedPrefixEntries() {
-  return [...BLOCKED_PATH_PREFIXES].map((prefix) => ({ prefix, full: path.resolve(BASE_DIR, prefix) }));
-}
-
-function findBlockedPrefix(fullPath) {
-  const resolved = path.resolve(fullPath);
-  for (const entry of blockedPrefixEntries()) {
-    if (startsInside(resolved, entry.full)) return entry.prefix;
-  }
-  return null;
-}
-
 function findProtectedPath(fullPath) {
   const resolved = canonicalize(fullPath);
   for (const entry of protectedEntries()) {
@@ -145,7 +151,7 @@ export function assertWritablePath(relativePath, { allowProtected = false, roots
   const full = safePath(relativePath, { roots, primaryAlias });
   const location = describeWorkspaceFullPath(full, { roots, primaryAlias });
   const top = location.rootRelativePath.split("/")[0];
-  const blockedPrefix = findBlockedPrefix(full);
+  const blockedPrefix = findBlockedPrefix(full, BLOCKED_PATH_PREFIXES);
   const protectedRel = findProtectedPath(full);
 
   if (location.rootRelativePath === ".") throw new Error("Blocked path: root is not writable");

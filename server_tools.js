@@ -2,19 +2,70 @@ import express from "express";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 
-import { PORT, JSON_BODY_LIMIT } from "./core/config.js";
-import { requireAuth } from "./core/auth.js";
-import { registerIndexTools } from "./core/tools_index.js";
-import { registerFsTools } from "./core/tools_fs.js";
-import { registerScienceTools } from "./core/science_tools.js";
-import { registerCodeTools } from "./core/code_tools_safe.js";
-import { registerRegistryTools } from "./core/registry_tools_safe.js";
-import { registerWebTools } from "./core/web_tools.js";
-import { registerTruthTools } from "./core/truth_tools.js";
-import { registerProcessTools } from "./core/process_tools_safe.js";
-import { timeTool, timeRequest, perfStatus } from "./core/perf.js";
-import { runRecovery } from "./core/orchestration/recovery.js";
-import { rollbackPatchForRecovery } from "./core/recovery_rollback.js";
+import {
+  applyServerToolsCliConfig,
+  assertSupportedRuntimeConfig,
+  parseServerToolsCliArgs,
+  resolveAuthModulePath,
+  serverToolsUsage,
+} from "./core/server_tools_bootstrap.js";
+
+function exitUsage(error) {
+  if (error?.message) {
+    console.error(`ERROR: ${error.message}`);
+    console.error("");
+  }
+  console.error(serverToolsUsage());
+  process.exit(2);
+}
+
+let cliConfig;
+try {
+  const parsed = parseServerToolsCliArgs();
+  cliConfig = applyServerToolsCliConfig(parsed);
+  assertSupportedRuntimeConfig(cliConfig);
+} catch (error) {
+  if (error?.code === "CLI_USAGE") {
+    exitUsage(error);
+  }
+
+  console.error("MCP STARTUP FAILED:", error?.message || String(error));
+  process.exit(1);
+}
+
+const [
+  { PORT, JSON_BODY_LIMIT, SERVER_AUTH_MODE },
+  authModule,
+  { registerIndexTools },
+  { registerFsTools },
+  { registerScienceTools },
+  { registerCodeTools },
+  { registerRegistryTools },
+  { registerWebTools },
+  { registerTruthTools },
+  { registerProcessTools },
+  { registerRemoteSiteTools },
+  { timeTool, timeRequest, perfStatus },
+  { runRecovery },
+  { rollbackPatchForRecovery },
+] = await Promise.all([
+  import("./core/config.js"),
+  import(resolveAuthModulePath(cliConfig.authMode)),
+  import("./core/tools_index.js"),
+  import("./core/tools_fs.js"),
+  import("./core/science_tools.js"),
+  import("./core/code_tools_safe.js"),
+  import("./core/registry_tools_safe.js"),
+  import("./core/web_tools.js"),
+  import("./core/truth_tools.js"),
+  import("./core/process_tools_safe.js"),
+  import("./core/remote_site_tools.js"),
+  import("./core/perf.js"),
+  import("./core/orchestration/recovery.js"),
+  import("./core/recovery_rollback.js"),
+]);
+
+const { requireAuth } = authModule;
 
 function createServer() {
   const server = new McpServer({
@@ -38,6 +89,7 @@ function createServer() {
   registerWebTools(server);
   registerTruthTools(server);
   registerProcessTools(server);
+  registerRemoteSiteTools(server);
 
   return server;
 }
@@ -74,7 +126,7 @@ app.options("/mcp", (req, res) => {
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader(
     "Access-Control-Allow-Headers",
-    "Content-Type, Accept, Authorization, Mcp-Session-Id, mcp-session-id"
+    "Content-Type, Accept, Authorization, Mcp-Session-Id, mcp-session-id, Cf-Access-Jwt-Assertion"
   );
   res.status(204).end();
 });
@@ -129,7 +181,11 @@ async function start() {
     const status = await perfStatus();
 
     console.log("MODULAR MCP running v1.7.0");
+    console.log(`AUTH MODE: ${SERVER_AUTH_MODE}`);
     console.log(`URL: http://127.0.0.1:${PORT}/mcp`);
+    if (cliConfig.tokenFile) {
+      console.log(`TOKEN FILE: ${cliConfig.tokenFile}`);
+    }
     console.log("PERF:", status);
     console.log("RECOVERY:", {
       status: recovery.status,

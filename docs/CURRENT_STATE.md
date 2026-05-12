@@ -1,8 +1,8 @@
 # Current State
 
-Data: 2026-05-07
+Data: 2026-05-12
 Status: canonical_current
-Zakres: aktualny stan projektu `C:\Work\mcp` po rolloutach registry execute v7.1, bounded web tools (`pypi_info`, `check_npm_package`, `fetch_github_file`), domknięciu test coverage dla web tools, korekcie testów registry execute v1.1 na aktywny runtime, wdrożeniu `project_truth_audit`, `code_runtime_map`, `deploy_decision_guard`, `change_workflow_simulator`, `tool_usage_snapshot`, procesu multi-root z aliasami `@alias/...`, domknięciu regresji CI portability oraz integracji bounded process runner (`run_process`, `process_runner_status`)
+Zakres: aktualny stan projektu `C:\Work\mcp` po rolloutach registry execute v7.1, bounded web tools (`pypi_info`, `check_npm_package`, `fetch_github_file`), domknięciu test coverage dla web tools, korekcie testów registry execute v1.1 na aktywny runtime, wdrożeniu `project_truth_audit`, `code_runtime_map`, `deploy_decision_guard`, `change_workflow_simulator`, `tool_usage_snapshot`, procesu multi-root z aliasami `@alias/...`, domknięciu regresji CI portability, integracji bounded process runner (`run_process`, `process_runner_status`) oraz dodaniu lokalnego connector-safe profile `stc_safe.js`
 
 ## 1. Stan repo i lokalnego runtime
 
@@ -35,8 +35,11 @@ Potwierdzone:
 Potwierdzone:
 
 - tools profile
-- port `3001`
-- auth hybrydowy: Cloudflare Access assertion dla publicznego hosta + lokalny fallback `MCP_TOKEN`
+- launcher `server_tools.js --auth access` -> port `3001`
+- auth mode `access`: Cloudflare Access assertion model dla publicznego/Codexowego toru
+- launcher `server_tools.js --auth bearer --token-file <BASE MCP>\.secrets\mcp_token.txt` -> port `3002`
+- launcher `server_tools.js --auth oauth2` -> port `3003` (reserved, jeszcze niezaimplementowany)
+- legacy shim `server_tools_token.js` nadal istnieje, ale nie jest docelowym launcherem
 - `StreamableHTTPServerTransport`
 - startup recovery
 - runtime timing/perf hooks
@@ -51,6 +54,38 @@ Rejestrowane aktywne grupy tooli:
 - web tools
 - truth tools
 - process tools
+- remote site tools
+
+### `stc_safe.js`
+
+Potwierdzone lokalnie w repo i publicznie:
+
+- connector-safe profile
+- osobny entrypoint `stc_safe.js`
+- domyślny port `3010`
+- strict shape version `2025-05-strict-v1`
+- wystawia tylko:
+  - `search`
+  - `fetch`
+- używa zwykłego JSON-RPC over HTTP na `POST /mcp`, a nie `StreamableHTTPServerTransport`
+- nie importuje modułów mutation-capable z `server_tools.js`
+- lokalny self-test przechodzi:
+  - `node C:\Work\mcp\stc_safe.js --self-test`
+- publiczny rollout działa pod:
+  - `https://mcp-stc-safe.romionologic.dev/mcp`
+- ChatGPT Desktop connector potwierdził poprawny handshake i widoczność:
+  - `search`
+  - `fetch`
+
+Granica potwierdzenia i rola:
+
+- `stc_safe.js` nie zastępuje `server.js`
+- `server.js` pozostaje lokalnym read-only MCP dla workspace
+- `stc_safe.js` jest osobnym publicznym profilem connector-safe dla ChatGPT Desktop
+- strict `2025-05-strict-v1` oznacza dziś wyłącznie:
+  - `search`
+  - `fetch`
+- nie jest potwierdzone, że ChatGPT Desktop wymaga dokładnie dwóch tooli jako takiego wymogu protokołu; potwierdzone jest tylko to, że minimalny profil z poprawnym shape działa stabilnie
 
 Potwierdzone aktywne narzędzia warstwy truth tools:
 
@@ -76,18 +111,47 @@ Model bezpieczeństwa tej warstwy:
 - brak dziedziczenia pełnego `process.env` do child process
 - PowerShell domyślnie tylko przez `-File` do workspace-local `.ps1`
 
+Potwierdzone aktywne narzędzia warstwy remote site tools:
+
+- `list_remote_site_files`
+- `read_remote_site_file`
+- `write_remote_site_file`
+- `edit_remote_site_file`
+- `move_remote_site_file`
+- `delete_remote_site_file`
+- `restore_remote_site_file`
+- `remote_site_runtime_status`
+- `preview_remote_site_retention`
+
 ## 3. Auth i tunel
 
 ### Potwierdzone
 
-- `MCP_TOKEN` jest nadal czytany z environment jako lokalny fallback
+- `server_tools.js --auth access` obsługuje tor Codex/Cloudflare Access na `3001`
 - publiczny host `https://modular-mcp.romionologic.dev/mcp` jest chroniony przez Cloudflare Access `SERVICE AUTH`
-- request przepuszczony przez Cloudflare Access dociera do origin z `Cf-Access-Jwt-Assertion`; aktywny runtime traktuje ten header jako publiczny tor autoryzacji
-- lokalny direct-access fallback nadal akceptuje:
-  - query string `?token=...`
-  - bearer header
+- request przepuszczony przez Cloudflare Access dociera do origin z `Cf-Access-Jwt-Assertion`; aktywny runtime `access` traktuje ten header jako warunek autoryzacji
+- `server_tools.js --auth bearer --token-file C:\Work\mcp\.secrets\mcp_token.txt` obsługuje tor bearer na `3002`
+- tryb bearer akceptuje `Authorization: Bearer ...` oraz legacy `?token=...` jako fallback kompatybilnościowy dla klienta, który nie potrafi wysłać bearer headera podczas handshake
+- `server_tools.js --auth oauth2` jest zarezerwowany dla `3003`, ale nie jest jeszcze zaimplementowany
 - `CF-Access-Client-Id` i `CF-Access-Client-Secret` są używane po stronie klienta MCP/Codexa do wejścia przez Access, a nie jako jawny token URL
 - publiczny `POST https://modular-mcp.romionologic.dev/mcp` z nagłówkami Access i poprawnym `Accept: application/json, text/event-stream` zwraca `200` oraz poprawny MCP `initialize` dla `modular-tools v1.7.0`
+- publiczny connector-safe host `https://mcp-stc-safe.romionologic.dev/mcp` działa bez auth i przechodzi:
+  - `GET /healthz`
+  - `POST /mcp initialize`
+
+### Ważna lekcja praktyczna z publicznego rolloutu
+
+- hostname z underscore:
+  - `mcp_stc_safe.romionologic.dev`
+  działał przez PowerShell i tunel, ale ChatGPT Desktop nie chciał utworzyć łącznika mimo poprawnych odpowiedzi `/healthz` i `initialize`
+- po zmianie hosta na myślniki:
+  - `mcp-stc-safe.romionologic.dev`
+  handshake w ChatGPT Desktop przeszedł poprawnie
+
+Wniosek operacyjny:
+
+- dla publicznych MCP hostów przeznaczonych do ChatGPT Desktop należy preferować hostname bez underscore
+- brak handshake przy hostach z underscore nie był dowodem błędnego serwera MCP; serwer odpowiadał poprawnie po HTTP
 
 ### Nadal niepotwierdzone bezpośrednio z kodu
 
@@ -243,6 +307,113 @@ Wniosek operacyjny:
 - narzędzia obserwacyjne i pomocnicze nie mogą wymagać lokalnych artefaktów runtime jako warunku przejścia całego CI
 - po każdej większej zmianie path modelu albo truth tools trzeba sprawdzić nie tylko `npm test` lokalnie, ale też czy testy nie ukrywają założeń host-specific
 
+## 6.7. Connector-safe profile
+
+Potwierdzone:
+
+- `stc_safe.js` istnieje jako osobny lokalny entrypoint w repo `C:\Work\mcp`
+- profil jest addytywny wobec istniejącego runtime; nie zastępuje `server.js` ani `server_tools.js`
+- strict contract tests dla `search`, `fetch`, `connectorShapeVersion` i braku mutation tools przechodzą
+- pełny suite repo po dodaniu tego profilu przechodzi:
+  - `npm test` PASS `170/170`
+
+Cel tego profilu:
+
+- odseparować ChatGPT connector-safe MCP od pełnego tools runtime
+- uniknąć approval-triggering i mutation-capable tools w jednym publicznym MCP surface
+- trzymać kontrakt odpowiedzi zgodny z canary `C:\Work\mcp-tests\server.js`
+
+## 6.8. Lekcje z ChatGPT Desktop i canary
+
+Potwierdzone:
+
+- historyczna awaria `C:\Work\mcp-tests\server.js` nie wynikała z samego MCP protocol shape, tylko z uszkodzonego pliku zapisanego jako jedna linia, przez co komentarz `//` wykomentował resztę pliku
+- po naprawie:
+  - `node --check C:\Work\mcp-tests\server.js` przechodził
+  - `node C:\Work\mcp-tests\server.js --self-test` przechodził
+- `mcp-tests` pozostaje dobrym canary dla connector-safe response shape, ale nie jest docelowym runtime repo
+
+Najważniejszy wniosek diagnostyczny:
+
+- problem Desktopa był bliżej approval/tool-call bridge i zachowania klienta niż samego `search`/`fetch`
+- stabilne były scenariusze:
+  - `search`
+  - `fetch`
+- niestabilność korelowała z mutation-capable i approval-triggering workflows
+
+Wniosek architektoniczny:
+
+- nie należy debugować ChatGPT Desktop connectora przez pełny `server_tools.js`
+- do tego służy osobny `stc_safe.js`
+
+## 6.9. Lekcje z przeglądu TypeScript SDK
+
+Potwierdzone z przeglądu materiałów `typescript-sdk-main`:
+
+- SDK pokazuje wspierany wzorzec stateless HTTP server dla MCP
+- SDK pokazuje wspierany wzorzec `enableJsonResponse: true` dla plain JSON odpowiedzi zamiast SSE
+- przykłady istotne dla dalszych prac:
+  - `examples/server/src/jsonResponseStreamableHttp.ts`
+  - `examples/server/src/simpleStatelessStreamableHttp.ts`
+  - `packages/middleware/express/src/auth/bearerAuth.ts`
+
+Wnioski praktyczne:
+
+- obecny `stc_safe.js` jako minimalny plain-JSON connector-safe profil jest zgodny z duchem przykładów SDK
+- przy późniejszym etapie `oauth2` warto opierać się na wzorcach middleware z SDK zamiast pisać pełne auth od zera
+- nie wolno bezpośrednio kopiować kodu z `typescript-sdk-main` bez sprawdzenia zgodności wersji, bo lokalne repo używa dziś `@modelcontextprotocol/sdk` `1.29.0`
+
+## 6.10. Lekcje z przeglądu Python SDK
+
+Potwierdzone z przeglądu `python-sdk-main.zip`:
+
+- istnieje osobny przykład:
+  - `examples/servers/simple-streamablehttp-stateless/...`
+  który pokazuje stateless HTTP server jako wspierany wzorzec
+- przykład ten ma przełącznik:
+  - `json_response`
+  czyli plain JSON response mode jest świadomie wspieranym wariantem obok SSE
+- przykład auth:
+  - `examples/servers/simple-auth/...`
+  wyraźnie rozdziela resource server i authorization server zamiast mieszać auth z przypadkowym tool surface
+- middleware bearer:
+  - `src/mcp/server/auth/middleware/bearer_auth.py`
+  potwierdza wzorzec:
+    - osobna walidacja bearer tokena
+    - `401 invalid_token`
+    - `403 insufficient_scope`
+    - `WWW-Authenticate`
+- testy protected resource metadata:
+  - `tests/server/auth/test_protected_resource.py`
+  pokazują jawny wzorzec endpointu:
+    - `/.well-known/oauth-protected-resource`
+    - oraz wariant path-aware, np. dla zasobu `/mcp`
+- testy stateless mode:
+  - `tests/server/test_stateless_mode.py`
+  potwierdzają, że stateless HTTP nie wspiera server-to-client requests takich jak:
+    - `list_roots`
+    - sampling
+    - elicitation
+
+Wnioski praktyczne:
+
+- `stc_safe.js` jako osobny connector-safe profil jest zgodny nie tylko z intuicją, ale też z kierunkiem Python SDK:
+  - minimalny surface
+  - osobny transport profile
+  - brak mieszania auth i mutation w jednym runtime
+- plain JSON response mode nie jest obejściem, tylko wspieranym wzorcem do rozważenia przy przyszłej ewolucji connector-safe profilu
+- przyszłe `--auth oauth2` w `server_tools.js` powinno być projektowane jako:
+  - osobna warstwa auth
+  - z protected resource metadata
+  - ze scope handling
+  - z jawnym rozróżnieniem `401` / `403`
+- nie wolno oczekiwać, że stateless connector-safe profil będzie kiedyś dobrym miejscem dla funkcji wymagających server-to-client round-trips
+
+Known issues / ryzyka wynikające z tego przeglądu:
+
+- jeśli kiedyś będziemy chcieli do `stc_safe` dołożyć funkcje zależne od server-to-client requests, to wejdziemy w konflikt z samą naturą stateless connector-safe profilu
+- jeśli będziemy implementować `oauth2` bez protected resource metadata, istnieje ryzyko rozminięcia z oczekiwaniami nowocześniejszych klientów i wzorcami SDK
+
 ## 7. Deploy / rollback / perf
 
 Potwierdzone:
@@ -296,8 +467,8 @@ Aktualny checkpoint potwierdzony lokalnie po korektach test surface:
   - `npm test` — PASS `84/84`
 - repo validation po wdrożeniu `tool_usage_snapshot`:
   - `npm test` — PASS `86/86`
-- repo validation po integracji bounded process runner i migracji auth Cloudflare Access:
-  - `npm test` — PASS `105/105`
+- repo validation po synchronizacji bootstrap/auth i contract surface dla `remote_site_*`:
+  - `npm test` — PASS `164/164`
 - live MCP verification po restarcie `server_tools.js`:
   - `project_truth_audit` — `status: ok`
   - `drifts: []`
@@ -336,7 +507,8 @@ Obszary objęte testami:
 - truth tools contract i handler baseline dla `deploy_decision_guard`
 - truth tools contract i handler baseline dla `change_workflow_simulator`
 - truth tools contract i handler baseline dla `tool_usage_snapshot`
-- process tools contract i handler baseline dla `run_process` i `process_runner_status`
+- process tools
+- remote site tools contract i handler baseline dla `run_process` i `process_runner_status`
 - web tools static/runtime-shape guards
 - bounded npm package metadata guard
 - bounded GitHub raw file guard
@@ -378,6 +550,8 @@ Jeśli potrzebujesz:
 - aktualnego stanu registry: `REGISTRY.md`
 - aktualnych kontraktów runtime: `RUNTIME_CONTRACTS_CURRENT.md`
 - idiotoodpornego protokołu dla kolejnego LLM: `LLM_IDIOT_PROOF_PROTOCOL_2026-05-04.md`
+
+
 
 
 

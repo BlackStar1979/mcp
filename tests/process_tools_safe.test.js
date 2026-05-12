@@ -28,7 +28,7 @@ test("process tools expose explicit output schemas and no full env inheritance",
 });
 
 test("server_tools registers process tools module", () => {
-  assert.match(serverToolsSource, /import\s+\{\s*registerProcessTools\s*\}\s+from\s+"\.\/core\/process_tools_safe\.js"/);
+  assert.match(serverToolsSource, /import\("\.\/core\/process_tools_safe\.js"\)/);
   assert.match(serverToolsSource, /registerProcessTools\(server\)/);
 });
 
@@ -85,3 +85,4 @@ test("run_process rejects PowerShell EncodedCommand", async () => {
   assert.equal(payload.status, "error");
   assert.match(payload.message, /EncodedCommand is not allowed/);
 });
+

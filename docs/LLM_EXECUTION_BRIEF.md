@@ -126,6 +126,53 @@ Przy proponowaniu kolejnych warstw systemu pamiętaj:
 - warstwy lokalne, audytowalne i odwracalne mają pierwszeństwo przed zewnętrzną wygodą,
 - przyszłe warstwy źródeł wiedzy muszą od początku zakładać metadata discipline i lifecycle źródeł,
 - RAG, session state i internal agents to osobny etap architektoniczny, nie szybki dodatek.
+- jeśli problem dotyczy ChatGPT Desktop connectora, najpierw rozdziel connector-safe surface od mutation-capable runtime, zamiast debugować approval bridge przez pełny tools profile.
+
+## Lekcje utrwalone
+
+1. ChatGPT Desktop może wywracać się lub wieszać na approval/tool-call bridge nawet wtedy, gdy sam MCP runtime jest poprawny.
+2. Dla diagnostyki Desktop connectora punktem odniesienia ma być minimalny connector-safe profil:
+   - osobny runtime
+   - tylko `search`
+   - tylko `fetch`
+   - strict JSON shape
+3. Brak handshake w Desktop app nie jest sam z siebie dowodem, że serwer MCP źle odpowiada; najpierw trzeba porównać:
+   - `GET /healthz`
+   - `POST /mcp initialize`
+   - i dopiero potem zachowanie Desktop app
+4. Hostname z underscore może być akceptowany przez tunel i PowerShell, a mimo to nie przejść w ChatGPT Desktop; dla publicznych MCP hostów używaj hostname z myślnikami.
+5. Przegląd TypeScript SDK jest przydatny jako wzorzec architektoniczny:
+   - stateless HTTP server
+   - plain JSON response mode
+   - bearer/OAuth middleware
+   ale nie wolno zakładać automatycznej zgodności kodu z lokalnym `@modelcontextprotocol/sdk` bez sprawdzenia wersji.
+6. Przegląd Python SDK wzmacnia te same wnioski:
+   - stateless connector-safe profil ma sens,
+   - plain JSON / json-response mode jest wspieranym wzorcem,
+   - auth i protected-resource metadata to osobna warstwa,
+   - stateless mode nie jest dobrym miejscem dla funkcji wymagających server-to-client round-trips.
+
+## Przykłady referencyjne SDK
+
+Przy kolejnych pracach warto sięgać do:
+
+- TypeScript SDK:
+  - `examples/server/src/jsonResponseStreamableHttp.ts`
+  - `examples/server/src/simpleStatelessStreamableHttp.ts`
+  - `packages/middleware/express/src/auth/bearerAuth.ts`
+- Python SDK:
+  - `examples/servers/simple-streamablehttp-stateless/...`
+  - `examples/servers/simple-auth/...`
+  - `src/mcp/server/auth/middleware/bearer_auth.py`
+  - `tests/server/auth/test_protected_resource.py`
+  - `tests/server/test_stateless_mode.py`
+
+Nie kopiuj z tych przykładów mechanicznie. Używaj ich do:
+
+- potwierdzania wzorców architektonicznych,
+- projektowania auth boundary,
+- projektowania transport boundary,
+- identyfikowania ograniczeń stateless mode.
 
 ### Faza 1. Ustalenie prawdy operacyjnej
 

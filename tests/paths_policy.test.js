@@ -18,6 +18,7 @@ test("safePath stays inside the configured primary workspace root", () => {
   assert.equal(toRel(safePath(".", { roots: multiRoots, primaryAlias: PRIMARY_WORK_ROOT_ALIAS }), { roots: multiRoots, primaryAlias: PRIMARY_WORK_ROOT_ALIAS }), ".");
   assert.equal(toRel(safePath("mcp/server_tools.js", { roots: multiRoots, primaryAlias: PRIMARY_WORK_ROOT_ALIAS }), { roots: multiRoots, primaryAlias: PRIMARY_WORK_ROOT_ALIAS }), "mcp/server_tools.js");
   assert.throws(() => safePath("../outside.txt", { roots: multiRoots, primaryAlias: PRIMARY_WORK_ROOT_ALIAS }), /Access denied/);
+  assert.throws(() => safePath("mcp/.secrets/mcp_token.txt", { roots: multiRoots, primaryAlias: PRIMARY_WORK_ROOT_ALIAS }), /Blocked path: mcp\/\.secrets/);
 });
 
 test("secondary roots use explicit @alias addressing", () => {
@@ -55,9 +56,10 @@ test("workspace path resolution keeps bare paths on primary root and aliases on 
   assert.equal(described.isPrimary, false);
 });
 
-test("write guard blocks runtime core and protected entrypoints under mcp/ but allows secondary-root files", () => {
+test("write guard blocks runtime core, secrets, and protected entrypoints under mcp/ but allows secondary-root files", () => {
   assert.throws(() => assertWritablePath("mcp/core/config.js", { roots: multiRoots, primaryAlias: PRIMARY_WORK_ROOT_ALIAS }), /Blocked path: mcp\/core/);
   assert.throws(() => assertWritablePath("mcp/server_tools.js", { roots: multiRoots, primaryAlias: PRIMARY_WORK_ROOT_ALIAS }), /Protected file: mcp\/server_tools\.js/);
+  assert.throws(() => assertWritablePath("mcp/.secrets/mcp_token.txt", { roots: multiRoots, primaryAlias: PRIMARY_WORK_ROOT_ALIAS }), /Blocked path: mcp\/\.secrets/);
   assert.equal(assertWritablePath("mcp/.mcp_warzone/tmp.txt", { roots: multiRoots, primaryAlias: PRIMARY_WORK_ROOT_ALIAS }), "mcp/.mcp_warzone/tmp.txt");
   assert.equal(
     assertWritablePath("@portfolio/notes/todo.txt", { roots: multiRoots, primaryAlias: PRIMARY_WORK_ROOT_ALIAS }),
@@ -91,4 +93,3 @@ test("policy requires confirmation for high-risk patch with dry-run binding", ()
   assert.throws(() => enforcePolicyDecision(policy, { confirm: false }), /policy_confirmation_required/);
   assert.doesNotThrow(() => enforcePolicyDecision(policy, { confirm: true }));
 });
-

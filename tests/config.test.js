@@ -4,6 +4,7 @@ import path from "node:path";
 import fs from "node:fs";
 
 import {
+  AUTH_MODE_PORTS,
   BASE_DIR,
   RUNTIME_DIR,
   TRASH_DIR,
@@ -13,9 +14,12 @@ import {
   PERF_LOG_FILE,
   BLOCKED_TOP_LEVEL_DIRS,
   BLOCKED_PATH_PREFIXES,
+  READ_BLOCKED_PATH_PREFIXES,
   SKIPPED_SCAN_DIRS,
   PRIMARY_WORK_ROOT_ALIAS,
   WORK_ROOTS_ENV_VAR,
+  BEARER_TOKEN_FILE,
+  SERVER_AUTH_MODE,
   buildWorkRoots,
   parseExtraWorkRoots,
   listWorkspaceRoots,
@@ -58,12 +62,23 @@ test("default workspace root model exposes primary alias and hint", () => {
   assert.match(workspaceAccessHint(), /MCP_EXTRA_ROOTS|Additional roots use explicit aliases:/);
 });
 
+test("default server auth mode is access on port 3001", () => {
+  assert.equal(SERVER_AUTH_MODE, "access");
+  assert.equal(AUTH_MODE_PORTS.access, 3001);
+  assert.equal(AUTH_MODE_PORTS.bearer, 3002);
+  assert.equal(AUTH_MODE_PORTS.oauth2, 3003);
+  assert.equal(BEARER_TOKEN_FILE, null);
+});
+
 test("runtime protection remains enforced under runtime mcp/ subtree while workspace root can expand", () => {
   assert.equal(BLOCKED_TOP_LEVEL_DIRS.has("node_modules"), true);
   assert.equal(BLOCKED_TOP_LEVEL_DIRS.has("mcp"), false);
   assert.equal(BLOCKED_PATH_PREFIXES.has("mcp/core"), true);
+  assert.equal(BLOCKED_PATH_PREFIXES.has("mcp/.secrets"), true);
+  assert.equal(READ_BLOCKED_PATH_PREFIXES.has("mcp/.secrets"), true);
   assert.equal(SKIPPED_SCAN_DIRS.has("node_modules"), true);
   assert.equal(SKIPPED_SCAN_DIRS.has(".mcp_warzone"), true);
+  assert.equal(SKIPPED_SCAN_DIRS.has(".secrets"), true);
 });
 
 test("extra workspace roots can be parsed and built without another redesign", () => {

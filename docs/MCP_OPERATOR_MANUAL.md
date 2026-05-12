@@ -69,6 +69,26 @@ Aktualny model dla publicznego modular MCP:
   - `CF-Access-Client-Secret`
 - origin `server_tools.js` akceptuje request po obecności `Cf-Access-Jwt-Assertion`
 - `MCP_TOKEN` pozostaje wyłącznie lokalnym fallbackiem dla direct localhost, nie docelowym publicznym modelem auth
+
+## 2.4 Publiczny connector-safe host
+
+Aktualny model dla publicznego connector-safe MCP:
+
+- host: `https://mcp-stc-safe.romionologic.dev/mcp`
+- runtime: `node C:\Work\mcp\stc_safe.js`
+- brak auth
+- exposed tools:
+  - `search`
+  - `fetch`
+- shape version:
+  - `2025-05-strict-v1`
+
+Ważna reguła praktyczna:
+
+- dla publicznych hostów MCP używanych przez ChatGPT Desktop nie używać underscore w hostname
+- obserwacja potwierdzona praktycznie:
+  - `mcp_stc_safe...` nie przechodził handshake w Desktop app
+  - `mcp-stc-safe...` działa poprawnie
 ## 3. Standardowy cykl zmiany
 
 ### 3.1 Przygotowanie pliku
@@ -265,6 +285,21 @@ node --check server_tools.js
 ```
 
 Nie restartować MCP po nieudanym deployu.
+
+### ChatGPT Desktop nie tworzy łącznika do MCP
+
+Kolejność diagnostyczna:
+
+1. sprawdzić `GET /healthz`
+2. sprawdzić `POST /mcp initialize`
+3. sprawdzić hostname:
+   - preferować myślniki
+   - unikać underscore
+4. sprawdzić, czy testowany jest właściwy profil:
+   - `stc_safe.js` dla Desktop connectora
+   - nie `server_tools.js` z mutation-capable surface
+
+Nie zakładać automatycznie, że brak handshake oznacza zły response shape serwera.
 
 ### Perf log zawiera stary token
 

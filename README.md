@@ -6,6 +6,7 @@ Repozytorium zawiera dwa serwery MCP:
 
 - `server.js` — podstawowy read-only MCP dla skonfigurowanych workspace rootów. Bare paths i `.` wskazują primary root `C:\Work`, a dodatkowe rooty są adresowane jawnie jako `@alias/...`.
 - `server_tools.js` — modularny MCP tools profile z narzędziami FS, index, science, connector-safe code tools i connector-safe registry control-plane.
+- `stc_safe.js` — osobny connector-safe MCP profile z wyłącznie `search` i `fetch`, bez mutation-capable tools.
 
 ## Status
 
@@ -68,6 +69,53 @@ Alternatywnie bezpośrednio:
 ```bash
 node C:\Work\mcp\server_tools.js
 ```
+
+Tryby auth:
+
+```bash
+node C:\Work\mcp\server_tools.js --auth access
+node C:\Work\mcp\server_tools.js --auth bearer --token-file C:\Work\mcp\.secrets\mcp_token.txt
+node C:\Work\mcp\server_tools.js --auth oauth2
+```
+
+Uwaga:
+
+- `--auth oauth2` jest jeszcze zarezerwowany i niezaimplementowany
+- bearer mode akceptuje `Authorization: Bearer ...` i zachowuje legacy `?token=...` fallback dla kompatybilności klienta
+
+### Connector-safe MCP profile
+
+```bash
+npm run start:safe
+```
+
+Alternatywnie:
+
+```bash
+node C:\Work\mcp\stc_safe.js
+```
+
+Self-test:
+
+```bash
+node C:\Work\mcp\stc_safe.js --self-test
+```
+
+Profil `stc_safe.js`:
+
+- domyślny port `3010`
+- strict connector shape `2025-05-strict-v1`
+- tylko `search` i `fetch`
+- bez mutation-capable imports
+- bez `StreamableHTTPServerTransport`
+- publiczny host sprawdzony praktycznie:
+  - `https://mcp-stc-safe.romionologic.dev/mcp`
+- profil jest zgodny z kierunkiem przykładów stateless HTTP z oficjalnych SDK MCP; nie jest to jednorazowy hack tylko celowy, minimalny runtime
+
+Ważna uwaga:
+
+- dla publicznego MCP używanego przez ChatGPT Desktop preferuj hostname z myślnikami
+- hostname z underscore może działać po HTTP, a mimo to nie przejść procesu tworzenia łącznika w Desktop app
 
 ### Read-only MCP
 
@@ -210,7 +258,15 @@ Artefakty `.mcp_audit*` i `.mcp_perf*` są lokalnymi źródłami dowodowymi, ale
 
 Serwer wykonuje operacje na lokalnym systemie plików, dlatego powinien być uruchamiany wyłącznie w zaufanym środowisku.
 
-`server_tools.js` używa teraz modelu hybrydowego. Publiczny host za Cloudflare Access akceptuje request przepuszczony przez Access po obecności `Cf-Access-Jwt-Assertion`, a bezpośredni localhost fallback pozostaje przez `MCP_TOKEN` (query string albo bearer header). Token w URL nie jest już wymaganym modelem dla publicznego hosta i powinien pozostać wyłącznie lokalnym fallbackiem, jeśli w ogóle jest używany.
+`server_tools.js` używa teraz rozdzielonego modelu auth przez CLI:
+
+- `--auth access` — tor Cloudflare Access / Codex na `3001`
+- `--auth bearer --token-file ...` — tor bearer na `3002`
+- `--auth oauth2` — zarezerwowany tor `3003`, jeszcze niezaimplementowany
+
+W trybie bearer publiczny host nie jest wymagany; lokalny runtime akceptuje `Authorization: Bearer ...` oraz legacy `?token=...` fallback dla klienta, który nie potrafi wysłać bearer headera podczas handshake.
+
+`stc_safe.js` jest profilem connector-safe i nie powinien być mieszany z mutation-capable tool surface `server_tools.js`.
 
 ## Licencja
 

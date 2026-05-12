@@ -9,6 +9,7 @@ import { registerRegistryTools } from "../core/registry_tools_safe.js";
 import { registerWebTools } from "../core/web_tools.js";
 import { registerTruthTools } from "../core/truth_tools.js";
 import { registerProcessTools } from "../core/process_tools_safe.js";
+import { registerRemoteSiteTools } from "../core/remote_site_tools.js";
 
 function collectRegisteredTools() {
   const tools = [];
@@ -32,6 +33,7 @@ function collectRegisteredTools() {
   registerWebTools(server);
   registerTruthTools(server);
   registerProcessTools(server);
+  registerRemoteSiteTools(server);
 
   return tools;
 }
@@ -86,6 +88,14 @@ test("contract surface includes process tools", () => {
   assert.ok(names.includes("process_runner_status"), "contract surface must include process_runner_status");
 });
 
+test("contract surface includes remote site tools", () => {
+  const names = collectRegisteredTools().map(({ name }) => name).sort();
+
+  assert.ok(names.includes("list_remote_site_files"), "contract surface must include list_remote_site_files");
+  assert.ok(names.includes("remote_site_runtime_status"), "contract surface must include remote_site_runtime_status");
+  assert.ok(names.includes("preview_remote_site_retention"), "contract surface must include preview_remote_site_retention");
+});
+
 test("read-only descriptor semantics are internally consistent", () => {
   const tools = collectRegisteredTools();
 
@@ -106,3 +116,7 @@ test("outputSchema coverage is tracked without blocking current partial conforma
   assert.ok(withoutOutputSchema.length > 0, "current audit expects partial outputSchema coverage; update this test when full coverage lands");
   assert.ok(withoutOutputSchema.length < tools.length, "at least some tools should expose outputSchema");
 });
+
+
+
+

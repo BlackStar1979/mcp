@@ -29,6 +29,7 @@ const PROJECT_TRUTH_AUDIT_OUTPUT = z.object({
   test_truth: z.object({
     contract_surface_covers_web_tools: z.boolean(),
     contract_surface_covers_process_tools: z.boolean(),
+    contract_surface_covers_remote_site_tools: z.boolean(),
     registry_execute_reads_runtime_source: z.boolean(),
     registry_outputschema_covers_execute: z.boolean(),
   }).strict(),
@@ -143,6 +144,7 @@ const RUNTIME_GROUPS = [
   "web tools",
   "truth tools",
   "process tools",
+  "remote site tools",
 ];
 
 async function readLocal(relativePath) {
@@ -217,6 +219,12 @@ async function runProjectTruthAudit() {
     contractSurfaceTest.includes('names.includes("run_process")') &&
     contractSurfaceTest.includes('names.includes("process_runner_status")');
 
+  const contractSurfaceCoversRemoteSiteTools =
+    contractSurfaceTest.includes('registerRemoteSiteTools(server);') &&
+    contractSurfaceTest.includes('names.includes("list_remote_site_files")') &&
+    contractSurfaceTest.includes('names.includes("remote_site_runtime_status")') &&
+    contractSurfaceTest.includes('names.includes("preview_remote_site_retention")');
+
   const registryExecuteReadsRuntimeSource =
     registryExecuteTest.includes('fs.readFileSync("core/registry_tools_safe.js", "utf8")') &&
     registryExecuteTest.includes('new URL(import.meta.url)') &&
@@ -255,6 +263,10 @@ async function runProjectTruthAudit() {
     drifts.push(drift("test_truth", "contract surface test does not fully cover active process tools"));
   }
 
+  if (!contractSurfaceCoversRemoteSiteTools) {
+    drifts.push(drift("test_truth", "contract surface test does not fully cover active remote site tools"));
+  }
+
   if (!registryExecuteReadsRuntimeSource) {
     drifts.push(drift("test_truth", "registry execute v1.1 test does not read active runtime source cleanly"));
   }
@@ -287,6 +299,7 @@ async function runProjectTruthAudit() {
     test_truth: {
       contract_surface_covers_web_tools: contractSurfaceCoversWebTools,
       contract_surface_covers_process_tools: contractSurfaceCoversProcessTools,
+      contract_surface_covers_remote_site_tools: contractSurfaceCoversRemoteSiteTools,
       registry_execute_reads_runtime_source: registryExecuteReadsRuntimeSource,
       registry_outputschema_covers_execute: registryOutputschemaCoversExecute,
     },
@@ -322,6 +335,7 @@ async function runCodeRuntimeMap() {
     { file: "core/web_tools.js", register: "registerWebTools", category: "web tools" },
     { file: "core/truth_tools.js", register: "registerTruthTools", category: "truth tools" },
     { file: "core/process_tools_safe.js", register: "registerProcessTools", category: "process tools" },
+    { file: "core/remote_site_tools.js", register: "registerRemoteSiteTools", category: "remote site tools" },
   ].filter(({ register }) => serverTools.includes(`${register}(server)`));
 
   const testRuntimeLinks = [
@@ -348,6 +362,11 @@ async function runCodeRuntimeMap() {
     {
       test_file: "tests/process_tools_safe.test.js",
       covers: ["core/process_tools_safe.js", "server_tools.js", "run_process", "process_runner_status"],
+      kind: "tool contract + handler baseline",
+    },
+    {
+      test_file: "tests/remote_site_tools.test.js",
+      covers: ["core/remote_site_tools.js", "server_tools.js", "list_remote_site_files", "remote_site_runtime_status", "preview_remote_site_retention"],
       kind: "tool contract + handler baseline",
     },
   ];
@@ -754,4 +773,6 @@ export function registerTruthTools(server) {
     async () => runToolUsageSnapshot()
   );
 }
+
+
 

@@ -3,7 +3,6 @@ import assert from "node:assert/strict";
 
 import {
   hasCloudflareAccessAssertion,
-  extractBearerToken,
   isAuthorizedRequest,
 } from "../core/auth.js";
 
@@ -15,13 +14,13 @@ function req({ method = "POST", query = {}, headers = {} } = {}) {
   };
 }
 
-test("Cloudflare Access assertion authorizes request without legacy MCP token", () => {
+test("Cloudflare Access assertion authorizes request", () => {
   assert.equal(
     hasCloudflareAccessAssertion(req({ headers: { "cf-access-jwt-assertion": "jwt-value" } })),
     true
   );
   assert.equal(
-    isAuthorizedRequest(req({ headers: { "cf-access-jwt-assertion": "jwt-value" } }), { accessSecret: null }),
+    isAuthorizedRequest(req({ headers: { "cf-access-jwt-assertion": "jwt-value" } })),
     true
   );
 });
@@ -33,28 +32,13 @@ test("empty Cloudflare Access assertion is ignored", () => {
   );
 });
 
-test("legacy bearer token extraction stays stable", () => {
+test("access auth no longer accepts legacy bearer fallback", () => {
   assert.equal(
-    extractBearerToken(req({ headers: { authorization: "Bearer legacy-secret" } })),
-    "legacy-secret"
+    isAuthorizedRequest(req({ headers: { authorization: "Bearer legacy-secret" } })),
+    false
   );
   assert.equal(
-    extractBearerToken(req({ headers: { authorization: "Token legacy-secret" } })),
-    null
-  );
-});
-
-test("legacy MCP token fallback still works for query and bearer", () => {
-  assert.equal(
-    isAuthorizedRequest(req({ query: { token: "legacy-secret" } }), { accessSecret: "legacy-secret" }),
-    true
-  );
-  assert.equal(
-    isAuthorizedRequest(req({ headers: { authorization: "Bearer legacy-secret" } }), { accessSecret: "legacy-secret" }),
-    true
-  );
-  assert.equal(
-    isAuthorizedRequest(req({}), { accessSecret: "legacy-secret" }),
+    isAuthorizedRequest(req({ query: { token: "legacy-secret" } })),
     false
   );
 });

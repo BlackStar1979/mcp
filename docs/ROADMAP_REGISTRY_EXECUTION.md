@@ -509,6 +509,61 @@ Priority order:
    - latest bounded expansion step: add `fetch_github_file` for one raw public file via `raw.githubusercontent.com` with explicit `owner/repo/ref/path`
    - expected outcome: better research throughput without outrunning control
 
+6. `CURRENT` — connector-safe split and stabilization
+   - separate ChatGPT Desktop connector-facing MCP from the full mutation-capable/runtime-operator surface
+   - do not debug Desktop approval/tool-call instability through `server_tools.js`
+   - do not mix this track with `oauth2` implementation work
+   - current confirmed outcome:
+     - additive `stc_safe.js` exists in `C:\Work\mcp`
+     - strict shape version `2025-05-strict-v1`
+     - only `search` and `fetch`
+     - no mutation-capable imports
+     - local and public health / initialize checks pass
+     - ChatGPT Desktop handshake succeeds for:
+       - `https://mcp-stc-safe.romionologic.dev/mcp`
+   - current engineering interpretation:
+     - stability is proven for the minimal strict profile
+     - it is not yet proven that Desktop formally requires exactly two tools as a protocol rule
+     - what is proven is that strict shape plus minimal surface is a reliable baseline
+
+6.1 `CLOSED` — additive connector-safe entrypoint
+   - create a dedicated runtime instead of trimming the active `server_tools.js`
+   - mimic the canary response contract from `C:\Work\mcp-tests\server.js`
+   - outcome achieved:
+     - `stc_safe.js`
+     - `core/stc_safe_runtime.js`
+     - `tests/stc_safe_contract.test.js`
+
+6.2 `CLOSED` — public hostname hardening
+   - validate practical Desktop compatibility for the public host
+   - outcome achieved:
+     - hostname with underscore failed Desktop connector creation despite correct HTTP behavior
+     - hostname with hyphens succeeded
+   - operating rule:
+     - public MCP hosts intended for ChatGPT Desktop should use hyphenated hostnames, not underscore hostnames
+
+6.3 `NEXT` — connector-safe behavior verification
+   - verify practical `search` / `fetch` behavior through ChatGPT Desktop
+   - compare results with raw protocol checks and canary expectations
+   - specifically watch for:
+     - empty-result symptoms
+     - URL normalization issues
+     - Desktop-side parsing differences between search and fetch
+   - do not change auth during this step
+
+6.4 `LATER` — optional SDK-native transport experiment
+   - only if there is a concrete reason
+   - compare current plain JSON connector-safe runtime with SDK-native stateless HTTP / JSON-response patterns
+   - stage-only unless it clearly improves behavior or maintainability
+
+6.5 `SEPARATE TRACK` — `server_tools.js --auth oauth2`
+   - keep this separate from connector-safe surface work
+   - expected design inputs:
+     - protected resource metadata
+     - clear `401 invalid_token` vs `403 insufficient_scope`
+     - resource-server style auth boundary
+   - do not bind this work to `stc_safe.js`
+
 Deferred by design:
 
 - `romioncoresim` bridge remains a later track

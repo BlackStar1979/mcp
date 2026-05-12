@@ -14,7 +14,7 @@ test("server_tools startup recovery does not import legacy code_tools.js", () =>
 
   assert.match(
     serverTools,
-    /from\s+["']\.\/core\/recovery_rollback\.js["']/,
+    /import\("\.\/core\/recovery_rollback\.js"\)/,
     "server_tools.js must import rollback recovery from core/recovery_rollback.js"
   );
 });
@@ -24,3 +24,4 @@ test("neutral recovery rollback module has no legacy or registry dispatch import
   assert.doesNotMatch(recoveryRollback, /registry\/dispatch\.js/);
   assert.doesNotMatch(recoveryRollback, /policy\/engine\.js/);
 });
+

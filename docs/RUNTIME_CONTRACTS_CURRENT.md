@@ -1,8 +1,8 @@
 # Runtime Contracts — Current
 
-Data: 2026-05-07
+Data: 2026-05-12
 Status: canonical_current
-Zakres: aktualne kontrakty i granice odpowiedzialności dla aktywnego runtime `server_tools.js`, bounded web tools (`pypi_info`, `check_npm_package`, `fetch_github_file`), bounded process runner (`run_process`, `process_runner_status`), modelu multi-root z aliasami `@alias/...` oraz bieżący status test boundary po korektach coverage i wdrożeniu `project_truth_audit`, `code_runtime_map`, `deploy_decision_guard`, `change_workflow_simulator` i `tool_usage_snapshot`
+Zakres: aktualne kontrakty i granice odpowiedzialności dla aktywnego runtime `server_tools.js`, lokalnego connector-safe profile `stc_safe.js`, trybów auth `access` i `bearer`, bounded web tools (`pypi_info`, `check_npm_package`, `fetch_github_file`), bounded process runner (`run_process`, `process_runner_status`), aktywnych `remote_site_*` tools, modelu multi-root z aliasami `@alias/...` oraz bieżący status test boundary po korektach coverage i wdrożeniu `project_truth_audit`, `code_runtime_map`, `deploy_decision_guard`, `change_workflow_simulator` i `tool_usage_snapshot`
 
 ## Cel
 
@@ -20,8 +20,12 @@ Ten dokument zastępuje używanie `MCP_TOOL_CONTRACTS.md` jako bieżącego sourc
 6. Runtime, control-plane, docs canonical i logi pozostają w `C:\Work\mcp`, niezależnie od liczby workspace rootów.
 7. Zmiany runtime MCP wdraża się przez manifest + deploy/rollback.
 8. Zmiany testów i dokumentacji repo nie są automatycznie zmianami runtime MCP.
-9. Publiczny host https://modular-mcp.romionologic.dev/mcp używa Cloudflare Access SERVICE AUTH; origin akceptuje request po obecności Cf-Access-Jwt-Assertion, a MCP_TOKEN pozostaje lokalnym fallbackiem direct-to-localhost.
-10. structuredContent jest kanałem operacyjnym; content jest warstwą prezentacyjną.
+9. `server_tools.js --auth access` używa portu `3001` i modelu Cloudflare Access / Codex; origin akceptuje request po obecności `Cf-Access-Jwt-Assertion`.
+10. `server_tools.js --auth bearer --token-file <BASE MCP>\.secrets\mcp_token.txt` używa portu `3002`, akceptuje `Authorization: Bearer ...` i zachowuje legacy `?token=...` fallback dla kompatybilności klienta. `server_tools_token.js` pozostaje tylko shimem kompatybilnościowym, nie docelowym launcherem.
+11. `server_tools.js --auth oauth2` jest zarezerwowany dla portu `3003`, ale nie jest jeszcze zaimplementowany i ma kończyć start jawnie błędem zamiast udawać działanie.
+12. structuredContent jest kanałem operacyjnym; content jest warstwą prezentacyjną.
+13. `stc_safe.js` jest osobnym connector-safe profilem na porcie `3010`, używa strict shape `2025-05-strict-v1`, wystawia tylko `search` i `fetch`, nie importuje mutation-capable modułów i używa zwykłego JSON-RPC over HTTP na `POST /mcp`.
+14. Publiczny connector-safe host dla ChatGPT Desktop powinien używać hostname bez underscore; w praktyce `mcp_stc_safe...` nie przechodził handshake w Desktop app mimo poprawnych odpowiedzi HTTP, a `mcp-stc-safe...` działa poprawnie.
 
 
 ## Aktywny tool surface `server_tools.js`
@@ -100,6 +104,11 @@ Adresowanie ścieżek:
 - `run_process`
 - `process_runner_status`
 
+### Connector-safe profile `stc_safe.js`
+
+- `search`
+- `fetch`
+
 ## Critical boundaries
 
 ### Registry boundary
@@ -129,6 +138,30 @@ Adresowanie ścieżek:
 - startup recovery is decoupled from legacy `core/code_tools.js`
 - rollback recovery uses `core/recovery_rollback.js`
 
+### Connector-safe boundary
+
+- `stc_safe.js` does not register or import:
+  - process tools
+  - filesystem mutation tools
+  - registry execute surface
+  - remote site tools
+- connector-safe payloads use:
+  - exactly one `content` item
+  - `content[0].type === "text"`
+  - valid JSON in `content[0].text`
+- search results expose only:
+  - `id`
+  - `title`
+  - `url`
+- fetch payload exposes only:
+  - `id`
+  - `title`
+  - `text`
+  - `url`
+  - `metadata`
+- `strict-v1` today is intentionally limited to `search` and `fetch`, but this is an engineering isolation choice, not a proven protocol rule that ChatGPT Desktop requires exactly two tools in all cases
+- `stc_safe.js` currently behaves as a stateless connector-safe profile; do not plan server-to-client-dependent features there without revisiting the transport model
+
 ## Test boundary
 
 Current tests are useful and now closer to active runtime surface.
@@ -145,8 +178,8 @@ Confirmed current coverage:
 3. `tests/registry_outputschema_runtime_guard.test.js` covers the active registry rollout set including:
    - `tool_registry_execute`
 4. Latest repo validation:
-   - `npm test` PASS `105/105`
-5. Live MCP verification confirms:
+   - `npm test` PASS `170/170`
+6. Live MCP verification confirms:
    - `project_truth_audit` is exposed in active runtime
    - `project_truth_audit` returns `status: ok` with `drifts: []`
    - `code_runtime_map` is exposed in active runtime
@@ -159,6 +192,11 @@ Confirmed current coverage:
    - `tool_usage_snapshot()` returns `status: ok`
    - `process_runner_status` is exposed in active runtime and returns `status: ok` with `inherits_full_parent_env: false`
    - `run_process` is exposed in active runtime and returns `status: ok` for `command=node`, `args=[--version]`, `cwd=mcp`
+   - both `3001` (`--auth access`) and `3002` (`--auth bearer --token-file ...`) return the same MCP protocol version `2025-03-26`, the same `text/event-stream` transport, the same tool count (`55` during audit), and non-empty results for `project_truth_audit` and `search_index`
+   - `stc_safe.js --self-test` returns `self-test ok (2025-05-strict-v1)`
+   - `tests/stc_safe_contract.test.js` verifies strict connector-safe shape, version exposure, and absence of mutation-capable tools
+   - publiczny `https://mcp-stc-safe.romionologic.dev/mcp` przechodzi `initialize` z `200`
+   - ChatGPT Desktop potwierdził poprawny handshake i widoczność `search` / `fetch` dla `https://mcp-stc-safe.romionologic.dev/mcp`
    - publiczny `POST https://modular-mcp.romionologic.dev/mcp` za Cloudflare Access `SERVICE AUTH` przechodzi `initialize` z `200` przy poprawnym `Accept: application/json, text/event-stream`
    - `pypi_info` is exposed in active runtime
    - `pypi_info("zod")` returns `status: ok`
@@ -201,6 +239,33 @@ Therefore:
 3. Tests for config and path policy must validate semantics, not assume Windows-only absolute paths.
 4. Observability helpers such as `tool_usage_snapshot` must tolerate missing local artifacts like `.mcp_perf.log` and degrade to explicit empty snapshots instead of failing CI.
 5. A green local `npm test` after root-model changes is necessary but not sufficient; portability assumptions must be reviewed explicitly when code touches paths, logs, or host defaults.
+
+### Desktop connector learnings
+
+1. A public MCP server may answer correctly over HTTP and still fail Desktop connector creation for host-name-level reasons.
+2. For connector-safe diagnostics, compare:
+   - raw `GET /healthz`
+   - raw `POST /mcp initialize`
+   - Desktop connector creation
+   rather than assuming a Desktop failure means the MCP server is malformed.
+3. Minimal connector-safe surface is currently the most reliable Desktop diagnostic baseline:
+   - `search`
+   - `fetch`
+4. Do not infer from current evidence that Desktop formally requires exactly two tools; what is confirmed is that strict shape plus minimal surface is stable.
+
+### SDK-derived auth and transport learnings
+
+1. Both TypeScript SDK and Python SDK explicitly support stateless HTTP server patterns for simple remote MCP servers.
+2. Python SDK examples and tests confirm that stateless mode does not support server-to-client request flows such as:
+   - root listing
+   - sampling
+   - elicitation
+3. Future `oauth2` work should expect a separate protected-resource/auth layer, not an ad-hoc token check mixed into tool handlers.
+4. Protected resource metadata should be treated as a first-class requirement candidate for future `oauth2`, especially for `/mcp` path-based resources.
+5. For future bearer/OAuth modes, model error handling should distinguish:
+   - `401 invalid_token`
+   - `403 insufficient_scope`
+   rather than collapsing all auth failures into one generic response.
 ## Deployment boundary
 
 Correct production path for runtime MCP changes:
@@ -220,6 +285,7 @@ Repo-only docs changes do not require runtime deploy, restart, or reconnect.
 Test/supporting repo changes require staging validation and repo validation, but do not require runtime deploy unless they modify active runtime files.
 
 Direct copy into active runtime code is forbidden for runtime MCP changes.
+
 
 
 

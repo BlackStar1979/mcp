@@ -1,7 +1,12 @@
+import fs from "node:fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
-export const PORT = 3001;
+export const AUTH_MODE_PORTS = Object.freeze({
+  access: 3001,
+  bearer: 3002,
+  oauth2: 3003,
+});
 export const PRIMARY_WORK_ROOT_ALIAS = "work";
 export const WORK_ROOTS_ENV_VAR = "MCP_EXTRA_ROOTS";
 
@@ -31,6 +36,14 @@ function hostResolveAbsolute(value) {
     return path.win32.normalize(raw);
   }
   return path.resolve(raw);
+}
+
+function normalizeServerAuthMode(value) {
+  const mode = String(value || "access").trim().toLowerCase();
+  if (!AUTH_MODE_PORTS[mode]) {
+    throw new Error(`Unsupported MCP server auth mode: ${value}`);
+  }
+  return mode;
 }
 
 function defaultHostWorkRoot() {
@@ -124,8 +137,33 @@ export function buildWorkRoots({
 
 export const WORK_ROOTS = buildWorkRoots();
 export const BASE_DIR = WORK_ROOTS.get(PRIMARY_WORK_ROOT_ALIAS);
-export const ACCESS_SECRET = process.env.MCP_TOKEN;
+export const SERVER_AUTH_MODE = normalizeServerAuthMode(process.env.MCP_SERVER_AUTH_MODE || "access");
+export const PORT = AUTH_MODE_PORTS[SERVER_AUTH_MODE];
 export const JSON_BODY_LIMIT = process.env.MCP_JSON_BODY_LIMIT || "1mb";
+
+export const BEARER_TOKEN_FILE = process.env.MCP_BEARER_TOKEN_FILE
+  ? hostResolveAbsolute(process.env.MCP_BEARER_TOKEN_FILE)
+  : null;
+
+export function loadBearerAccessSecret({
+  tokenFile = BEARER_TOKEN_FILE,
+  inlineToken = process.env.MCP_BEARER_TOKEN || process.env.MCP_TOKEN || "",
+} = {}) {
+  if (tokenFile) {
+    const text = fs.readFileSync(tokenFile, "utf8").trim();
+    if (!text) {
+      throw new Error(`Bearer token file is empty: ${tokenFile}`);
+    }
+    return text;
+  }
+
+  const token = String(inlineToken || "").trim();
+  return token || null;
+}
+
+export const ACCESS_SECRET = SERVER_AUTH_MODE === "bearer"
+  ? loadBearerAccessSecret()
+  : null;
 
 export function listWorkspaceRoots() {
   return [...WORK_ROOTS.entries()].map(([alias, root]) => ({
@@ -190,6 +228,7 @@ export const SKIPPED_SCAN_DIRS = new Set([
   ".mcp_sandbox",
   ".mcp_tool_memory",
   ".mcp_warzone",
+  ".secrets",
 ]);
 
 export const SKIPPED_SCAN_EXTENSIONS = new Set([
@@ -214,8 +253,15 @@ export const BLOCKED_PATH_PREFIXES = new Set([
   "mcp/core",
   "mcp/node_modules",
   "mcp/.git",
+  "mcp/.secrets",
   "mcp/.mcp_trash",
   "mcp/.mcp_backups",
   "mcp/.mcp_index",
 ]);
+
+export const READ_BLOCKED_PATH_PREFIXES = new Set([
+  "mcp/.secrets",
+]);
+
+
 
