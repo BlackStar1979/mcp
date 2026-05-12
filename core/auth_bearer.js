@@ -1,4 +1,5 @@
 import { ACCESS_SECRET } from "./config.js";
+import { audit } from "./audit.js";
 
 export function extractBearerToken(req) {
   const header = req?.headers?.authorization || req?.headers?.["authorization"] || "";
@@ -27,6 +28,11 @@ export function requireAuth(req, res, next) {
   }
 
   if (!ACCESS_SECRET) {
+    void audit("auth_bearer_error", {
+      method: req.method,
+      url: req.originalUrl || req.url,
+      reason: "missing_secret",
+    }).catch(() => {});
     res.status(500).send("Missing secret");
     return;
   }
@@ -35,6 +41,11 @@ export function requireAuth(req, res, next) {
     return next();
   }
 
+  void audit("auth_bearer_denied", {
+    method: req.method,
+    url: req.originalUrl || req.url,
+    reason: "invalid_bearer_or_query_token",
+  }).catch(() => {});
   res.status(401).send("Unauthorized");
 }
 

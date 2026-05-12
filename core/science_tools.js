@@ -6,6 +6,7 @@ import { fileURLToPath } from "url";
 
 import { registerSafeTool, textOk } from "./responses.js";
 import { safePath, toRel } from "./paths.js";
+import { audit } from "./audit.js";
 import { withHeavySlot } from "./heavy_gate.js";
 import { logPerf } from "./perf.js";
 
@@ -204,6 +205,14 @@ export function registerScienceTools(server) {
     state.by_kind = finalizeGroups(state.by_kind);
     state.by_directory = finalizeGroups(state.by_directory);
 
+    await audit("inventory_tree", {
+      path: state.path,
+      files: state.files,
+      directories: state.directories,
+      total_bytes: state.total_bytes,
+      truncated: state.truncated,
+    });
+
     return state;
   });
 
@@ -223,6 +232,12 @@ export function registerScienceTools(server) {
       rel_path: toRel(full),
       max_header_cards,
       max_columns,
+    });
+    await audit("fits_info", {
+      path: toRel(full),
+      max_header_cards,
+      max_columns,
+      status: data?.status || "ok",
     });
     return textOk(JSON.stringify(data, null, 2), data);
   });
@@ -246,6 +261,13 @@ export function registerScienceTools(server) {
       include_attrs,
       max_attrs,
     });
+    await audit("hdf5_info", {
+      path: toRel(full),
+      max_items,
+      include_attrs,
+      max_attrs,
+      status: data?.status || "ok",
+    });
     return textOk(JSON.stringify(data, null, 2), data);
   });
 
@@ -265,6 +287,12 @@ export function registerScienceTools(server) {
       rel_path: toRel(full),
       max_lines,
       sample_rows,
+    });
+    await audit("table_profile", {
+      path: toRel(full),
+      max_lines,
+      sample_rows,
+      status: data?.status || "ok",
     });
     return textOk(JSON.stringify(data, null, 2), data);
   });

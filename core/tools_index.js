@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { registerSafeTool } from "./responses.js";
 import { loadIndex, buildIndex } from "./indexer.js";
+import { audit } from "./audit.js";
 
 const READ_ONLY = {
   readOnlyHint: true,
@@ -117,6 +118,11 @@ export function registerIndexTools(server) {
   }, async () => {
     try {
       const i = await loadIndex();
+      await audit("index_status", {
+        status: "ok",
+        count: i.docs.length,
+        version: i.version || 1,
+      });
       return {
         status: "ok",
         count: i.docs.length,
@@ -125,6 +131,7 @@ export function registerIndexTools(server) {
         version: i.version || 1,
       };
     } catch {
+      await audit("index_status", { status: "missing" });
       return { status: "missing" };
     }
   });
@@ -136,6 +143,11 @@ export function registerIndexTools(server) {
     annotations: STATE_CHANGING,
   }, async () => {
     const i = await buildIndex();
+    await audit("build_index", {
+      status: "built",
+      count: i.docs.length,
+      created_at: i.created_at,
+    });
     return { status: "built", count: i.docs.length, created_at: i.created_at };
   });
 
@@ -150,6 +162,7 @@ export function registerIndexTools(server) {
   }, async ({ query, limit }) => {
     const i = await loadIndex();
     const results = rankDocs(i, query, { limit });
+    await audit("search_index", { query, limit, count: results.length });
     return { query, results };
   });
 
@@ -169,6 +182,7 @@ export function registerIndexTools(server) {
       score: r.score,
       context: r.snippet,
     }));
+    await audit("search_index_context", { query, limit, count: results.length });
     return { query, results };
   });
 
@@ -192,6 +206,12 @@ export function registerIndexTools(server) {
         score: r.score,
         text: String(d?.sample || "").slice(0, max_chars_per_file),
       };
+    });
+    await audit("collect_context", {
+      query,
+      limit,
+      count: files.length,
+      max_chars_per_file,
     });
     return { query, files };
   });
@@ -218,6 +238,13 @@ export function registerIndexTools(server) {
       seen.add(item.path);
       files.push(item);
     }
+
+    await audit("collect_romionsim_context", {
+      query,
+      limit,
+      include_pinned,
+      count: files.length,
+    });
 
     return {
       query,

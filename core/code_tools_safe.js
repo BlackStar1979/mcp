@@ -4,6 +4,7 @@ import path from "path";
 
 import { registerSafeTool } from "./responses.js";
 import { safePath, toRel } from "./paths.js";
+import { audit } from "./audit.js";
 
 const READ_ONLY = {
   readOnlyHint: true,
@@ -320,6 +321,12 @@ export function registerCodeTools(server) {
     const rel = toRel(full);
     const text = await fs.readFile(full, "utf8");
     const { language, symbols } = extractSymbols(rel, text);
+    await audit("code_symbols", {
+      path: rel,
+      language,
+      bytes: stat.size,
+      symbol_count: symbols.length,
+    });
     return { path: rel, language, bytes: stat.size, total_lines: linesOf(text).length, symbol_count: symbols.length, truncated: symbols.length >= MAX_SYMBOLS, symbols };
   });
 
@@ -328,7 +335,20 @@ export function registerCodeTools(server) {
     description: "Build bounded import dependency graph for JS/TS/Python files without executing user code.",
     inputSchema: z.object({ path: z.string(), recursive: z.boolean().default(true), max_files: z.number().int().min(1).max(5000).default(500) }),
     annotations: READ_ONLY,
-  }, async ({ path: requestedPath, recursive, max_files }) => buildDependencyGraph(requestedPath, recursive, max_files));
+  }, async ({ path: requestedPath, recursive, max_files }) => {
+    const graph = await buildDependencyGraph(requestedPath, recursive, max_files);
+    await audit("code_dependencies", {
+      path: graph.path,
+      recursive: graph.recursive,
+      max_files: graph.max_files,
+      nodes: graph.nodes_count,
+      edges: graph.edges_count,
+      unresolved: graph.unresolved_count,
+      truncated: graph.truncated,
+    });
+    return graph;
+  });
+  
 
   registerSafeTool(server, "code_audit", {
     title: "Audit code dependency graph",
@@ -337,6 +357,14 @@ export function registerCodeTools(server) {
     annotations: READ_ONLY,
   }, async ({ path: requestedPath, recursive, max_files, top_n }) => {
     const graph = await buildDependencyGraph(requestedPath, recursive, max_files);
+    await audit("code_audit", {
+      path: graph.path,
+      recursive: graph.recursive,
+      max_files: graph.max_files,
+      nodes: graph.nodes_count,
+      edges: graph.edges_count,
+      unresolved: graph.unresolved_count,
+    });
     return { path: graph.path, recursive: graph.recursive, max_files: graph.max_files, ...auditGraph(graph, top_n) };
   });
 
@@ -347,6 +375,15 @@ export function registerCodeTools(server) {
     annotations: READ_ONLY,
   }, async ({ path: requestedPath, target, recursive, max_files, max_depth, direction }) => {
     const graph = await buildDependencyGraph(requestedPath, recursive, max_files);
-    return { scope: graph.path, direction, max_depth, graph: { nodes: graph.nodes_count, edges: graph.edges_count, truncated: graph.truncated }, ...impactGraph(graph, target, direction, max_depth) };
+    const result = { scope: graph.path, direction, max_depth, graph: { nodes: graph.nodes_count, edges: graph.edges_count, truncated: graph.truncated }, ...impactGraph(graph, target, direction, max_depth) };
+    await audit("code_impact", {
+      scope: graph.path,
+      target,
+      direction,
+      max_depth,
+      affected_count: result.affected_count,
+      dependencies_count: result.dependencies_count,
+    });
+    return result;
   });
 }
