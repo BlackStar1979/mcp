@@ -578,9 +578,9 @@ Priority order:
    - goal:
      - eliminate remaining missing `outputSchema` coverage in active MCP runtimes
      - reduce connector warning surface without mixing this work with auth or transport changes
-   - confirmed current gap snapshot after full `7.3`:
+   - confirmed current gap snapshot after full `7.4`:
      - active `server_tools.js` surface: `55` tools
-     - missing `outputSchema`: `7`
+     - missing `outputSchema`: `0`
    - `CLOSED` 7.1 index + science
      - outcome achieved:
        - `outputSchema` added to:
@@ -639,17 +639,27 @@ Priority order:
          - `npm test` PASS `180/180`
          - `node --test C:\Work\mcp\tests\server_bootstrap_runtime.test.js` PASS
          - `node --check C:\Work\mcp\server_tools.js` PASS
-   - confirmed missing groups/tools:
-     - remote site:
-       - `list_remote_site_files`
-       - `read_remote_site_file`
-       - `write_remote_site_file`
-       - `edit_remote_site_file`
-       - `move_remote_site_file`
-       - `delete_remote_site_file`
-       - `restore_remote_site_file`
-   - rollout order:
-     - `NEXT` 7.4 remote site tools
+   - `CLOSED` 7.4 remote site tools
+     - outcome achieved:
+       - `outputSchema` added to:
+         - `list_remote_site_files`
+         - `read_remote_site_file`
+         - `write_remote_site_file`
+         - `edit_remote_site_file`
+         - `move_remote_site_file`
+         - `delete_remote_site_file`
+         - `restore_remote_site_file`
+       - contract guard expanded in:
+         - `tests/mcp_contract_surface.test.js`
+       - operational note:
+         - live remote-site use still requires explicit `vps_config_ref`
+         - current operator-known config ref is:
+           - `www/remote-site-tools-config.json`
+         - there is still no canonical default config-path architecture for VPS access config
+       - validation:
+         - `npm test` PASS `181/181`
+         - `node --test C:\Work\mcp\tests\server_bootstrap_runtime.test.js` PASS
+         - `node --check C:\Work\mcp\server_tools.js` PASS
    - rules:
      - do not mix with auth changes
      - do not mix with transport changes

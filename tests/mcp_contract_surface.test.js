@@ -162,6 +162,25 @@ test("contract surface includes remote site tools", () => {
   assert.ok(names.includes("preview_remote_site_retention"), "contract surface must include preview_remote_site_retention");
 });
 
+test("remote site descriptors expose outputSchema", () => {
+  const byName = new Map(collectRegisteredTools().map((tool) => [tool.name, tool]));
+
+  for (const name of [
+    "list_remote_site_files",
+    "read_remote_site_file",
+    "write_remote_site_file",
+    "edit_remote_site_file",
+    "move_remote_site_file",
+    "delete_remote_site_file",
+    "restore_remote_site_file",
+    "remote_site_runtime_status",
+    "preview_remote_site_retention",
+  ]) {
+    assert.ok(byName.has(name), `expected tool to be registered: ${name}`);
+    assert.equal(typeof byName.get(name).config.outputSchema, "object", `${name}: missing outputSchema`);
+  }
+});
+
 test("read-only descriptor semantics are internally consistent", () => {
   const tools = collectRegisteredTools();
 
@@ -172,15 +191,14 @@ test("read-only descriptor semantics are internally consistent", () => {
   }
 });
 
-test("outputSchema coverage is tracked without blocking current partial conformance", () => {
+test("all active tools now expose outputSchema", () => {
   const tools = collectRegisteredTools();
   const withoutOutputSchema = tools
     .filter(({ config }) => !config.outputSchema)
     .map(({ name }) => name)
     .sort();
 
-  assert.ok(withoutOutputSchema.length > 0, "current audit expects partial outputSchema coverage; update this test when full coverage lands");
-  assert.ok(withoutOutputSchema.length < tools.length, "at least some tools should expose outputSchema");
+  assert.deepEqual(withoutOutputSchema, [], "all active tools should now expose outputSchema");
   assert.equal(withoutOutputSchema.includes("index_status"), false, "index_status should now expose outputSchema");
   assert.equal(withoutOutputSchema.includes("build_index"), false, "build_index should now expose outputSchema");
   assert.equal(withoutOutputSchema.includes("search_index"), false, "search_index should now expose outputSchema");
@@ -204,6 +222,13 @@ test("outputSchema coverage is tracked without blocking current partial conforma
   assert.equal(withoutOutputSchema.includes("delete_path"), false, "delete_path should now expose outputSchema");
   assert.equal(withoutOutputSchema.includes("restore_path"), false, "restore_path should now expose outputSchema");
   assert.equal(withoutOutputSchema.includes("edit_file_patch"), false, "edit_file_patch should now expose outputSchema");
+  assert.equal(withoutOutputSchema.includes("list_remote_site_files"), false, "list_remote_site_files should now expose outputSchema");
+  assert.equal(withoutOutputSchema.includes("read_remote_site_file"), false, "read_remote_site_file should now expose outputSchema");
+  assert.equal(withoutOutputSchema.includes("write_remote_site_file"), false, "write_remote_site_file should now expose outputSchema");
+  assert.equal(withoutOutputSchema.includes("edit_remote_site_file"), false, "edit_remote_site_file should now expose outputSchema");
+  assert.equal(withoutOutputSchema.includes("move_remote_site_file"), false, "move_remote_site_file should now expose outputSchema");
+  assert.equal(withoutOutputSchema.includes("delete_remote_site_file"), false, "delete_remote_site_file should now expose outputSchema");
+  assert.equal(withoutOutputSchema.includes("restore_remote_site_file"), false, "restore_remote_site_file should now expose outputSchema");
 });
 
 

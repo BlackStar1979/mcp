@@ -213,7 +213,7 @@ Confirmed current coverage:
 3. `tests/registry_outputschema_runtime_guard.test.js` covers the active registry rollout set including:
    - `tool_registry_execute`
 4. Latest repo validation:
-   - `npm test` PASS `180/180`
+   - `npm test` PASS `181/181`
 6. Live MCP verification confirms:
    - `project_truth_audit` is exposed in active runtime
    - `project_truth_audit` returns `status: ok` with `drifts: []`
@@ -308,10 +308,10 @@ Therefore:
 
 ### OutputSchema rollout status
 
-Confirmed after the first two staged rollout slices and the full filesystem rollout:
+Confirmed after the first two staged rollout slices, the full filesystem rollout, and the remote site rollout:
 
 - active `server_tools.js` surface still contains `55` tools
-- missing `outputSchema` count is now `7`
+- missing `outputSchema` count is now `0`
 - the following groups now expose `outputSchema`:
   - all `index` tools
   - all `science` tools
@@ -327,10 +327,14 @@ Confirmed after the first two staged rollout slices and the full filesystem roll
     - `delete_path`
     - `restore_path`
     - `edit_file_patch`
-
-Current remaining gap clusters:
-
-- remote site mutation/read tools
+  - remote site read/mutation tools:
+    - `list_remote_site_files`
+    - `read_remote_site_file`
+    - `write_remote_site_file`
+    - `edit_remote_site_file`
+    - `move_remote_site_file`
+    - `delete_remote_site_file`
+    - `restore_remote_site_file`
 
 Rule for next slices:
 
@@ -338,6 +342,16 @@ Rule for next slices:
 - update contract tests in the same slice
 - rerun full `npm test`
 - sync canonical state docs if coverage assumptions change
+
+### Remote site config reference rule
+
+Confirmed current runtime rule:
+
+- `remote_site_*` tools require explicit `vps_config_ref`
+- there is not yet a canonical default config path architecture for VPS access config
+- current operator-known working config ref is:
+  - `www/remote-site-tools-config.json`
+- `C:\Work\www\remote-site-tools-config.json` should be treated as an explicit operational dependency for live remote-site testing, not a path to be inferred implicitly
 
 ### SDK-derived auth and transport learnings
 

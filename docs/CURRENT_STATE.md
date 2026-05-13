@@ -193,6 +193,14 @@ Potwierdzone aktywne narzędzia warstwy remote site tools:
 - `remote_site_runtime_status`
 - `preview_remote_site_retention`
 
+Aktualna praktyka operacyjna dla auth do VPS:
+
+- narzędzia `remote_site_*` nie mają jeszcze ustalonej architektury domyślnej lokalizacji configu
+- live użycie i testy wymagają jawnego `vps_config_ref`
+- aktualnie potwierdzony działający ref operatorski to:
+  - `www/remote-site-tools-config.json`
+- plik `C:\Work\www\remote-site-tools-config.json` jest operacyjnym kluczem wejścia na VPS dla tej rodziny tooli i nie powinien być "odkrywany" przez zgadywanie ścieżki
+
 ## 2a. Logging coverage
 
 Potwierdzone po przeglądzie aktywnego runtime i touched modules:
@@ -560,10 +568,10 @@ Wniosek procesowy:
 
 ## 6.12. Postęp rolloutu `outputSchema`
 
-Potwierdzone po etapach `7.1`, `7.2` i pełnym `7.3`:
+Potwierdzone po etapach `7.1`, `7.2`, pełnym `7.3` i `7.4`:
 
 - aktywny surface `server_tools.js` nadal ma `55` tooli
-- brakujące `outputSchema` spadły z `30` do `7`
+- brakujące `outputSchema` spadły z `30` do `0`
 
 Domknięty slice:
 
@@ -586,7 +594,7 @@ Guardrail:
 
 Walidacja:
 
-- `npm test` — PASS `178/178`
+- `npm test` — PASS `181/181`
 
 Domknięty dodatkowy slice:
 
@@ -595,6 +603,17 @@ Domknięty dodatkowy slice:
   - `code_dependencies`
   - `code_audit`
   - `code_impact`
+
+Domknięty końcowy slice:
+
+- `remote_site`:
+  - `list_remote_site_files`
+  - `read_remote_site_file`
+  - `write_remote_site_file`
+  - `edit_remote_site_file`
+  - `move_remote_site_file`
+  - `delete_remote_site_file`
+  - `restore_remote_site_file`
 
 Dodatkowa walidacja mid-test:
 

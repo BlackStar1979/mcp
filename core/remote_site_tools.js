@@ -77,6 +77,82 @@ const REMOTE_CONFIG = z.object({
   allowedExtensions: z.array(z.string()).optional(),
 });
 
+const REMOTE_SITE_FILE_ENTRY_OUTPUT = z.object({
+  type: z.string(),
+  name: z.string(),
+  size: z.number().int().nonnegative().optional(),
+  modifyTime: z.number().int().nonnegative().optional(),
+  accessTime: z.number().int().nonnegative().optional(),
+  rights: z.object({
+    user: z.string().optional(),
+    group: z.string().optional(),
+    other: z.string().optional(),
+  }).partial().optional(),
+  owner: z.number().int().nonnegative().optional(),
+  group: z.number().int().nonnegative().optional(),
+  longname: z.string().optional(),
+}).passthrough();
+
+const LIST_REMOTE_SITE_FILES_OUTPUT = z.object({
+  status: z.literal("ok"),
+  remote_path: z.string(),
+  count: z.number().int().nonnegative(),
+  entries: z.array(REMOTE_SITE_FILE_ENTRY_OUTPUT),
+}).strict();
+
+const READ_REMOTE_SITE_FILE_OUTPUT = z.object({
+  status: z.literal("ok"),
+  remote_path: z.string(),
+  bytes: z.number().int().nonnegative(),
+  text: z.string(),
+}).strict();
+
+const WRITE_REMOTE_SITE_FILE_OUTPUT = z.object({
+  status: z.literal("written"),
+  remote_path: z.string(),
+  bytes: z.number().int().nonnegative(),
+  diff_created: z.boolean(),
+  metadata_path: z.string(),
+  operation_id: z.string(),
+  correlation_id: z.string(),
+}).strict();
+
+const EDIT_REMOTE_SITE_FILE_OUTPUT = z.object({
+  status: z.literal("edited"),
+  remote_path: z.string(),
+  bytes: z.number().int().nonnegative(),
+  diff: z.string(),
+  metadata_path: z.string(),
+  operation_id: z.string(),
+  correlation_id: z.string(),
+}).strict();
+
+const DELETE_REMOTE_SITE_FILE_OUTPUT = z.object({
+  status: z.literal("moved_to_trash"),
+  remote_path: z.string(),
+  trash_path: z.string(),
+  metadata_path: z.string(),
+  operation_id: z.string(),
+  correlation_id: z.string(),
+}).strict();
+
+const MOVE_REMOTE_SITE_FILE_OUTPUT = z.object({
+  status: z.literal("moved"),
+  source_path: z.string(),
+  target_path: z.string(),
+}).strict();
+
+const RESTORE_REMOTE_SITE_FILE_OUTPUT = z.object({
+  status: z.literal("restored"),
+  remote_path: z.string(),
+  restored_from: z.string(),
+  restored_to: z.string(),
+  source_operation_id: z.string(),
+  restore_operation_id: z.string(),
+  correlation_id: z.string(),
+  restore_metadata_path: z.string(),
+}).strict();
+
 function timestamp() {
   return new Date().toISOString().replace(/[:.]/g, "-");
 }
@@ -369,6 +445,7 @@ export function registerRemoteSiteTools(server) {
     title: "List remote site files",
     description: "List files under the bounded ROMION public site webroot over SFTP. Requires a per-call VPS config reference.",
     inputSchema: toolBaseInput({ remote_path: z.string().default(".") }),
+    outputSchema: LIST_REMOTE_SITE_FILES_OUTPUT,
     annotations: READ_ONLY,
   }, async ({ vps_config_ref, remote_path }) => {
     return withSftp(vps_config_ref, async (client, config) => {
@@ -385,6 +462,7 @@ export function registerRemoteSiteTools(server) {
     title: "Read remote site file",
     description: "Read a bounded UTF-8 file under the ROMION public site webroot over SFTP.",
     inputSchema: toolBaseInput({ ...REL_PATH_INPUT.shape }),
+    outputSchema: READ_REMOTE_SITE_FILE_OUTPUT,
     annotations: READ_ONLY,
   }, async ({ vps_config_ref, remote_path }) => {
     return withSftp(vps_config_ref, async (client, config) => {
@@ -402,6 +480,7 @@ export function registerRemoteSiteTools(server) {
     title: "Write remote site file",
     description: "Write a bounded UTF-8 file under the ROMION public site webroot. Existing file diffs are stored outside webroot.",
     inputSchema: toolBaseInput({ remote_path: z.string(), content: z.string() }),
+    outputSchema: WRITE_REMOTE_SITE_FILE_OUTPUT,
     annotations: STATE_CHANGING,
   }, async ({ vps_config_ref, remote_path, content }) => {
     return withSftp(vps_config_ref, async (client, config) => {
@@ -470,6 +549,7 @@ export function registerRemoteSiteTools(server) {
     title: "Edit remote site file",
     description: "Replace file content after writing a diff artifact outside webroot.",
     inputSchema: toolBaseInput({ remote_path: z.string(), content: z.string() }),
+    outputSchema: EDIT_REMOTE_SITE_FILE_OUTPUT,
     annotations: STATE_CHANGING,
   }, async ({ vps_config_ref, remote_path, content }) => {
     return withSftp(vps_config_ref, async (client, config) => {
@@ -533,6 +613,7 @@ export function registerRemoteSiteTools(server) {
     title: "Soft-delete remote site file",
     description: "Move a remote site file to private trash outside webroot. No hard delete.",
     inputSchema: toolBaseInput({ ...REL_PATH_INPUT.shape }),
+    outputSchema: DELETE_REMOTE_SITE_FILE_OUTPUT,
     annotations: STATE_CHANGING,
   }, async ({ vps_config_ref, remote_path }) => {
     return withSftp(vps_config_ref, async (client, config) => {
@@ -588,6 +669,7 @@ export function registerRemoteSiteTools(server) {
     title: "Move remote site file",
     description: "Move a remote site file inside the bounded public webroot. Overwrite is forbidden in v1.",
     inputSchema: toolBaseInput({ source_path: z.string(), target_path: z.string() }),
+    outputSchema: MOVE_REMOTE_SITE_FILE_OUTPUT,
     annotations: STATE_CHANGING,
   }, async ({ vps_config_ref, source_path, target_path }) => {
     return withSftp(vps_config_ref, async (client, config) => {
@@ -615,6 +697,7 @@ export function registerRemoteSiteTools(server) {
     title: "Restore remote site file",
     description: "Restore a file from private trash using a metadata operation id. Restore v1 supports delete metadata only and forbids overwrite.",
     inputSchema: toolBaseInput({ operation_id: z.string().min(1) }),
+    outputSchema: RESTORE_REMOTE_SITE_FILE_OUTPUT,
     annotations: STATE_CHANGING,
   }, async ({ vps_config_ref, operation_id }) => {
     return withSftp(vps_config_ref, async (client, config) => {
