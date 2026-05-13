@@ -137,6 +137,23 @@ test("filesystem read/info descriptors expose outputSchema", () => {
   }
 });
 
+test("filesystem mutation descriptors expose outputSchema", () => {
+  const byName = new Map(collectRegisteredTools().map((tool) => [tool.name, tool]));
+
+  for (const name of [
+    "write_file",
+    "append_file",
+    "copy_path",
+    "move_path",
+    "delete_path",
+    "restore_path",
+    "edit_file_patch",
+  ]) {
+    assert.ok(byName.has(name), `expected tool to be registered: ${name}`);
+    assert.equal(typeof byName.get(name).config.outputSchema, "object", `${name}: missing outputSchema`);
+  }
+});
+
 test("contract surface includes remote site tools", () => {
   const names = collectRegisteredTools().map(({ name }) => name).sort();
 
@@ -180,6 +197,13 @@ test("outputSchema coverage is tracked without blocking current partial conforma
   assert.equal(withoutOutputSchema.includes("code_impact"), false, "code_impact should now expose outputSchema");
   assert.equal(withoutOutputSchema.includes("get_info"), false, "get_info should now expose outputSchema");
   assert.equal(withoutOutputSchema.includes("list_directory"), false, "list_directory should now expose outputSchema");
+  assert.equal(withoutOutputSchema.includes("write_file"), false, "write_file should now expose outputSchema");
+  assert.equal(withoutOutputSchema.includes("append_file"), false, "append_file should now expose outputSchema");
+  assert.equal(withoutOutputSchema.includes("copy_path"), false, "copy_path should now expose outputSchema");
+  assert.equal(withoutOutputSchema.includes("move_path"), false, "move_path should now expose outputSchema");
+  assert.equal(withoutOutputSchema.includes("delete_path"), false, "delete_path should now expose outputSchema");
+  assert.equal(withoutOutputSchema.includes("restore_path"), false, "restore_path should now expose outputSchema");
+  assert.equal(withoutOutputSchema.includes("edit_file_patch"), false, "edit_file_patch should now expose outputSchema");
 });
 
 

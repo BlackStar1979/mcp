@@ -213,7 +213,7 @@ Confirmed current coverage:
 3. `tests/registry_outputschema_runtime_guard.test.js` covers the active registry rollout set including:
    - `tool_registry_execute`
 4. Latest repo validation:
-   - `npm test` PASS `179/179`
+   - `npm test` PASS `180/180`
 6. Live MCP verification confirms:
    - `project_truth_audit` is exposed in active runtime
    - `project_truth_audit` returns `status: ok` with `drifts: []`
@@ -308,10 +308,10 @@ Therefore:
 
 ### OutputSchema rollout status
 
-Confirmed after the first two staged rollout slices and the first filesystem read/info subslice:
+Confirmed after the first two staged rollout slices and the full filesystem rollout:
 
 - active `server_tools.js` surface still contains `55` tools
-- missing `outputSchema` count is now `14`
+- missing `outputSchema` count is now `7`
 - the following groups now expose `outputSchema`:
   - all `index` tools
   - all `science` tools
@@ -319,10 +319,17 @@ Confirmed after the first two staged rollout slices and the first filesystem rea
   - filesystem read/info:
     - `get_info`
     - `list_directory`
+  - filesystem mutation:
+    - `write_file`
+    - `append_file`
+    - `copy_path`
+    - `move_path`
+    - `delete_path`
+    - `restore_path`
+    - `edit_file_patch`
 
 Current remaining gap clusters:
 
-- filesystem info + mutation tools
 - remote site mutation/read tools
 
 Rule for next slices:

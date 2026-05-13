@@ -578,9 +578,9 @@ Priority order:
    - goal:
      - eliminate remaining missing `outputSchema` coverage in active MCP runtimes
      - reduce connector warning surface without mixing this work with auth or transport changes
-   - confirmed current gap snapshot after early `7.3`:
+   - confirmed current gap snapshot after full `7.3`:
      - active `server_tools.js` surface: `55` tools
-     - missing `outputSchema`: `14`
+     - missing `outputSchema`: `7`
    - `CLOSED` 7.1 index + science
      - outcome achieved:
        - `outputSchema` added to:
@@ -620,18 +620,26 @@ Priority order:
        - contract guard expanded in:
          - `tests/mcp_contract_surface.test.js`
        - mid-test validation:
-         - `npm test` PASS `179/179`
+       - `npm test` PASS `179/179`
+        - `node --test C:\Work\mcp\tests\server_bootstrap_runtime.test.js` PASS
+        - `node --check C:\Work\mcp\server_tools.js` PASS
+   - `CLOSED` 7.3 filesystem mutation
+     - outcome achieved:
+       - `outputSchema` added to:
+         - `write_file`
+         - `append_file`
+         - `copy_path`
+         - `move_path`
+         - `delete_path`
+         - `restore_path`
+         - `edit_file_patch`
+       - contract guard expanded in:
+         - `tests/mcp_contract_surface.test.js`
+       - mid-test validation:
+         - `npm test` PASS `180/180`
          - `node --test C:\Work\mcp\tests\server_bootstrap_runtime.test.js` PASS
          - `node --check C:\Work\mcp\server_tools.js` PASS
    - confirmed missing groups/tools:
-     - filesystem mutation:
-       - `write_file`
-       - `append_file`
-       - `copy_path`
-       - `move_path`
-       - `delete_path`
-       - `restore_path`
-       - `edit_file_patch`
      - remote site:
        - `list_remote_site_files`
        - `read_remote_site_file`
@@ -641,8 +649,7 @@ Priority order:
        - `delete_remote_site_file`
        - `restore_remote_site_file`
    - rollout order:
-     - `NEXT` 7.3 filesystem mutation
-     - `LATER` 7.4 remote site tools
+     - `NEXT` 7.4 remote site tools
    - rules:
      - do not mix with auth changes
      - do not mix with transport changes

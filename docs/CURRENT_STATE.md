@@ -560,10 +560,10 @@ Wniosek procesowy:
 
 ## 6.12. Postęp rolloutu `outputSchema`
 
-Potwierdzone po etapach `7.1`, `7.2` i wczesnym podslicu `7.3`:
+Potwierdzone po etapach `7.1`, `7.2` i pełnym `7.3`:
 
 - aktywny surface `server_tools.js` nadal ma `55` tooli
-- brakujące `outputSchema` spadły z `30` do `14`
+- brakujące `outputSchema` spadły z `30` do `7`
 
 Domknięty slice:
 
@@ -608,9 +608,24 @@ Domknięty dodatkowy podslice:
   - `get_info`
   - `list_directory`
 
-Aktualne `npm test` po tym podslicu:
+Aktualne `npm test` po tym podslicu historycznie:
 
 - `npm test` — PASS `179/179`
+
+Domknięty dodatkowy podslice:
+
+- filesystem mutation:
+  - `write_file`
+  - `append_file`
+  - `copy_path`
+  - `move_path`
+  - `delete_path`
+  - `restore_path`
+  - `edit_file_patch`
+
+Aktualne `npm test` po pełnym `7.3`:
+
+- `npm test` — PASS `180/180`
 
 ## 7. Deploy / rollback / perf
 

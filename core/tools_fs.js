@@ -50,6 +50,58 @@ const LIST_DIRECTORY_OUTPUT = z.object({
   entries: z.array(FILE_INFO_OUTPUT),
 }).strict();
 
+const WRITE_FILE_OUTPUT = z.object({
+  status: z.literal("written"),
+  path: z.string(),
+  bytes: z.number().int().nonnegative(),
+  backup: z.string().nullable(),
+}).strict();
+
+const APPEND_FILE_OUTPUT = z.object({
+  status: z.literal("appended"),
+  path: z.string(),
+  bytes: z.number().int().nonnegative(),
+  backup: z.string().nullable(),
+}).strict();
+
+const COPY_PATH_OUTPUT = z.object({
+  status: z.literal("copied"),
+  from: z.string(),
+  to: z.string(),
+  backup: z.string().nullable(),
+}).strict();
+
+const MOVE_PATH_OUTPUT = z.object({
+  status: z.literal("moved"),
+  from: z.string(),
+  to: z.string(),
+}).strict();
+
+const DELETE_PATH_OUTPUT = z.object({
+  status: z.literal("moved_to_trash"),
+  from: z.string(),
+  to: z.string(),
+  metadata: z.string(),
+}).strict();
+
+const EDIT_FILE_PATCH_OUTPUT = z.object({
+  status: z.enum(["dry_run", "patched"]),
+  path: z.string(),
+  mode: z.enum(["before", "after", "replace"]),
+  anchor_matches: z.number().int().positive(),
+  bytes_before: z.number().int().nonnegative(),
+  bytes_after: z.number().int().nonnegative(),
+  delta_bytes: z.number().int(),
+  dry_run: z.boolean(),
+  backup: z.string().nullable(),
+}).strict();
+
+const RESTORE_PATH_OUTPUT = z.object({
+  status: z.literal("restored"),
+  from: z.string(),
+  to: z.string(),
+}).strict();
+
 // STEP 5 — output schemas for IO readers. These schemas protect RULE-IO-001.
 const READ_FILE_OUTPUT = z.object({
   path: z.string(),
@@ -338,6 +390,7 @@ export function registerFsTools(server) {
       content: z.string(),
       allow_protected: z.boolean().default(false),
     }),
+    outputSchema: WRITE_FILE_OUTPUT,
     annotations: DESTRUCTIVE,
   }, async ({ path: requestedPath, content, allow_protected }) => {
     const bytes = Buffer.byteLength(content, "utf8");
@@ -370,6 +423,7 @@ export function registerFsTools(server) {
       content: z.string(),
       allow_protected: z.boolean().default(false),
     }),
+    outputSchema: APPEND_FILE_OUTPUT,
     annotations: STATE_CHANGING,
   }, async ({ path: requestedPath, content, allow_protected }) => {
     const bytes = Buffer.byteLength(content, "utf8");
@@ -402,6 +456,7 @@ export function registerFsTools(server) {
       to: z.string(),
       allow_protected: z.boolean().default(false),
     }),
+    outputSchema: COPY_PATH_OUTPUT,
     annotations: STATE_CHANGING,
   }, async ({ from, to, allow_protected }) => {
     const policy = evaluatePolicyRisk({
@@ -431,6 +486,7 @@ export function registerFsTools(server) {
       to: z.string(),
       allow_protected: z.boolean().default(false),
     }),
+    outputSchema: MOVE_PATH_OUTPUT,
     annotations: DESTRUCTIVE,
   }, async ({ from, to, allow_protected }) => {
     const policy = evaluatePolicyRisk({
@@ -459,6 +515,7 @@ export function registerFsTools(server) {
       path: z.string(),
       allow_protected: z.boolean().default(false),
     }),
+    outputSchema: DELETE_PATH_OUTPUT,
     annotations: DESTRUCTIVE,
   }, async ({ path: requestedPath, allow_protected }) => {
     const policy = evaluatePolicyRisk({
@@ -502,6 +559,7 @@ export function registerFsTools(server) {
       allow_protected: z.boolean().default(false),
       require_markers: z.array(z.string()).default([]),
     }),
+    outputSchema: EDIT_FILE_PATCH_OUTPUT,
     annotations: STATE_CHANGING,
   }, async ({ path: requestedPath, anchor, content, mode, dry_run, allow_protected, require_markers }) => {
     assertWritablePath(requestedPath, { allowProtected: allow_protected });
@@ -564,6 +622,7 @@ export function registerFsTools(server) {
       overwrite: z.boolean().default(false),
       allow_protected: z.boolean().default(false),
     }),
+    outputSchema: RESTORE_PATH_OUTPUT,
     annotations: DESTRUCTIVE,
   }, async ({ trash_path, destination, overwrite, allow_protected }) => {
     const trashFull = safePath(trash_path);
