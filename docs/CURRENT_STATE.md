@@ -173,6 +173,13 @@ Zamknięte po audycie:
   - `core/filesystem/read_tools.js`
   - `core/filesystem/mutation_tools.js`
   - `core/filesystem/patch_tools.js`
+- `core/web_tools.js` został zredukowany do cienkiej fasady
+- odpowiedzialności web są rozdzielone do:
+  - `core/web/http_tools.js`
+  - `core/web/package_tools.js`
+  - `core/web/github_tools.js`
+  - współdzielone runtime/schema helpery:
+    - `core/web/runtime.js`
 
 Kierunek przyjęty:
 

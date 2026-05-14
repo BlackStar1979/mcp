@@ -394,6 +394,11 @@ Status:
   - `core/filesystem/read_tools.js`
   - `core/filesystem/mutation_tools.js`
   - `core/filesystem/patch_tools.js`
+- `web_tools.js` rozcięty i sprowadzony do fasady:
+  - `core/web/http_tools.js`
+  - `core/web/package_tools.js`
+  - `core/web/github_tools.js`
+  - `core/web/runtime.js`
 - następny cel pozostaje:
   - `truth_tools.js`
   - `remote_site_tools.js`
