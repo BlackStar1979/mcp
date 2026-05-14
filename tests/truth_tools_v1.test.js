@@ -3,51 +3,56 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import { registerTruthTools } from "../core/truth_tools.js";
 
-const truthTools = fs.readFileSync("core/truth_tools.js", "utf8");
+const truthFacade = fs.readFileSync("core/truth_tools.js", "utf8");
+const truthAudit = fs.readFileSync("core/truth/audit_tools.js", "utf8");
+const truthWorkflow = fs.readFileSync("core/truth/workflow_tools.js", "utf8");
+const truthUsage = fs.readFileSync("core/truth/usage_tools.js", "utf8");
+const truthShared = fs.readFileSync("core/truth/shared.js", "utf8");
+const truthTools = [truthFacade, truthAudit, truthWorkflow, truthUsage, truthShared].join("\n");
 const serverTools = fs.readFileSync("server_tools.js", "utf8");
 
 test("truth tools expose project_truth_audit with explicit outputSchema", () => {
-  assert.match(truthTools, /"project_truth_audit"/);
-  assert.match(truthTools, /outputSchema:\s*PROJECT_TRUTH_AUDIT_OUTPUT/);
-  assert.match(truthTools, /inputSchema:\s*z\.object\(\{\}\)\.strict\(\)/);
+  assert.match(truthAudit, /"project_truth_audit"/);
+  assert.match(truthAudit, /outputSchema:\s*PROJECT_TRUTH_AUDIT_OUTPUT/);
+  assert.match(truthAudit, /inputSchema:\s*z\.object\(\{\}\)\.strict\(\)/);
 });
 
 test("truth tools expose code_runtime_map with explicit outputSchema", () => {
-  assert.match(truthTools, /"code_runtime_map"/);
-  assert.match(truthTools, /outputSchema:\s*CODE_RUNTIME_MAP_OUTPUT/);
-  assert.match(truthTools, /description:\s*"Map active runtime entrypoints, registered modules, protected boundaries, legacy\/staging areas, and key test-to-runtime links\."/);
+  assert.match(truthAudit, /"code_runtime_map"/);
+  assert.match(truthAudit, /outputSchema:\s*CODE_RUNTIME_MAP_OUTPUT/);
+  assert.match(truthAudit, /description:\s*"Map active runtime entrypoints, registered modules, protected boundaries, legacy\/staging areas, and key test-to-runtime links\."/);
 });
 
 test("truth tools expose deploy_decision_guard with explicit outputSchema", () => {
-  assert.match(truthTools, /"deploy_decision_guard"/);
-  assert.match(truthTools, /outputSchema:\s*DEPLOY_DECISION_GUARD_OUTPUT/);
-  assert.match(truthTools, /classification:\s*z\.enum\(\["repo_only", "test_only", "runtime", "runtime_with_client_refresh"\]\)/);
+  assert.match(truthWorkflow, /"deploy_decision_guard"/);
+  assert.match(truthWorkflow, /outputSchema:\s*DEPLOY_DECISION_GUARD_OUTPUT/);
+  assert.match(truthShared, /classification:\s*z\.enum\(\["repo_only", "test_only", "runtime", "runtime_with_client_refresh"\]\)/);
 });
 
 test("truth tools expose change_workflow_simulator with explicit outputSchema", () => {
-  assert.match(truthTools, /"change_workflow_simulator"/);
-  assert.match(truthTools, /outputSchema:\s*CHANGE_WORKFLOW_SIMULATOR_OUTPUT/);
-  assert.match(truthTools, /operator_actions:\s*z\.array\(z\.string\(\)\)/);
-  assert.match(truthTools, /validation_steps:\s*z\.array\(z\.string\(\)\)/);
+  assert.match(truthWorkflow, /"change_workflow_simulator"/);
+  assert.match(truthWorkflow, /outputSchema:\s*CHANGE_WORKFLOW_SIMULATOR_OUTPUT/);
+  assert.match(truthShared, /operator_actions:\s*z\.array\(z\.string\(\)\)/);
+  assert.match(truthShared, /validation_steps:\s*z\.array\(z\.string\(\)\)/);
 });
 
 test("truth tools expose tool_usage_snapshot with explicit outputSchema", () => {
-  assert.match(truthTools, /"tool_usage_snapshot"/);
-  assert.match(truthTools, /outputSchema:\s*TOOL_USAGE_SNAPSHOT_OUTPUT/);
-  assert.match(truthTools, /source_log:\s*z\.string\(\)/);
-  assert.match(truthTools, /web_tool_counts:\s*z\.array\(/);
+  assert.match(truthUsage, /"tool_usage_snapshot"/);
+  assert.match(truthUsage, /outputSchema:\s*TOOL_USAGE_SNAPSHOT_OUTPUT/);
+  assert.match(truthShared, /source_log:\s*z\.string\(\)/);
+  assert.match(truthShared, /web_tool_counts:\s*z\.array\(/);
 });
 
 
 test("truth tools use platform-safe runtime path joins", () => {
-  assert.match(truthTools, /import\s+path\s+from\s+"node:path"/);
-  assert.match(truthTools, /path\.join\(RUNTIME_DIR, \.\.\.segments\)/);
-  assert.doesNotMatch(truthTools, /RUNTIME_DIR}\\\\\$\{relativePath/);
+  assert.match(truthShared, /import\s+path\s+from\s+"node:path"/);
+  assert.match(truthShared, /path\.join\(RUNTIME_DIR, \.\.\.segments\)/);
+  assert.doesNotMatch(truthShared, /RUNTIME_DIR}\\\\\$\{relativePath/);
 });
 test("project_truth_audit is read-only and local-world", () => {
-  assert.match(truthTools, /readOnlyHint:\s*true/);
-  assert.match(truthTools, /destructiveHint:\s*false/);
-  assert.match(truthTools, /openWorldHint:\s*false/);
+  assert.match(truthShared, /readOnlyHint:\s*true/);
+  assert.match(truthShared, /destructiveHint:\s*false/);
+  assert.match(truthShared, /openWorldHint:\s*false/);
 });
 
 test("server_tools registers truth tools module", () => {

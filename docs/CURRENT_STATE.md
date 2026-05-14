@@ -180,6 +180,13 @@ Zamknięte po audycie:
   - `core/web/github_tools.js`
   - współdzielone runtime/schema helpery:
     - `core/web/runtime.js`
+- `core/truth_tools.js` został zredukowany do cienkiej fasady
+- odpowiedzialności truth są rozdzielone do:
+  - `core/truth/audit_tools.js`
+  - `core/truth/workflow_tools.js`
+  - `core/truth/usage_tools.js`
+  - współdzielone runtime/schema helpery:
+    - `core/truth/shared.js`
 
 Kierunek przyjęty:
 

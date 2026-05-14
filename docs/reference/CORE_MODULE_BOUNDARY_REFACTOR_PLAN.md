@@ -399,8 +399,12 @@ Status:
   - `core/web/package_tools.js`
   - `core/web/github_tools.js`
   - `core/web/runtime.js`
+- `truth_tools.js` rozcięty i sprowadzony do fasady:
+  - `core/truth/audit_tools.js`
+  - `core/truth/workflow_tools.js`
+  - `core/truth/usage_tools.js`
+  - `core/truth/shared.js`
 - następny cel pozostaje:
-  - `truth_tools.js`
   - `remote_site_tools.js`
   - `code_tools_safe.js`
 
