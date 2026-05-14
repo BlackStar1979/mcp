@@ -404,8 +404,11 @@ Status:
   - `core/truth/workflow_tools.js`
   - `core/truth/usage_tools.js`
   - `core/truth/shared.js`
+- `remote_site_tools.js` rozcięty i sprowadzony do fasady:
+  - `core/remote_site/file_ops_tools.js`
+  - `core/remote_site/runtime_tools.js`
+  - `core/remote_site/shared_runtime.js`
 - następny cel pozostaje:
-  - `remote_site_tools.js`
   - `code_tools_safe.js`
 
 ### Etap 4 — package naming normalization

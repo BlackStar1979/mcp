@@ -187,6 +187,12 @@ Zamknięte po audycie:
   - `core/truth/usage_tools.js`
   - współdzielone runtime/schema helpery:
     - `core/truth/shared.js`
+- `core/remote_site_tools.js` został zredukowany do cienkiej fasady
+- odpowiedzialności remote_site są rozdzielone do:
+  - `core/remote_site/file_ops_tools.js`
+  - `core/remote_site/runtime_tools.js`
+  - współdzielone runtime/schema/path helpery:
+    - `core/remote_site/shared_runtime.js`
 
 Kierunek przyjęty:
 
