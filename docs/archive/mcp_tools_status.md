@@ -12,7 +12,7 @@ Czytaj zamiast niego:
 
 1. `docs/CURRENT_STATE.md`
 2. `docs/RUNTIME_CONTRACTS_CURRENT.md`
-3. `docs/REGISTRY.md`
+3. `docs/reference/REGISTRY.md`
 4. `docs/DOCS_CATALOG.md`
 
 Stan na: 2026-05-01

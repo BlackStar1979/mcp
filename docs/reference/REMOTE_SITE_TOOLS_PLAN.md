@@ -1,7 +1,7 @@
 # Remote Site Tools Plan
 
 Data: 2026-05-12
-Status: canonical_current
+Status: current_reference
 Zakres: plan bounded remote VPS site file tools for local MCP runtime
 
 ## Objective

@@ -1,7 +1,7 @@
 # Audyt rozszerzony projektu `C:\Work\mcp`
 
 Data: 2026-05-03
-Status: canonical_current
+Status: historical_reference
 Zakres: kod runtime, kontrakty MCP, skrypty operatorskie, zależności, testy, dokumentacja `docs/`, lokalne artefakty operatorskie
 
 ## 1. Cel

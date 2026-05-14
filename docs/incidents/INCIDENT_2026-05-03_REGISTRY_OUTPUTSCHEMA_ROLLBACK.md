@@ -77,8 +77,8 @@ Dla registry oznacza to minimum:
 
 - `tests/registry_v*.test.js`,
 - `core/registry_tools_safe.js`,
-- `docs/REGISTRY_RUNTIME_DESIGN.md`,
-- `docs/MCP_TOOL_CONTRACTS.md`, jeśli zmiana dotyczy kontraktu toola.
+- `docs/archive/REGISTRY_RUNTIME_DESIGN.md`,
+- `docs/archive/MCP_TOOL_CONTRACTS.md`, jeśli zmiana dotyczy kontraktu toola.
 
 ### RULE-LLM-PIPELINE-002 — staging nie jest gotowy bez walidacji
 

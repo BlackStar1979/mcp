@@ -2,6 +2,10 @@
 
 Instrukcja operacyjna dla lokalnego MCP control plane.
 
+Dokument nadrzędny dla reguł dokumentacyjnych:
+
+- `docs/DOCUMENTATION_GOVERNANCE_SPEC.md`
+
 ## 1. Komponenty
 
 | Komponent | Plik / katalog | Funkcja |
@@ -301,6 +305,46 @@ Kolejność diagnostyczna:
 
 Nie zakładać automatycznie, że brak handshake oznacza zły response shape serwera.
 
+### ChatGPT Desktop — zasady użycia operacyjnego
+
+Desktop traktować głównie jako kanał read-only.
+
+Preferowane użycie:
+
+- `search`
+- `fetch`
+- `code_sample_js`
+- read-only file inspection
+- bounded context extraction
+- audit review
+- refresh tools po zmianach descriptor/tool-surface
+
+Nie używać przez Desktop do tego projektu:
+
+- `write_file`
+- `append_file`
+- `edit_file_patch`
+- `run_process`
+- `copy_path`
+- `move_path`
+- `delete_path`
+- dużych payloadów patchujących
+- `node -e` repair commands
+- regex one-liner repair commands
+
+Reguła workflow:
+
+- ChatGPT/Codex przygotowuje zmianę
+- człowiek / lokalny edytor / lokalny Codex stosuje zmianę
+- PowerShell / lokalny runtime weryfikuje
+- Desktop wykonuje tylko read-only testy
+
+Reguła bezpieczeństwa:
+
+- nie stosować payload smuggling
+- nie kodować/dekodować wrażliwych fraz po to, by obejść approval/preflight
+- jeśli request nie dociera do MCP, problem nie jest server-side i nie zostawi śladu w audit logu serwera
+
 ### Perf log zawiera stary token
 
 Stare wpisy pozostają historyczne. Po wdrożeniu redakcji i restarcie nowe wpisy powinny mieć:
@@ -378,7 +422,7 @@ Po deployu `python_docs_v1` i restarcie MCP potwierdzono:
 - zasób konektora zmienił identyfikator po restarcie, co jest oczekiwane,
 - ostatni deploy record `2026-05-03T10-25-04-867Z_15dcc3ad.executed.json` ma status `executed`,
 - `npm test` przechodzi `51/51`,
-- aktywne docs obejmują `docs/PYTHON_RUNTIME_REQUIREMENTS.md`.
+- aktywne docs obejmują `docs/reference/PYTHON_RUNTIME_REQUIREMENTS.md`.
 
 ## 12. Bieżący checkpoint 2026-05-04
 

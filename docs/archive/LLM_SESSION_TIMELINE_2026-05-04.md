@@ -1,7 +1,7 @@
 # LLM Session Timeline
 
 Data: 2026-05-04
-Status: canonical_current
+Status: historical_reference
 Zakres: chronologia tego, co zostało wykonane w serii audytów i porządkowania dokumentacji
 
 ## Chronologia skrócona

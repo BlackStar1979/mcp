@@ -1,8 +1,12 @@
 # LLM Execution Brief
 
 Data: 2026-05-03
-Status: canonical_current
+Status: current_reference
 Zakres: instrukcja dla kolejnego modelu LLM kontynuującego rozwój `C:\Work\mcp`
+
+Dokument nadrzędny dla porządku dokumentacyjnego:
+
+- `docs/DOCUMENTATION_GOVERNANCE_SPEC.md`
 
 ## Rola
 
@@ -156,6 +160,36 @@ Przy proponowaniu kolejnych warstw systemu pamiętaj:
    - w takim przypadku serwer nie może go zalogować, odrzucić ani zsanityzować
    - nie wolno używać payload smuggling ani kodowania fraz w celu obejścia tych blokad
 8. `stc_safe.js` ma być utrzymywany jako port wzorca z `mcp-tests/server.js`, a nie jako miejsce na mieszanie connector-safe shape z auth refactorami, Cloudflare zmianami albo mutation tools.
+9. Potencjalny lokalny LLM na VPS ma być traktowany jako przyszły worker za ścisłym wrapperem MCP:
+   - `agent wrapped as a tool, not agent with tools`
+   - wrapper ma posiadać:
+     - retrieval
+     - permissions
+     - context selection
+     - prompt construction
+     - secret redaction
+     - schema validation
+     - policy validation
+     - audit logging
+     - execution gating
+   - lokalny LLM ma posiadać tylko:
+     - bounded structured analysis
+     - classification
+     - summarization
+     - proposal generation
+   - lokalny LLM nie może posiadać:
+     - filesystem access
+     - shell access
+     - network access
+     - MCP tool access
+     - deployment authority
+     - secret access
+     - direct mutation authority
+10. Ten kierunek należy traktować jako future architecture dla dashboard/VPS, nie jako bieżącą ścieżkę rozwoju `stc_safe.js` ani aktywnego `server_tools.js`.
+11. Jeśli taka rodzina tooli kiedyś powstanie, MVP ma zaczynać od jednego read-only narzędzia w rodzaju:
+   - `local_agent_review`
+   a nie od szerokiego:
+   - `agent(prompt: string)`
 
 ## Przykłady referencyjne SDK
 
@@ -190,8 +224,8 @@ Zadania:
 1. Czytaj najpierw:
    - `docs/README.md`
    - `docs/CURRENT_STATE.md`
-   - `docs/AUDIT_2026-05-03_DEEP.md`
-   - `docs/OPENAI_MCP_CONFORMANCE_2026-05-03.md`
+   - `docs/RUNTIME_CONTRACTS_CURRENT.md`
+   - `docs/ROADMAP_REGISTRY_EXECUTION.md`
    - `docs/DOCS_CATALOG.md`
 2. Sprawdź:
    - `server.js`
@@ -368,7 +402,7 @@ Dokumentacja ma odzwierciedlać:
 5. Jeśli wykonujesz nowy duży audyt:
    - dodaj nowy datowany dokument `AUDIT_YYYY-MM-DD*.md`.
 6. Jeśli zmienia się kolejność czytania lub status dokumentów:
-   - aktualizuj `docs/README.md`, `docs/DOCS_CATALOG.md` i w razie potrzeby `docs/MCP_INDEX.md`.
+   - aktualizuj `docs/README.md`, `docs/DOCS_CATALOG.md` i `docs/DOCUMENTATION_GOVERNANCE_SPEC.md`.
 
 ### Czego dokumentacja nie może robić
 

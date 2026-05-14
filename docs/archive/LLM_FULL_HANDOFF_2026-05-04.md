@@ -1,7 +1,7 @@
 # LLM Full Handoff
 
 Data: 2026-05-04
-Status: canonical_current
+Status: historical_reference
 Zakres: pełny handoff dla kolejnego modelu LLM, obejmujący chronologię prac, ustalenia audytowe, workflow i zasady dalszego prowadzenia projektu
 
 ## Cel

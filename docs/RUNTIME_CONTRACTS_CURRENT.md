@@ -1,14 +1,22 @@
 # Runtime Contracts — Current
 
-Data: 2026-05-12
+Data: 2026-05-14
 Status: canonical_current
-Zakres: aktualne kontrakty i granice odpowiedzialności dla aktywnego runtime `server_tools.js`, lokalnego connector-safe profile `stc_safe.js`, trybów auth `access` i `bearer`, bounded web tools (`pypi_info`, `check_npm_package`, `fetch_github_file`), bounded process runner (`run_process`, `process_runner_status`), aktywnych `remote_site_*` tools, modelu multi-root z aliasami `@alias/...` oraz bieżący status test boundary po korektach coverage i wdrożeniu `project_truth_audit`, `code_runtime_map`, `deploy_decision_guard`, `change_workflow_simulator` i `tool_usage_snapshot`
+Zakres: aktualne kontrakty i granice odpowiedzialności aktywnego runtime
 
 ## Cel
 
-Ten dokument zastępuje używanie `MCP_TOOL_CONTRACTS.md` jako bieżącego source-of-truth dla aktywnego runtime.
+Ten dokument zastępuje używanie `docs/archive/MCP_TOOL_CONTRACTS.md` jako bieżącego source-of-truth dla aktywnego runtime.
 
-`MCP_TOOL_CONTRACTS.md` pozostaje ważne historycznie i koncepcyjnie, ale zawiera stare elementy workflow i nie może być już czytane samodzielnie jako aktualna instrukcja operacyjna.
+`docs/archive/MCP_TOOL_CONTRACTS.md` pozostaje ważne historycznie i koncepcyjnie, ale zawiera stare elementy workflow i nie może być już czytane samodzielnie jako aktualna instrukcja operacyjna.
+
+Ten plik nie jest roadmapą ani podręcznikiem operatorskim.
+
+Do tych ról służą odpowiednio:
+
+- `docs/ROADMAP_REGISTRY_EXECUTION.md`
+- `docs/MCP_OPERATOR_MANUAL.md`
+- `docs/DOCUMENTATION_GOVERNANCE_SPEC.md`
 
 ## Global rules
 
@@ -296,6 +304,12 @@ Therefore:
 2. `outputSchema + structuredContent + JSON mirror in content[0].text` is accepted by ChatGPT Desktop for connector-style `search` / `fetch`.
 3. Some sensitive-looking tool arguments may be blocked upstream by approval/preflight before they reach MCP; in such cases the server cannot validate, sanitize, reject, log, or return a controlled error because the request never arrives.
 4. Do not use payload smuggling or encoded phrases to bypass approval/preflight during diagnostics.
+5. Mutation-capable MCP tools are currently an unreliable Desktop workflow for this project; use Desktop primarily for read-only diagnostics, connector validation, and bounded context extraction.
+6. For descriptor/tool-surface changes at the same public MCP URL, prefer:
+   - restart server
+   - refresh tools in ChatGPT Desktop
+   before deleting/recreating the connector.
+7. `code_sample_js` belongs to the safe read-only testing/diagnostic family, not to the mutation/execution family.
 2. For connector-safe diagnostics, compare:
    - raw `GET /healthz`
    - raw `POST /mcp initialize`
@@ -305,6 +319,7 @@ Therefore:
    - `search`
    - `fetch`
 4. Do not infer from current evidence that Desktop formally requires exactly two tools; what is confirmed is that strict shape plus minimal surface is stable.
+5. Direct file mutation and process execution from Desktop should be treated as operationally unsupported for now, even if equivalent tools exist in the MCP runtime.
 
 ### OutputSchema rollout status
 

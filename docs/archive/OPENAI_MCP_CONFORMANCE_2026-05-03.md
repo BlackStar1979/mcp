@@ -1,7 +1,7 @@
 # OpenAI MCP / Apps Conformance Audit
 
 Data: 2026-05-03
-Status: canonical_current
+Status: historical_reference
 Zakres: zgodność `C:\Work\mcp` z zasadami z `docs/openai_apps_mcp_extract.md` i `docs/openai_apps_mcp_research_v2.md`
 
 ## Metodologia

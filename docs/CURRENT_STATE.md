@@ -1,8 +1,32 @@
 # Current State
 
-Data: 2026-05-12
+Data: 2026-05-14
 Status: canonical_current
-Zakres: aktualny stan projektu `C:\Work\mcp` po rolloutach registry execute v7.1, bounded web tools (`pypi_info`, `check_npm_package`, `fetch_github_file`), domknięciu test coverage dla web tools, korekcie testów registry execute v1.1 na aktywny runtime, wdrożeniu `project_truth_audit`, `code_runtime_map`, `deploy_decision_guard`, `change_workflow_simulator`, `tool_usage_snapshot`, procesu multi-root z aliasami `@alias/...`, domknięciu regresji CI portability, integracji bounded process runner (`run_process`, `process_runner_status`) oraz dodaniu lokalnego connector-safe profile `stc_safe.js`
+Zakres: potwierdzony stan bieżący projektu `C:\Work\mcp`
+
+## Rola tego dokumentu
+
+Ten plik opisuje tylko:
+
+- co jest dziś aktywne,
+- co zostało potwierdzone,
+- jakie checkpointy są zamknięte,
+- jakie otwarte nieprawidłowości nadal istnieją.
+
+Ten plik nie jest:
+
+- główną roadmapą,
+- pełnym podręcznikiem operatorskim,
+- jedynym opisem kontraktów,
+- pełną historią projektu.
+
+Do tych ról służą odpowiednio:
+
+- `docs/ROADMAP_REGISTRY_EXECUTION.md`
+- `docs/MCP_OPERATOR_MANUAL.md`
+- `docs/RUNTIME_CONTRACTS_CURRENT.md`
+- `docs/DOCS_CATALOG.md`
+- `docs/DOCUMENTATION_GOVERNANCE_SPEC.md`
 
 ## 1. Stan repo i lokalnego runtime
 
@@ -528,6 +552,116 @@ Known issues / ryzyka wynikające z tego przeglądu:
 - jeśli kiedyś będziemy chcieli do `stc_safe` dołożyć funkcje zależne od server-to-client requests, to wejdziemy w konflikt z samą naturą stateless connector-safe profilu
 - jeśli będziemy implementować `oauth2` bez protected resource metadata, istnieje ryzyko rozminięcia z oczekiwaniami nowocześniejszych klientów i wzorcami SDK
 
+## 6.10a. Future architecture note — local LLM wrapped as MCP tool
+
+Potwierdzone po lekturze `C:\Work\mcp-tests\LOCAL_LLM_WRAPPED_AS_MCP_TOOL_ARCHITECTURE_NOTE.md`:
+
+- to nie jest bieżąca ścieżka rozwoju `stc_safe.js`
+- to nie jest bieżąca ścieżka rozwoju publicznego `server_tools.js`
+- to jest kandydat na przyszłą architekturę dashboard/VPS
+
+Preferowany wzorzec:
+
+- `agent wrapped as a tool, not agent with tools`
+
+Znaczenie praktyczne:
+
+- lokalny LLM ma być traktowany jako nieufny worker reasoningowy
+- wrapper MCP / dashboard backend ma być właściwą granicą bezpieczeństwa
+- wrapper ma kontrolować:
+  - retrieval
+  - permissions
+  - context selection
+  - prompt construction
+  - secret redaction
+  - schema validation
+  - policy validation
+  - audit logging
+  - execution gating
+- lokalny LLM ma zwracać wyłącznie bounded structured analysis
+
+Zakazy dla tego przyszłego kierunku:
+
+- nie eksponować lokalnego LLM jako autonomicznego agenta
+- nie dawać lokalnemu LLM:
+  - shell access
+  - filesystem access
+  - network access
+  - MCP tool access
+  - direct mutation authority
+- nie budować szerokiego:
+  - `agent(prompt: string)`
+- nie mieszać tej przyszłej rodziny tooli z publicznym connector-safe surface `stc_safe.js`
+
+Wniosek planistyczny:
+
+- jeśli ten kierunek kiedyś ruszy, MVP ma zaczynać od jednego read-only wrapper toola, np.:
+  - `local_agent_review`
+- a nie od pełnego agentowego runtime
+
+## 6.10b. Operational findings appendix — ChatGPT Desktop / TEST MCP / STC-SAFE
+
+Potwierdzone po lekturze `C:\Work\mcp-tests\MCP_OPERATIONAL_FINDINGS_APPENDIX_FOR_CODEX.md`:
+
+- to jest materiał operacyjny
+- dotyczy bieżącego workflow z ChatGPT Desktop, TEST MCP i `stc_safe`
+- nie należy go mylić z osobnym future-architecture track dla lokalnego LLM wrappera
+
+Najważniejsze reguły operacyjne:
+
+- mutation-capable MCP tools są obecnie niestabilne przez approval/tool bridge ChatGPT Desktop
+- przez Desktop nie należy używać do tego projektu:
+  - `write_file`
+  - `append_file`
+  - `edit_file_patch`
+  - `run_process`
+  - `copy_path`
+  - `move_path`
+  - `delete_path`
+  - dużych payloadów naprawczych
+  - `node -e` repair commands
+  - regex one-liner repair commands
+- przez Desktop należy ograniczać się do:
+  - read-only diagnostics
+  - `search` / `fetch`
+  - `code_sample_js`
+  - read-only file inspection
+  - bounded context extraction
+  - audit review
+
+Wniosek workflow:
+
+- ChatGPT/Codex przygotowuje patch lub pełny replacement
+- człowiek / lokalny edytor / lokalny Codex stosuje zmianę
+- PowerShell / lokalny runtime waliduje
+- ChatGPT Desktop wykonuje tylko read-only testy
+
+Ważne ograniczenie approval/preflight:
+
+- część wywołań, np. z frazami typu `bearer authorization`, może być zatrzymywana upstream przed dotarciem do serwera MCP
+- jeśli request nie dociera do MCP, serwer nie może go:
+  - zalogować
+  - odrzucić
+  - zsanityzować
+  - zwrócić kontrolowanego błędu
+- takich problemów nie wolno próbować "naprawiać" po stronie `server.js` / `server_tools.js`
+- zabronione jest payload smuggling przez kodowanie wrażliwych fraz i dekodowanie ich po stronie serwera
+
+Potwierdzone referencje operacyjne:
+
+- `TEST MCP` pozostaje stabilnym read-only canary z tool surface:
+  - `search`
+  - `fetch`
+  - `code_sample_js`
+- `code_sample_js` ma być traktowany jako read-only bounded code sampler
+- dla `search` i `fetch` należy utrzymywać exact connector signatures:
+  - `search({ query })`
+  - `fetch({ id })`
+- dla zmian descriptor/tool-surface przy tym samym publicznym URL zwykle wystarcza:
+  - restart serwera
+  - refresh tools w ChatGPT Desktop
+  a nie pełne usuwanie i odtwarzanie connectora
+
 ## 6.11. Lekcja z awarii bootstrapu MCP przez nieprawidłowe `inputSchema`
 
 Potwierdzone historycznie na 2026-05-10:
@@ -618,6 +752,15 @@ Domknięty końcowy slice:
 Dodatkowa walidacja mid-test:
 
 - `node --test C:\Work\mcp\tests\server_bootstrap_runtime.test.js` — PASS
+
+Checkpoint końcowy tego etapu:
+
+- commit:
+  - `97289bd` — `feat: complete outputSchema coverage for remote site tools`
+- repo:
+  - `main...origin/main`
+  - worktree czysty
+- aktywny `server_tools.js` ma pełne `outputSchema` coverage dla całego surface `55` tooli
 - `node --check C:\Work\mcp\server_tools.js` — PASS
 - `node --check C:\Work\mcp\stc_safe.js` — PASS
 
@@ -765,23 +908,24 @@ Potwierdzone:
 - `core/science_tools.js` uruchamia helpery Python przez `python`
 - helpery Python żyją w `core/`
 - wymagania operacyjne są opisane w:
-  - `docs/PYTHON_RUNTIME_REQUIREMENTS.md`
+  - `docs/reference/PYTHON_RUNTIME_REQUIREMENTS.md`
 
 ## 10. Najważniejsze otwarte nieprawidłowości
 
 1. Część dokumentacji reference nadal wymaga ostrożnego porównywania z aktywnym runtime przed użyciem jako source-of-truth.
-2. `MCP_TOOL_CONTRACTS.md` opisuje w części stary workflow i nie może być traktowany jako aktualna instrukcja operacyjna bez porównania z nowszymi docs.
-3. Starsze docs registry/design nadal mieszają plan, historię i wdrożenie; `REGISTRY.md` oraz `RUNTIME_CONTRACTS_CURRENT.md` pozostają ważniejszymi źródłami dla bieżącego runtime.
+2. `docs/archive/MCP_TOOL_CONTRACTS.md` opisuje w części stary workflow i nie może być traktowany jako aktualna instrukcja operacyjna bez porównania z nowszymi docs.
+3. Starsze docs registry/design nadal mieszają plan, historię i wdrożenie; `docs/reference/REGISTRY.md` oraz `RUNTIME_CONTRACTS_CURRENT.md` pozostają ważniejszymi źródłami dla bieżącego runtime.
 
 ## 11. Czytaj dalej
 
 Jeśli potrzebujesz:
 
-- głównych findings i zaleceń: `AUDIT_2026-05-03_DEEP.md`
-- zgodności z OpenAI MCP / Apps: `OPENAI_MCP_CONFORMANCE_2026-05-03.md`
-- aktualnego stanu registry: `REGISTRY.md`
+- zasad dokumentacyjnych: `DOCUMENTATION_GOVERNANCE_SPEC.md`
 - aktualnych kontraktów runtime: `RUNTIME_CONTRACTS_CURRENT.md`
-- idiotoodpornego protokołu dla kolejnego LLM: `LLM_IDIOT_PROOF_PROTOCOL_2026-05-04.md`
+- planu dalszych prac: `ROADMAP_REGISTRY_EXECUTION.md`
+- workflow operatorskiego: `MCP_OPERATOR_MANUAL.md`
+- aktualnego stanu registry: `docs/reference/REGISTRY.md`
+- wymagań Python: `docs/reference/PYTHON_RUNTIME_REQUIREMENTS.md`
 
 
 

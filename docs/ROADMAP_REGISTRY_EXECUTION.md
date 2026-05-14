@@ -1,8 +1,8 @@
 # MCP REGISTRY → WEB TOOLS → CONTROLLED EXECUTION ROADMAP
 
-Data: 2026-05-05
+Data: 2026-05-14
 Status: current_plan
-Zakres: bezpieczna ewolucja MCP od registry plan-only do controlled execution z etapem web_tools
+Zakres: bezpieczna ewolucja MCP od registry plan-only do controlled execution oraz kolejność następnych etapów
 
 ---
 
@@ -12,7 +12,7 @@ Zakres: bezpieczna ewolucja MCP od registry plan-only do controlled execution z 
 
 
 
-Stage: V6.5 closed / V7.0 planned
+Stage: V7.4 closed / post-outputSchema planning checkpoint next
 
 - registry: DONE
 - policy: DONE
@@ -160,7 +160,7 @@ Deferred tools:
 
 Known issue:
 
-- connector-layer false positives may selectively block safe tools for some inputs; see `KNOWN_ISSUES_CONNECTOR_LAYER.md`.
+- connector-layer false positives may selectively block safe tools for some inputs; see `docs/reference/KNOWN_ISSUES_CONNECTOR_LAYER.md`.
 
 Status: CLOSED
 
@@ -296,16 +296,22 @@ Possible scope:
 
 ## NEXT ENGINEERING STEP
 
-Implement V7.0 in the smallest deployable slice:
+Nie zaczynaj kolejnego feature tracku z pamięci.
+
+Najpierw:
 
 ```text
-tool_registry_execute = dry-run simulation only
+re-read canonical docs
+close planning checkpoint
+pick exactly one next track
 ```
 
-No real dispatch.
-No real execution.
-No filesystem writes.
-No network calls.
+Możliwe następne tory:
+
+- deeper `stc_safe` behavior verification
+- `server_tools.js --auth oauth2` design as separate track
+- remote-site operational hardening
+- broader connector-warning cleanup outside active tool surface
 
 ---
 
@@ -421,7 +427,7 @@ Status convention:
 Short operational queue:
 
 1. `CLOSED` — D1 docs consistency sweep after new commits
-   - verify `CURRENT_STATE.md`, `REGISTRY.md`, `RUNTIME_CONTRACTS_CURRENT.md`, `DOCS_CATALOG.md`
+   - verify `CURRENT_STATE.md`, `docs/reference/REGISTRY.md`, `RUNTIME_CONTRACTS_CURRENT.md`, `DOCS_CATALOG.md`
    - canonical docs now match active runtime and test boundary after `project_truth_audit` rollout
 
 2. `CLOSED` — D2 test names vs actual coverage review
@@ -440,11 +446,11 @@ Short operational queue:
      - `tool_registry_execute`
    - result:
      - active runtime, docs, and exposed control-plane remain consistent
-     - `REGISTRY.md` now records the 2026-05-05 manual live verification pass explicitly
+     - `docs/reference/REGISTRY.md` now records the 2026-05-05 manual live verification pass explicitly
      - remaining runtime evidence is manual MCP invocation, not full automated end-to-end test coverage
 
 4. `CLOSED` — D4 operator workflow consistency review
-   - align `MCP_OPERATOR_MANUAL.md`, `OPERATIONS_DEPLOY.md`, and `LLM_IDIOT_PROOF_PROTOCOL_2026-05-04.md`
+   - align `MCP_OPERATOR_MANUAL.md`, `OPERATIONS_DEPLOY.md`, and `docs/reference/LLM_IDIOT_PROOF_PROTOCOL_2026-05-04.md`
    - keep explicit distinction:
      - runtime change
      - repo-only docs/test change
@@ -668,6 +674,15 @@ Priority order:
        - local `npm test`
        - state doc sync if coverage assumptions changed
 
+8. `NEXT` — post-outputSchema planning checkpoint
+   - before starting another feature family:
+     - review whether the next highest-value step is:
+       - deeper `stc_safe` behavior testing in ChatGPT Desktop
+       - broader `outputSchema` / connector warning cleanup outside active tool surface
+       - `server_tools.js --auth oauth2` design work as a separate track
+       - remote-site operational hardening, including future default config-path architecture
+   - do not start this next step from memory alone; re-read canonical docs first
+
 Deferred by design:
 
 - `romioncoresim` bridge remains a later track
@@ -702,3 +717,18 @@ These principles are accepted into the workflow now, even where implementation i
      - docs truth
      - test truth
      - deploy truth
+
+6. Local LLMs belong behind tool boundaries
+   - if a local VPS/dashboard LLM is introduced later, prefer:
+     - `agent wrapped as a tool, not agent with tools`
+   - wrapper owns:
+     - retrieval
+     - permissions
+     - validation
+     - audit
+     - execution gating
+   - local LLM owns only bounded structured analysis
+   - do not mix this future direction with:
+     - `stc_safe.js`
+     - public connector-safe search/fetch
+     - current `oauth2` track

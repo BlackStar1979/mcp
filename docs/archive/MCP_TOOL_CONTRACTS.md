@@ -282,7 +282,7 @@ Constraint: user runs this manually; restart MCP only after successful deploy.
 ## New-chat procedure
 
 Before code modification:
-1. read MCP_INDEX.md,
+1. read docs/README.md and docs/DOCUMENTATION_GOVERNANCE_SPEC.md,
 2. read this file,
 3. inspect target file lines,
 4. use anchor patch,

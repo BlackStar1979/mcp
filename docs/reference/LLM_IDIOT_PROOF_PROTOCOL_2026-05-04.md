@@ -1,7 +1,7 @@
 # LLM Idiot-Proof Protocol
 
 Data: 2026-05-04
-Status: canonical_current
+Status: current_reference
 Zakres: bardzo prosty protokół dla kolejnego modelu LLM, żeby pracował po kolei i bez zgadywania
 
 ## Przeczytaj to jak instrukcję wykonywania pracy
@@ -83,14 +83,13 @@ Ale dokumentacja canonical musi być zgodna z kodem po każdej większej zmianie
 
 1. `docs/README.md`
 2. `docs/CURRENT_STATE.md`
-3. `docs/AUDIT_2026-05-03_DEEP.md`
-4. `docs/OPENAI_MCP_CONFORMANCE_2026-05-03.md`
-5. `docs/RUNTIME_CONTRACTS_CURRENT.md`
-6. `docs/LLM_FULL_HANDOFF_2026-05-04.md`
-7. `docs/LLM_EXECUTION_BRIEF.md`
-8. `docs/REGISTRY.md`
-9. `docs/MCP_OPERATOR_MANUAL.md`
-10. `docs/DOCS_CATALOG.md`
+3. `docs/DOCUMENTATION_GOVERNANCE_SPEC.md`
+4. `docs/RUNTIME_CONTRACTS_CURRENT.md`
+5. `docs/ROADMAP_REGISTRY_EXECUTION.md`
+6. `docs/reference/LLM_EXECUTION_BRIEF.md`
+7. `docs/reference/REGISTRY.md`
+8. `docs/MCP_OPERATOR_MANUAL.md`
+9. `docs/DOCS_CATALOG.md`
 
 ## Krok zerowy — sprawdzenie narzędzi
 
