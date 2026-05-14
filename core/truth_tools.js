@@ -206,7 +206,7 @@ async function runProjectTruthAudit() {
   const docsCatalogTracksCanonicalRuntimeDocs = [
     "| `CURRENT_STATE.md` |",
     "| `RUNTIME_CONTRACTS_CURRENT.md` |",
-    "| `REGISTRY.md` |",
+    "| `reference/REGISTRY.md` |",
   ].every((needle) => docsCatalog.includes(needle));
 
   const contractSurfaceCoversWebTools =
