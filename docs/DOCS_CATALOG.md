@@ -47,6 +47,7 @@ To jest nadrzędny zestaw dokumentów:
 | `reference/CORE_MODULE_BOUNDARY_REFACTOR_PLAN.md` | plan i status refaktoru granic modułów `core/` | `current_reference` | kolejność i granice refaktoru |
 | `reference/CORE_PACKAGE_ROLE_INDEX.md` | jawny indeks ról plików `core/` (facade/module/legacy) | `current_reference` | mapowanie nazw do odpowiedzialności |
 | `reference/MCP_TOOL_CANON_STRICT_VS_STC_SAFE_PROFILE.md` | kanon rozróżnienia strict tool contract vs STC-SAFE profile | `current_reference` | używać jako definicji strictness i granicy profilu |
+| `reference/RUNTIME_STATUS_MODULE_SPEC.md` | specyfikacja modułu status/ping runtime | `current_reference` | kontrakt i plan wdrożenia statusu serwera |
 | `OPERATIONS_DEPLOY.md` | krótka checklista deploy | `current_reference` | pomocniczo obok operator manual |
 | `reference/REMOTE_SITE_TOOLS_PLAN.md` | plan i ograniczenia remote site tools | `current_reference` | tylko dla tej rodziny narzędzi |
 | `reference/LLM_EXECUTION_BRIEF.md` | briefing dla kolejnego modelu | `current_reference` | operacyjne zasady pracy modelu |

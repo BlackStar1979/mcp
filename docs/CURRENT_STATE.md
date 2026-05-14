@@ -60,6 +60,9 @@ Planowany model:
 - oba zasilane z jednego wspólnego runtime-status provider.
 
 To jest zapisane jako przyszły etap po wdrożeniu startup-time module gating dla server_tools.js.
+Wymagania wykonawcze i docelowy payload są teraz jawnie zebrane w:
+
+- `docs/reference/RUNTIME_STATUS_MODULE_SPEC.md`
 
 ### `server.js`
 

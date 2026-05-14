@@ -704,6 +704,19 @@ Priority order:
        - remote-site operational hardening, including future default config-path architecture
    - do not start this next step from memory alone; re-read canonical docs first
 
+9. `CURRENT` — runtime status module (maintenance + optimal-use selection)
+   - source spec:
+     - `docs/reference/RUNTIME_STATUS_MODULE_SPEC.md`
+   - deliverables:
+     - one shared runtime status provider
+     - HTTP status endpoint wired to provider
+     - optional read-only MCP status tool for `server_tools.js`
+     - security boundary tests (no secret leakage)
+   - constraints:
+     - no auth redesign in this track
+     - no STC-SAFE surface expansion in this track
+     - no mutation capabilities
+
 Deferred by design:
 
 - `romioncoresim` bridge remains a later track
