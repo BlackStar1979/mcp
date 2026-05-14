@@ -321,10 +321,7 @@ async function runProjectTruthAudit() {
 }
 
 async function runCodeRuntimeMap() {
-  const [serverTools, configFile] = await Promise.all([
-    readLocal("server_tools.js"),
-    readLocal("core/config.js"),
-  ]);
+  const configFile = await readLocal("core/config.js");
 
   const activeModules = [
     { file: "core/tools_index.js", register: "registerIndexTools", category: "index tools" },
@@ -336,7 +333,7 @@ async function runCodeRuntimeMap() {
     { file: "core/truth_tools.js", register: "registerTruthTools", category: "truth tools" },
     { file: "core/process_tools_safe.js", register: "registerProcessTools", category: "process tools" },
     { file: "core/remote_site_tools.js", register: "registerRemoteSiteTools", category: "remote site tools" },
-  ].filter(({ register }) => serverTools.includes(`${register}(server)`));
+  ];
 
   const testRuntimeLinks = [
     {

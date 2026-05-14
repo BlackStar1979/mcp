@@ -28,8 +28,9 @@ test("process tools expose explicit output schemas and no full env inheritance",
 });
 
 test("server_tools registers process tools module", () => {
-  assert.match(serverToolsSource, /import\("\.\/core\/process_tools_safe\.js"\)/);
-  assert.match(serverToolsSource, /registerProcessTools\(server\)/);
+  assert.match(serverToolsSource, /moduleLoaders/);
+  assert.match(serverToolsSource, /moduleLoader\.register\(server\)/);
+  assert.match(serverToolsSource, /enabled_ids/);
 });
 
 test("process_runner_status exposes allowlist, roots, and env policy", async () => {

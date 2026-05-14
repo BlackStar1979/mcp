@@ -36,30 +36,12 @@ try {
 const [
   { PORT, JSON_BODY_LIMIT, SERVER_AUTH_MODE },
   authModule,
-  { registerIndexTools },
-  { registerFsTools },
-  { registerScienceTools },
-  { registerCodeTools },
-  { registerRegistryTools },
-  { registerWebTools },
-  { registerTruthTools },
-  { registerProcessTools },
-  { registerRemoteSiteTools },
   { timeTool, timeRequest, perfStatus },
   { runRecovery },
   { rollbackPatchForRecovery },
 ] = await Promise.all([
   import("./core/config.js"),
   import(resolveAuthModulePath(cliConfig.authMode)),
-  import("./core/tools_index.js"),
-  import("./core/tools_fs.js"),
-  import("./core/science_tools.js"),
-  import("./core/code_tools_safe.js"),
-  import("./core/registry_tools_safe.js"),
-  import("./core/web_tools.js"),
-  import("./core/truth_tools.js"),
-  import("./core/process_tools_safe.js"),
-  import("./core/remote_site_tools.js"),
   import("./core/perf.js"),
   import("./core/orchestration/recovery.js"),
   import("./core/recovery_rollback.js"),
@@ -67,7 +49,23 @@ const [
 
 const { requireAuth } = authModule;
 
-function createServer() {
+const moduleLoaders = await Promise.all(
+  cliConfig.enabledModules.map(async (moduleDef) => {
+    const imported = await import(moduleDef.importPath);
+    const register = imported[moduleDef.registerExport];
+    if (typeof register !== "function") {
+      throw new Error(
+        `Module ${moduleDef.id} does not export expected function ${moduleDef.registerExport}`
+      );
+    }
+    return {
+      ...moduleDef,
+      register,
+    };
+  })
+);
+
+function createServer(activeModuleLoaders = moduleLoaders) {
   const server = new McpServer({
     name: "modular-tools",
     version: "1.7.0",
@@ -81,15 +79,9 @@ function createServer() {
     });
   };
 
-  registerIndexTools(server);
-  registerFsTools(server);
-  registerScienceTools(server);
-  registerCodeTools(server);
-  registerRegistryTools(server);
-  registerWebTools(server);
-  registerTruthTools(server);
-  registerProcessTools(server);
-  registerRemoteSiteTools(server);
+  for (const moduleLoader of activeModuleLoaders) {
+    moduleLoader.register(server);
+  }
 
   return server;
 }
@@ -191,6 +183,14 @@ async function start() {
       status: recovery.status,
       recovered_count: recovery.recovered_count,
     });
+    console.log(
+      "MODULES:",
+      {
+        enabled_ids: cliConfig.enabledModules.map((item) => item.id),
+        disabled_ids: cliConfig.disabledModules.map((item) => item.id),
+        enabled_labels: cliConfig.enabledModules.map((item) => item.label),
+      }
+    );
   });
 }
 

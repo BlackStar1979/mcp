@@ -7,6 +7,63 @@ export const SERVER_TOOLS_AUTH_PORTS = Object.freeze({
   bearer: 3002,
   oauth2: 3003,
 });
+export const SERVER_TOOL_MODULES = Object.freeze([
+  {
+    id: "index",
+    label: "index tools",
+    importPath: "./core/tools_index.js",
+    registerExport: "registerIndexTools",
+  },
+  {
+    id: "filesystem",
+    label: "filesystem tools",
+    importPath: "./core/tools_fs.js",
+    registerExport: "registerFsTools",
+  },
+  {
+    id: "science",
+    label: "science tools",
+    importPath: "./core/science_tools.js",
+    registerExport: "registerScienceTools",
+  },
+  {
+    id: "code_safe",
+    label: "connector-safe code tools",
+    importPath: "./core/code_tools_safe.js",
+    registerExport: "registerCodeTools",
+  },
+  {
+    id: "registry_safe",
+    label: "connector-safe registry tools",
+    importPath: "./core/registry_tools_safe.js",
+    registerExport: "registerRegistryTools",
+  },
+  {
+    id: "web",
+    label: "web tools",
+    importPath: "./core/web_tools.js",
+    registerExport: "registerWebTools",
+  },
+  {
+    id: "truth",
+    label: "truth tools",
+    importPath: "./core/truth_tools.js",
+    registerExport: "registerTruthTools",
+  },
+  {
+    id: "process",
+    label: "process tools",
+    importPath: "./core/process_tools_safe.js",
+    registerExport: "registerProcessTools",
+  },
+  {
+    id: "remote_site",
+    label: "remote site tools",
+    importPath: "./core/remote_site_tools.js",
+    registerExport: "registerRemoteSiteTools",
+  },
+]);
+const SERVER_TOOL_MODULE_ID_SET = new Set(SERVER_TOOL_MODULES.map((item) => item.id));
 
 const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(MODULE_DIR, "..");
@@ -33,6 +90,30 @@ function resolveCliPath(value) {
   return path.isAbsolute(raw) ? path.normalize(raw) : path.resolve(REPO_ROOT, raw);
 }
 
+function parseModuleList(value, optionName) {
+  const raw = String(value || "")
+    .split(",")
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean);
+  const unique = [];
+  for (const moduleId of raw) {
+    if (!SERVER_TOOL_MODULE_ID_SET.has(moduleId)) {
+      throw usageError(`Unknown module id in ${optionName}: ${moduleId}`);
+    }
+    if (!unique.includes(moduleId)) {
+      unique.push(moduleId);
+    }
+  }
+  return unique;
+}
+
+function parseEnvModuleList(value) {
+  return String(value || "")
+    .split(",")
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean);
+}
+
 export function serverToolsUsage() {
   return [
     "Usage:",
@@ -40,11 +121,15 @@ export function serverToolsUsage() {
     "  node C:\\Work\\mcp\\server_tools.js --auth access",
     "  node C:\\Work\\mcp\\server_tools.js --auth bearer --token-file <BASE MCP>\\.secrets\\mcp_token.txt",
     "  node C:\\Work\\mcp\\server_tools.js --auth oauth2",
+    "  node C:\\Work\\mcp\\server_tools.js --modules index,filesystem,science,code_safe,registry_safe,web,truth,process,remote_site",
+    "  node C:\\Work\\mcp\\server_tools.js --disable-modules process,remote_site",
     "",
     "Notes:",
     "  --auth access  => port 3001, Cloudflare Access assertion model",
     "  --auth bearer  => port 3002, bearer token model",
     "  --auth oauth2  => port 3003, reserved and not implemented yet",
+    "  --modules / --disable-modules  => startup-time module gating",
+    "  env MCP_ENABLED_MODULES / MCP_DISABLED_MODULES can be used as defaults",
   ].join("\n");
 }
 
@@ -52,6 +137,8 @@ export function parseServerToolsCliArgs(argv = process.argv.slice(2)) {
   const args = [...argv];
   let authMode = "access";
   let tokenFile = null;
+  let modules = null;
+  let disableModules = [];
 
   while (args.length) {
     const arg = args.shift();
@@ -68,6 +155,18 @@ export function parseServerToolsCliArgs(argv = process.argv.slice(2)) {
       continue;
     }
 
+    if (arg === "--modules") {
+      if (!args.length) throw usageError("Missing value after --modules.");
+      modules = parseModuleList(args.shift(), "--modules");
+      continue;
+    }
+
+    if (arg === "--disable-modules") {
+      if (!args.length) throw usageError("Missing value after --disable-modules.");
+      disableModules = parseModuleList(args.shift(), "--disable-modules");
+      continue;
+    }
+
     throw usageError(`Unknown argument: ${arg}`);
   }
 
@@ -75,7 +174,11 @@ export function parseServerToolsCliArgs(argv = process.argv.slice(2)) {
     throw usageError("--token-file is only valid with --auth bearer.");
   }
 
-  return { authMode, tokenFile };
+  if (modules && !modules.length) {
+    throw usageError("--modules cannot be empty.");
+  }
+
+  return { authMode, tokenFile, modules, disableModules };
 }
 
 export function applyServerToolsCliConfig(parsed, { env = process.env } = {}) {
@@ -99,10 +202,32 @@ export function applyServerToolsCliConfig(parsed, { env = process.env } = {}) {
     delete env.MCP_TOKEN;
   }
 
+  if (Array.isArray(parsed.modules) && parsed.modules.length) {
+    env.MCP_ENABLED_MODULES = parsed.modules.join(",");
+  } else {
+    delete env.MCP_ENABLED_MODULES;
+  }
+
+  if (Array.isArray(parsed.disableModules) && parsed.disableModules.length) {
+    env.MCP_DISABLED_MODULES = parsed.disableModules.join(",");
+  } else {
+    delete env.MCP_DISABLED_MODULES;
+  }
+
+  const enabledModuleIds = resolveEnabledServerModuleIds({
+    env,
+    modulesFromCli: parsed.modules,
+    disabledFromCli: parsed.disableModules,
+  });
+  const enabledModules = SERVER_TOOL_MODULES.filter((item) => enabledModuleIds.includes(item.id));
+  const disabledModules = SERVER_TOOL_MODULES.filter((item) => !enabledModuleIds.includes(item.id));
+
   return {
     authMode: parsed.authMode,
     tokenFile: parsed.tokenFile,
     port: SERVER_TOOLS_AUTH_PORTS[parsed.authMode],
+    enabledModules,
+    disabledModules,
   };
 }
 
@@ -125,5 +250,47 @@ export function resolveAuthModulePath(authMode) {
   if (authMode === "access") return "./core/auth.js";
   if (authMode === "bearer") return "./core/auth_bearer.js";
   throw new Error(`No auth module is available for mode: ${authMode}`);
+}
+
+export function resolveEnabledServerModuleIds({ env = process.env, modulesFromCli = null, disabledFromCli = null } = {}) {
+  const defaultIds = SERVER_TOOL_MODULES.map((item) => item.id);
+
+  let enabled = defaultIds;
+  if (Array.isArray(modulesFromCli) && modulesFromCli.length) {
+    enabled = modulesFromCli;
+  } else {
+    const envEnabledRaw = parseEnvModuleList(env.MCP_ENABLED_MODULES);
+    if (envEnabledRaw.length) {
+      for (const moduleId of envEnabledRaw) {
+        if (!SERVER_TOOL_MODULE_ID_SET.has(moduleId)) {
+          throw usageError(`Unknown module id in MCP_ENABLED_MODULES: ${moduleId}`);
+        }
+      }
+      enabled = [...new Set(envEnabledRaw)];
+    }
+  }
+
+  let disabled = [];
+  if (Array.isArray(disabledFromCli) && disabledFromCli.length) {
+    disabled = disabledFromCli;
+  } else {
+    const envDisabledRaw = parseEnvModuleList(env.MCP_DISABLED_MODULES);
+    if (envDisabledRaw.length) {
+      for (const moduleId of envDisabledRaw) {
+        if (!SERVER_TOOL_MODULE_ID_SET.has(moduleId)) {
+          throw usageError(`Unknown module id in MCP_DISABLED_MODULES: ${moduleId}`);
+        }
+      }
+      disabled = [...new Set(envDisabledRaw)];
+    }
+  }
+
+  const disabledSet = new Set(disabled);
+  const filtered = enabled.filter((moduleId) => !disabledSet.has(moduleId));
+  if (!filtered.length) {
+    throw usageError("No modules left after applying --modules/--disable-modules and env gating.");
+  }
+
+  return filtered;
 }
 

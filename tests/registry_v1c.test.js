@@ -28,6 +28,6 @@ test("registry v1c baseline does not expose apply_patch or mutation surface", ()
 });
 
 test("server registers registry safe module", () => {
-  assert.match(serverTools, /registry_tools_safe\.js/);
-  assert.match(serverTools, /registerRegistryTools\(server\)/);
+  assert.match(serverTools, /enabledModules\.map/);
+  assert.match(serverTools, /moduleLoader\.register\(server\)/);
 });

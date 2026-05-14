@@ -31,6 +31,12 @@ Do tych ról służą odpowiednio:
 9. `server_tools.js --auth access` używa portu `3001` i modelu Cloudflare Access / Codex; origin akceptuje request po obecności `Cf-Access-Jwt-Assertion`.
 10. `server_tools.js --auth bearer --token-file <BASE MCP>\.secrets\mcp_token.txt` używa portu `3002`, akceptuje `Authorization: Bearer ...` i zachowuje legacy `?token=...` fallback dla kompatybilności klienta. `server_tools_token.js` pozostaje tylko shimem kompatybilnościowym, nie docelowym launcherem.
 11. `server_tools.js --auth oauth2` jest zarezerwowany dla portu `3003`, ale nie jest jeszcze zaimplementowany i ma kończyć start jawnie błędem zamiast udawać działanie.
+12. `server_tools.js` wspiera startup-time module gating:
+    - `--modules <csv>`
+    - `--disable-modules <csv>`
+    - `MCP_ENABLED_MODULES`
+    - `MCP_DISABLED_MODULES`
+13. Wyłączone moduły nie są importowane ani rejestrowane w runtime; startup log raportuje `enabled_ids`, `disabled_ids`, `enabled_labels`.
 12. structuredContent jest kanałem operacyjnym; content jest warstwą prezentacyjną.
 13. `stc_safe.js` jest osobnym connector-safe profilem na porcie `3010`, używa strict shape `2025-05-strict-v1`, wystawia tylko `search` i `fetch`, nie importuje mutation-capable modułów i używa zwykłego JSON-RPC over HTTP na `POST /mcp`.
 14. Publiczny connector-safe host dla ChatGPT Desktop powinien używać hostname bez underscore; w praktyce `mcp_stc_safe...` nie przechodził handshake w Desktop app mimo poprawnych odpowiedzi HTTP, a `mcp-stc-safe...` działa poprawnie.

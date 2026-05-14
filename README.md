@@ -78,10 +78,42 @@ node C:\Work\mcp\server_tools.js --auth bearer --token-file C:\Work\mcp\.secrets
 node C:\Work\mcp\server_tools.js --auth oauth2
 ```
 
+Module gating przy starcie (`server_tools.js`):
+
+```bash
+node C:\Work\mcp\server_tools.js --auth access --modules index,filesystem,science,code_safe,registry_safe,web,truth,process,remote_site
+node C:\Work\mcp\server_tools.js --auth access --disable-modules process,remote_site
+```
+
+Ważne:
+
+- to jest lista CSV (wartości oddzielone przecinkami), nie plik `.csv`
+- separator to przecinek `,` (nie średnik `;`)
+- identyfikatory modułów:
+  - `index`
+  - `filesystem`
+  - `science`
+  - `code_safe`
+  - `registry_safe`
+  - `web`
+  - `truth`
+  - `process`
+  - `remote_site`
+- precedence:
+  - CLI (`--modules`, `--disable-modules`) ma priorytet
+  - ENV (`MCP_ENABLED_MODULES`, `MCP_DISABLED_MODULES`) działa jako domyślna konfiguracja
+- po starcie serwer wypisuje posture modułów:
+  - `enabled_ids`
+  - `disabled_ids`
+  - `enabled_labels`
+
 Uwaga:
 
 - `--auth oauth2` jest jeszcze zarezerwowany i niezaimplementowany
 - bearer mode akceptuje `Authorization: Bearer ...` i zachowuje legacy `?token=...` fallback dla kompatybilności klienta
+- nie ma jeszcze skrótowych przełączników typu `ALL/NONE/TRUE/FACADE/LEGACY/MIXRESP/SPLIT`
+- odpowiednik `ALL` to brak `--modules` i brak `--disable-modules` (domyślnie wszystko włączone)
+- odpowiednik `NONE` celowo nie istnieje: bootstrap kończy się błędem, jeśli po gatingu nie zostaje żaden moduł
 
 ### Connector-safe MCP profile
 
@@ -230,8 +262,8 @@ Czytanie zacznij od:
 ```text
 docs/README.md
 docs/CURRENT_STATE.md
-docs/AUDIT_2026-05-03_DEEP.md
-docs/OPENAI_MCP_CONFORMANCE_2026-05-03.md
+docs/RUNTIME_CONTRACTS_CURRENT.md
+docs/ROADMAP_REGISTRY_EXECUTION.md
 docs/DOCS_CATALOG.md
 ```
 

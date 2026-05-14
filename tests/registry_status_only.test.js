@@ -17,6 +17,6 @@ test("registry safe module does not import or invoke runtime dispatcher", () => 
 });
 
 test("server registers registry safe module entrypoint", () => {
-  assert.match(serverTools, /registry_tools_safe\.js/);
-  assert.match(serverTools, /registerRegistryTools\(server\)/);
+  assert.match(serverTools, /enabledModules\.map/);
+  assert.match(serverTools, /moduleLoader\.register\(server\)/);
 });

@@ -24,6 +24,22 @@ Stage: V7.4 closed / post-outputSchema planning checkpoint next
 - dispatch: NOT DEPLOYED
 - execution: NOT DEPLOYED
 
+Post-outputSchema architecture note:
+
+- startup-time module gating for `server_tools.js` is now implemented (CLI + env + startup summary)
+- next structural concern is module-boundary refactor inside `core/` after gating baseline
+Additional future architecture note:
+
+- after module-boundary cleanup and startup-time module gating, add a bounded runtime-status layer
+- it should expose module-level posture (`enabled`, `disabled`, `degraded`) and server role/health for maintenance and optimal-use selection
+- it must not expose secrets or sensitive host detail
+- preferred design: one shared runtime-status provider feeding both HTTP status endpoints and an optional read-only MCP status tool
+
+- next structural concern is no longer `outputSchema` coverage
+- next structural concern is `core/` module-boundary clarity and staged container split in `core/`
+- this is tracked separately from registry/web/outputSchema work:
+  - `docs/reference/CORE_MODULE_BOUNDARY_REFACTOR_PLAN.md`
+
 Current model:
 
 ```text
@@ -732,3 +748,5 @@ These principles are accepted into the workflow now, even where implementation i
      - `stc_safe.js`
      - public connector-safe search/fetch
      - current `oauth2` track
+
+

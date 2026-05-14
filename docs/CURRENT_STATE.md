@@ -44,6 +44,22 @@ Najważniejsza zasada:
 - source-of-truth dla bieżącego stanu technicznego pozostaje lokalny worktree i aktywny runtime path
 
 ## 2. Aktywny runtime
+## 2A. Status runtime jako przyszły etap
+
+Potwierdzone architektonicznie, ale jeszcze niewdrożone:
+
+- przy kilku równolegle uruchomionych serwerach MCP potrzebny jest bounded mechanizm statusu runtime,
+- ma on służyć jednocześnie do maintenance i do wyboru właściwego serwera przed użyciem,
+- ma raportować moduły/profil/stan runtime, a nie tylko listę tooli,
+- nie może ujawniać sekretów ani wrażliwych szczegółów hosta.
+
+Planowany model:
+
+- lekki HTTP status endpoint dla monitoringu,
+- plus ewentualny read-only MCP status tool,
+- oba zasilane z jednego wspólnego runtime-status provider.
+
+To jest zapisane jako przyszły etap po wdrożeniu startup-time module gating dla server_tools.js.
 
 ### `server.js`
 
@@ -67,6 +83,15 @@ Potwierdzone:
 - `StreamableHTTPServerTransport`
 - startup recovery
 - runtime timing/perf hooks
+- startup-time module gating jest wdrożony:
+  - `--modules <csv>`
+  - `--disable-modules <csv>`
+  - `MCP_ENABLED_MODULES`
+  - `MCP_DISABLED_MODULES`
+- startup log pokazuje posture modułów:
+  - `enabled_ids`
+  - `disabled_ids`
+  - `enabled_labels`
 - pełny `server_tools.js` ma centralny perf wrapper:
   - każde `server.registerTool(...)` jest mierzone przez `timeTool(...)`
   - każdy `POST /mcp` request jest mierzony przez `timeRequest(...)`
@@ -117,6 +142,39 @@ Potwierdzone lokalnie w repo i publicznie:
   - a do `.mcp_perf.log`:
     - `timeTool(...)`
     - `timeRequest(...)`
+
+## 2.1 Struktura `core/` — stan po audycie
+
+Potwierdzone:
+
+- `server_tools.js` jest modularny na poziomie bootstrapu/rejestracji,
+- ale `core/` nie jest jeszcze w pełni semantycznie czyste.
+
+Najważniejsze klasy:
+
+- `true module`:
+  - mała, pojedyncza odpowiedzialność
+- `package facade`:
+  - świadomie szeroki entrypoint dla rodziny narzędzi
+- `legacy container` / `mixed responsibility`:
+  - plik wyglądający jak moduł, ale faktycznie będący kontenerem wielu różnych ról
+
+Najbardziej problematyczne po audycie:
+
+- `core/tools_fs.js`
+- `core/truth_tools.js`
+- `core/remote_site_tools.js`
+- `core/code_tools_safe.js`
+- `core/code_tools.js` jako legacy container
+
+Kierunek przyjęty:
+
+- najpierw startup-time module gating,
+- dopiero potem etapowe rozcięcie największych kontenerów.
+
+Szczegóły i kolejność:
+
+- `docs/reference/CORE_MODULE_BOUNDARY_REFACTOR_PLAN.md`
 
 Potwierdzone założenia kontraktu connector-safe po lekturze `C:\Work\mcp-tests\MCP_CONNECTOR_FINDINGS_DUMP_2026-05-12_v2.md`:
 
@@ -926,6 +984,7 @@ Jeśli potrzebujesz:
 - workflow operatorskiego: `MCP_OPERATOR_MANUAL.md`
 - aktualnego stanu registry: `docs/reference/REGISTRY.md`
 - wymagań Python: `docs/reference/PYTHON_RUNTIME_REQUIREMENTS.md`
+
 
 
 

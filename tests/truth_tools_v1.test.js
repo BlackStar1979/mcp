@@ -51,8 +51,8 @@ test("project_truth_audit is read-only and local-world", () => {
 });
 
 test("server_tools registers truth tools module", () => {
-  assert.match(serverTools, /import\("\.\/core\/truth_tools\.js"\)/);
-  assert.match(serverTools, /registerTruthTools\(server\)/);
+  assert.match(serverTools, /enabledModules\.map/);
+  assert.match(serverTools, /moduleLoader\.register\(server\)/);
 });
 
 test("project_truth_audit handler returns healthy baseline on current repo", async () => {
