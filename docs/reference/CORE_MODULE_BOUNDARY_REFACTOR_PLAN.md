@@ -389,7 +389,7 @@ Priorytet:
 
 Status:
 
-- `IN PROGRESS`
+- `DONE`
 - `tools_fs.js` rozcięty i sprowadzony do fasady:
   - `core/filesystem/read_tools.js`
   - `core/filesystem/mutation_tools.js`
@@ -412,8 +412,11 @@ Status:
   - `core/code/symbols_tools.js`
   - `core/code/analysis_tools.js`
   - `core/code/shared_runtime.js`
-- następny cel pozostaje:
-  - domknięcie inwentaryzacji pozostałych facad i helper package naming normalization
+- etap 3 zamknięty dla głównych kontenerów:
+  - `tools_fs.js`
+  - `truth_tools.js`
+  - `remote_site_tools.js`
+  - `code_tools_safe.js`
 
 ### Etap 4 — package naming normalization
 
@@ -424,6 +427,13 @@ Po rozcięciu:
   - facade
   - package entry
   - legacy adapter
+
+Status:
+
+- `DONE` dla aktywnego runtime:
+  - facady mają jawne oznaczenie roli (`Package facade`) w kodzie,
+  - istnieje indeks ról:
+    - `docs/reference/CORE_PACKAGE_ROLE_INDEX.md`
 
 ## Czego nie robić
 
@@ -437,11 +447,8 @@ Po rozcięciu:
 
 Najbardziej sensowny kolejny ruch:
 
-1. kontynuować etap 3 od `truth_tools.js`
-2. po każdym splisie utrzymywać:
-   - ten sam tool contract
-   - ten sam runtime behavior
-   - zielone `npm test`
+1. utrzymać rozdział: facade vs domain package jako regułę dla nowych rodzin tooli
+2. przy każdej nowej rodzinie dopisać ją do `CORE_PACKAGE_ROLE_INDEX.md` i `DOCS_CATALOG.md`
 3. utrzymać startup posture jako wspólny mechanizm dla PC i VPS
 
 

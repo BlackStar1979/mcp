@@ -12,8 +12,8 @@ export {
   joinRemoteUnderRoot,
 };
 
+// Package facade: remote-site tool family entrypoint for server bootstrap.
 export function registerRemoteSiteTools(server) {
   registerRemoteSiteFileOpsTools(server);
   registerRemoteSiteRuntimeTools(server);
 }
-

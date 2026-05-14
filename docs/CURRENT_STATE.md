@@ -204,6 +204,8 @@ Kierunek przyjęty:
 
 - najpierw startup-time module gating,
 - dopiero potem etapowe rozcięcie największych kontenerów.
+- po rozcięciu kontenerów domknięto też naming normalization przez jawny indeks ról:
+  - `docs/reference/CORE_PACKAGE_ROLE_INDEX.md`
 
 Szczegóły i kolejność:
 
