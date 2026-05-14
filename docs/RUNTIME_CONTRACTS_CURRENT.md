@@ -204,7 +204,8 @@ Adresowanie ścieżek:
   - search nie jest stabilne
   - fetch neutralny i real-doc nie są stabilne
   - Desktop nie przestanie wykazywać approval/preflight instability
-- `strict-v1` today is intentionally limited to `search` and `fetch`, but this is an engineering isolation choice, not a proven protocol rule that ChatGPT Desktop requires exactly two tools in all cases
+- `strict-v1` in STC-SAFE is intentionally limited to `search` and `fetch`, but this is an engineering isolation choice for this profile, not a definition of strict MCP tools in general
+- strictness is a generic tool-contract property (descriptor/schema/annotations/runtime-result/tests) and is not restricted to `search/fetch`
 - `stc_safe.js` currently behaves as a stateless connector-safe profile; do not plan server-to-client-dependent features there without revisiting the transport model
 - `stc_safe.js` is now expected to produce both:
   - perf entries for MCP request/tool timing

@@ -268,9 +268,8 @@ Granica potwierdzenia i rola:
 - `stc_safe.js` nie zastępuje `server.js`
 - `server.js` pozostaje lokalnym read-only MCP dla workspace
 - `stc_safe.js` jest osobnym publicznym profilem connector-safe dla ChatGPT Desktop
-- strict `2025-05-strict-v1` oznacza dziś wyłącznie:
-  - `search`
-  - `fetch`
+- strict `2025-05-strict-v1` opisuje aktualny kontrakt profilu STC-SAFE (obecnie surface `search/fetch`), ale nie definiuje globalnie strictness dla całego MCP.
+- strictness narzędzia jest własnością kontraktu descriptor+handler i może dotyczyć dowolnej rodziny tooli.
 - nie jest potwierdzone, że ChatGPT Desktop wymaga dokładnie dwóch tooli jako takiego wymogu protokołu; potwierdzone jest tylko to, że minimalny profil z poprawnym shape działa stabilnie
 - niektóre wrażliwie wyglądające argumenty mogą być zatrzymywane przez ChatGPT Desktop approval/preflight zanim dotrą do MCP; taki request nie jest server-solvable i nie pojawi się w audit logu serwera
 
