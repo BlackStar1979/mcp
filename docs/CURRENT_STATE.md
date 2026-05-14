@@ -266,6 +266,31 @@ Granica potwierdzenia i rola:
 - nie jest potwierdzone, że ChatGPT Desktop wymaga dokładnie dwóch tooli jako takiego wymogu protokołu; potwierdzone jest tylko to, że minimalny profil z poprawnym shape działa stabilnie
 - niektóre wrażliwie wyglądające argumenty mogą być zatrzymywane przez ChatGPT Desktop approval/preflight zanim dotrą do MCP; taki request nie jest server-solvable i nie pojawi się w audit logu serwera
 
+### STC-SAFE: neutral task ID pattern (operacyjnie aktywne)
+
+Potwierdzone w komentarzach i runtime `core/stc_safe_runtime.js`:
+
+- neutralne task IDs są celowo zwykłymi dokumentami STC-SAFE, a nie diagnostycznymi canary,
+- docelowy bezpieczny przepływ to:
+  - `search({ query: "neutralny termin" })` -> tylko `id/title/url`
+  - `fetch({ id: "stabilny-neutralny-id" })` -> bounded tekst wybrany po stronie serwera,
+- celem jest unikanie przesyłania wrażliwych fraz jako argumentów MCP przy zachowaniu niezmienionego surface `search/fetch`.
+
+Potwierdzona granica bezpieczeństwa tego wzorca:
+
+- to nie jest payload smuggling,
+- brak Base64,
+- brak dowolnego encoded blob,
+- brak dekodowania po stronie serwera tekstu dostarczonego przez użytkownika,
+- brak nowego tool surface,
+- brak capability mutacji/execute/write.
+
+Implikacja operacyjna:
+
+- requesty zatrzymane upstream przez approval/preflight klienta nie docierają do MCP,
+- serwer nie może ich wtedy walidować, sanitizować ani audytować,
+- STC-SAFE pozostaje read-only i działa przez neutralny server-selected context.
+
 Potwierdzone aktywne narzędzia warstwy truth tools:
 
 - `project_truth_audit`
