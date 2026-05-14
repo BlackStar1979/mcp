@@ -6,7 +6,14 @@ import { pathToFileURL } from "url";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 
-import { ALLOWED_INDEX_EXTENSIONS, listWorkspaceRoots, workspaceAccessHint } from "./core/config.js";
+import {
+  ALLOWED_INDEX_EXTENSIONS,
+  listWorkspaceRoots,
+  workspaceAccessHint,
+  LOG_FILE,
+  PERF_LOG_FILE,
+} from "./core/config.js";
+import { buildRuntimeStatus } from "./core/observability/runtime_status_provider.js";
 import { safePath, toRel } from "./core/paths.js";
 
 const PORT = 3000;
@@ -284,6 +291,41 @@ app.use(express.json({ limit: "50mb" }));
 
 app.get("/", (req, res) => {
   res.send("Read-only MCP server is running. Use /mcp.");
+});
+
+async function runtimeStatusPayload() {
+  return buildRuntimeStatus({
+    runtime: {
+      name: "local-mcp-readonly-files",
+      version: "1.1.3",
+      profile: "readonly",
+      auth_mode: "none",
+    },
+    network: {
+      host: "127.0.0.1",
+      port: PORT,
+      public_endpoint_hint: "",
+    },
+    modules: {
+      enabled_ids: ["index", "filesystem"],
+      disabled_ids: [],
+      degraded_ids: [],
+    },
+    paths: {
+      audit_log_file: LOG_FILE,
+      perf_log_file: PERF_LOG_FILE,
+    },
+  });
+}
+
+app.get("/healthz", async (req, res) => {
+  const status = await runtimeStatusPayload();
+  res.status(status.health.level === "degraded" ? 503 : 200).json(status);
+});
+
+app.get("/statusz", async (req, res) => {
+  const status = await runtimeStatusPayload();
+  res.status(200).json(status);
 });
 
 app.all("/mcp", async (req, res) => {

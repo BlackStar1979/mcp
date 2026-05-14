@@ -44,23 +44,24 @@ Najważniejsza zasada:
 - source-of-truth dla bieżącego stanu technicznego pozostaje lokalny worktree i aktywny runtime path
 
 ## 2. Aktywny runtime
-## 2A. Status runtime jako przyszły etap
+## 2A. Status runtime (wdrożony etap HTTP)
 
-Potwierdzone architektonicznie, ale jeszcze niewdrożone:
+Potwierdzone:
 
-- przy kilku równolegle uruchomionych serwerach MCP potrzebny jest bounded mechanizm statusu runtime,
-- ma on służyć jednocześnie do maintenance i do wyboru właściwego serwera przed użyciem,
-- ma raportować moduły/profil/stan runtime, a nie tylko listę tooli,
-- nie może ujawniać sekretów ani wrażliwych szczegółów hosta.
+- wspólny provider statusu runtime istnieje: `core/observability/runtime_status_provider.js`,
+- `server.js` i `server_tools.js` wystawiają:
+  - `GET /healthz`
+  - `GET /statusz`
+- payload jest bounded i zawiera:
+  - `runtime` (name/version/profile/auth_mode),
+  - `process` (pid/uptime_s),
+  - `network` (host/port/public_endpoint_hint),
+  - `modules` (enabled_ids/disabled_ids/degraded_ids),
+  - `observability` (audit_writable/perf_writable),
+  - `health` (level/warnings),
+- status payload nie zawiera tokenów/sekretów.
 
-Planowany model:
-
-- lekki HTTP status endpoint dla monitoringu,
-- plus ewentualny read-only MCP status tool,
-- oba zasilane z jednego wspólnego runtime-status provider.
-
-To jest zapisane jako przyszły etap po wdrożeniu startup-time module gating dla server_tools.js.
-Wymagania wykonawcze i docelowy payload są teraz jawnie zebrane w:
+Wymagania i kontrakt referencyjny:
 
 - `docs/reference/RUNTIME_STATUS_MODULE_SPEC.md`
 

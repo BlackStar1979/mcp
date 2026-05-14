@@ -34,15 +34,17 @@ try {
 }
 
 const [
-  { PORT, JSON_BODY_LIMIT, SERVER_AUTH_MODE },
+  { PORT, JSON_BODY_LIMIT, SERVER_AUTH_MODE, LOG_FILE, PERF_LOG_FILE },
   authModule,
   { timeTool, timeRequest, perfStatus },
+  { buildRuntimeStatus },
   { runRecovery },
   { rollbackPatchForRecovery },
 ] = await Promise.all([
   import("./core/config.js"),
   import(resolveAuthModulePath(cliConfig.authMode)),
   import("./core/perf.js"),
+  import("./core/observability/runtime_status_provider.js"),
   import("./core/orchestration/recovery.js"),
   import("./core/recovery_rollback.js"),
 ]);
@@ -92,6 +94,41 @@ app.use(express.json({ limit: JSON_BODY_LIMIT }));
 
 app.get("/", (req, res) => {
   res.status(200).send("MCP server is running. Use POST /mcp.");
+});
+
+async function runtimeStatusPayload() {
+  return buildRuntimeStatus({
+    runtime: {
+      name: "modular-tools",
+      version: "1.7.0",
+      profile: "tools",
+      auth_mode: SERVER_AUTH_MODE,
+    },
+    network: {
+      host: "127.0.0.1",
+      port: PORT,
+      public_endpoint_hint: "",
+    },
+    modules: {
+      enabled_ids: cliConfig.enabledModules.map((item) => item.id),
+      disabled_ids: cliConfig.disabledModules.map((item) => item.id),
+      degraded_ids: [],
+    },
+    paths: {
+      audit_log_file: LOG_FILE,
+      perf_log_file: PERF_LOG_FILE,
+    },
+  });
+}
+
+app.get("/healthz", async (req, res) => {
+  const status = await runtimeStatusPayload();
+  res.status(status.health.level === "degraded" ? 503 : 200).json(status);
+});
+
+app.get("/statusz", async (req, res) => {
+  const status = await runtimeStatusPayload();
+  res.status(200).json(status);
 });
 
 function methodNotAllowed(res) {
