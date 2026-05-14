@@ -28,6 +28,11 @@ Post-outputSchema architecture note:
 
 - startup-time module gating for `server_tools.js` is now implemented (CLI + env + startup summary)
 - next structural concern is module-boundary refactor inside `core/` after gating baseline
+- `tools_fs.js` split is started and landed as:
+  - `core/filesystem/read_tools.js`
+  - `core/filesystem/mutation_tools.js`
+  - `core/filesystem/patch_tools.js`
+  with `core/tools_fs.js` kept as compatibility facade
 Additional future architecture note:
 
 - after module-boundary cleanup and startup-time module gating, add a bounded runtime-status layer

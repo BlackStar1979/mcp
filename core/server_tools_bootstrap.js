@@ -138,7 +138,7 @@ export function parseServerToolsCliArgs(argv = process.argv.slice(2)) {
   let authMode = "access";
   let tokenFile = null;
   let modules = null;
-  let disableModules = [];
+  let disableModules = null;
 
   while (args.length) {
     const arg = args.shift();
@@ -202,16 +202,20 @@ export function applyServerToolsCliConfig(parsed, { env = process.env } = {}) {
     delete env.MCP_TOKEN;
   }
 
-  if (Array.isArray(parsed.modules) && parsed.modules.length) {
-    env.MCP_ENABLED_MODULES = parsed.modules.join(",");
-  } else {
-    delete env.MCP_ENABLED_MODULES;
+  if (Array.isArray(parsed.modules)) {
+    if (parsed.modules.length) {
+      env.MCP_ENABLED_MODULES = parsed.modules.join(",");
+    } else {
+      delete env.MCP_ENABLED_MODULES;
+    }
   }
 
-  if (Array.isArray(parsed.disableModules) && parsed.disableModules.length) {
-    env.MCP_DISABLED_MODULES = parsed.disableModules.join(",");
-  } else {
-    delete env.MCP_DISABLED_MODULES;
+  if (Array.isArray(parsed.disableModules)) {
+    if (parsed.disableModules.length) {
+      env.MCP_DISABLED_MODULES = parsed.disableModules.join(",");
+    } else {
+      delete env.MCP_DISABLED_MODULES;
+    }
   }
 
   const enabledModuleIds = resolveEnabledServerModuleIds({

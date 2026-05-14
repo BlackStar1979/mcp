@@ -20,7 +20,7 @@ test("server_tools CLI defaults to access mode", () => {
     authMode: "access",
     tokenFile: null,
     modules: null,
-    disableModules: [],
+    disableModules: null,
   });
 });
 
@@ -130,5 +130,41 @@ test("assertSupportedRuntimeConfig blocks oauth2 and missing bearer secret", () 
 test("resolveAuthModulePath returns access and bearer modules", () => {
   assert.equal(resolveAuthModulePath("access"), "./core/auth.js");
   assert.equal(resolveAuthModulePath("bearer"), "./core/auth_bearer.js");
+});
+
+test("module gating rejects NONE-equivalent selection", () => {
+  const env = {};
+  assert.throws(
+    () =>
+      applyServerToolsCliConfig(
+        {
+          authMode: "access",
+          tokenFile: null,
+          modules: ["web"],
+          disableModules: ["web"],
+        },
+        { env }
+      ),
+    /No modules left/
+  );
+});
+
+test("module gating rejects unknown env module ids", () => {
+  const env = {
+    MCP_ENABLED_MODULES: "web,unknown",
+  };
+  assert.throws(
+    () =>
+      applyServerToolsCliConfig(
+        {
+          authMode: "access",
+          tokenFile: null,
+          modules: null,
+          disableModules: null,
+        },
+        { env }
+      ),
+    /Unknown module id in MCP_ENABLED_MODULES/
+  );
 });
 

@@ -365,6 +365,17 @@ bez rozcinania jeszcze wszystkich kontenerów.
 
 To da szybki zysk operacyjny i wzorzec pod VPS.
 
+Status:
+
+- `DONE` — startup-time module gating działa w `server_tools.js`
+- dostępne:
+  - `--modules <csv>`
+  - `--disable-modules <csv>`
+  - `MCP_ENABLED_MODULES`
+  - `MCP_DISABLED_MODULES`
+- `NONE`-equivalent jest blokowane (bootstrap kończy się błędem, jeśli nie zostaje żaden moduł)
+- startup wypisuje posture modułów (`enabled_ids`, `disabled_ids`, `enabled_labels`)
+
 ### Etap 3 — rozcięcie największych kontenerów
 
 Priorytet:
@@ -375,6 +386,18 @@ Priorytet:
 4. `code_tools_safe.js`
 
 `code_tools.js` traktować jako legacy surface do wygaszenia albo ograniczenia, nie jako bazę nowego porządku.
+
+Status:
+
+- `IN PROGRESS`
+- `tools_fs.js` rozcięty i sprowadzony do fasady:
+  - `core/filesystem/read_tools.js`
+  - `core/filesystem/mutation_tools.js`
+  - `core/filesystem/patch_tools.js`
+- następny cel pozostaje:
+  - `truth_tools.js`
+  - `remote_site_tools.js`
+  - `code_tools_safe.js`
 
 ### Etap 4 — package naming normalization
 
@@ -398,17 +421,12 @@ Po rozcięciu:
 
 Najbardziej sensowny kolejny ruch:
 
-1. wprowadzić jawny startup-time module gating do `server_tools.js`
-2. dodać testy, że moduł wyłączony:
-   - nie jest importowany/rejestrowany
-   - znika z tool surface
-3. dopiero potem rozcinać największe kontenery
-
-To da:
-
-- mniejszy risk,
-- szybszą wartość operacyjną,
-- i wspólny mechanizm dla PC oraz VPS.
+1. kontynuować etap 3 od `truth_tools.js`
+2. po każdym splisie utrzymywać:
+   - ten sam tool contract
+   - ten sam runtime behavior
+   - zielone `npm test`
+3. utrzymać startup posture jako wspólny mechanizm dla PC i VPS
 
 
 

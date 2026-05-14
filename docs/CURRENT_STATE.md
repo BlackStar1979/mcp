@@ -161,11 +161,18 @@ Najważniejsze klasy:
 
 Najbardziej problematyczne po audycie:
 
-- `core/tools_fs.js`
 - `core/truth_tools.js`
 - `core/remote_site_tools.js`
 - `core/code_tools_safe.js`
 - `core/code_tools.js` jako legacy container
+
+Zamknięte po audycie:
+
+- `core/tools_fs.js` został zredukowany do cienkiej fasady
+- odpowiedzialności filesystem są rozdzielone do:
+  - `core/filesystem/read_tools.js`
+  - `core/filesystem/mutation_tools.js`
+  - `core/filesystem/patch_tools.js`
 
 Kierunek przyjęty:
 
