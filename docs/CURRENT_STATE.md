@@ -193,6 +193,12 @@ Zamknięte po audycie:
   - `core/remote_site/runtime_tools.js`
   - współdzielone runtime/schema/path helpery:
     - `core/remote_site/shared_runtime.js`
+- `core/code_tools_safe.js` został zredukowany do cienkiej fasady
+- odpowiedzialności code-safe są rozdzielone do:
+  - `core/code/symbols_tools.js`
+  - `core/code/analysis_tools.js`
+  - współdzielone runtime/schema/graph helpery:
+    - `core/code/shared_runtime.js`
 
 Kierunek przyjęty:
 

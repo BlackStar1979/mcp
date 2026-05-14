@@ -33,7 +33,11 @@ test("connector-safe runtime logs requests and tool calls", async () => {
 test("index, science, and code tool groups contain audit logging", async () => {
   const indexSource = await readFromRepo("core", "tools_index.js");
   const scienceSource = await readFromRepo("core", "science_tools.js");
-  const codeSource = await readFromRepo("core", "code_tools_safe.js");
+  const codeSource = [
+    await readFromRepo("core", "code_tools_safe.js"),
+    await readFromRepo("core", "code", "symbols_tools.js"),
+    await readFromRepo("core", "code", "analysis_tools.js"),
+  ].join("\n");
 
   for (const pattern of [
     /await audit\("index_status"/,

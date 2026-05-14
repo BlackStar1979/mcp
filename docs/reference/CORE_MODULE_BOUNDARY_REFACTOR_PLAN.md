@@ -408,8 +408,12 @@ Status:
   - `core/remote_site/file_ops_tools.js`
   - `core/remote_site/runtime_tools.js`
   - `core/remote_site/shared_runtime.js`
+- `code_tools_safe.js` rozcięty i sprowadzony do fasady:
+  - `core/code/symbols_tools.js`
+  - `core/code/analysis_tools.js`
+  - `core/code/shared_runtime.js`
 - następny cel pozostaje:
-  - `code_tools_safe.js`
+  - domknięcie inwentaryzacji pozostałych facad i helper package naming normalization
 
 ### Etap 4 — package naming normalization
 
