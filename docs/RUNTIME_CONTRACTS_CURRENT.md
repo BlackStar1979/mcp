@@ -322,6 +322,9 @@ Therefore:
    - refresh tools in ChatGPT Desktop
    before deleting/recreating the connector.
 7. `code_sample_js` belongs to the safe read-only testing/diagnostic family, not to the mutation/execution family.
+8. Full `server_tools.js` MCP over `POST /mcp` currently enforces streamable-HTTP content negotiation:
+   - requests must accept both `application/json` and `text/event-stream`
+   - a request missing this `Accept` contract is rejected with `Not Acceptable`
 2. For connector-safe diagnostics, compare:
    - raw `GET /healthz`
    - raw `POST /mcp initialize`

@@ -987,6 +987,17 @@ Aktualny checkpoint potwierdzony lokalnie po korektach test surface:
 - wynik audytu tych zmian:
   - `core/code/shared_runtime.js` rozpoznaje lokalne literalne `require("...")` dla code graph, ale nie traktuje już komentarzy i stringów zawierających tekst `require(...)` jako importów
   - `core/filesystem/patch_tools.js` normalizuje matching anchora `edit_file_patch` między `CRLF` / `LF` / `CR`, zachowuje dominujący line ending pliku docelowego i nadal blokuje niejednoznaczny anchor po normalizacji
+- live MCP verification po pushu `770739a`, restarcie `server_tools.js`, restarcie `stc_safe.js` i restarcie Codexa na `2026-05-23`:
+  - `GET http://127.0.0.1:3001/healthz` — `status: ok`
+  - `GET http://127.0.0.1:3001/statusz` — `status: ok`
+  - `GET http://127.0.0.1:3010/healthz` — `status: ok`
+  - `POST http://127.0.0.1:3001/mcp` `initialize` — PASS
+  - `POST http://127.0.0.1:3001/mcp` `tools/list` — PASS
+  - `POST http://127.0.0.1:3001/mcp` `tools/call project_truth_audit` — `status: ok`, `drifts: []`
+  - `POST http://127.0.0.1:3010/mcp` `initialize` — PASS
+  - `POST http://127.0.0.1:3010/mcp` `tools/list` — PASS
+  - `POST http://127.0.0.1:3010/mcp` `tools/call search({ query: "current state" })` — PASS
+  - `npm test` po restarcie środowiska — PASS `194/194`
 
 Obszary objęte testami:
 
