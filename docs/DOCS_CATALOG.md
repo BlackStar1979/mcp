@@ -92,6 +92,12 @@ Powód:
 - mieszają plan, wdrożenie, historię i incydent,
 - łatwo je pomylić z dokumentami canonical.
 
+Stan po serii normalizacyjnej:
+
+- najbardziej mylące pliki `archive/` mają już zsynchronizowane statusy z tym katalogiem
+- kluczowe szerokie pliki `reference/` dostały jawne reguły czytania obok canonical docs
+- nadal należy zakładać, że przy rozjeździe rozstrzygające są canonical docs i aktywny runtime
+
 ## Reguła użycia katalogu od teraz
 
 1. Najpierw czytaj canonical set.

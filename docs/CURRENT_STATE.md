@@ -1059,9 +1059,9 @@ Potwierdzone:
 
 ## 10. Najważniejsze otwarte nieprawidłowości
 
-1. Część dokumentacji reference nadal wymaga ostrożnego porównywania z aktywnym runtime przed użyciem jako source-of-truth.
-2. Status headers w najbardziej mylących plikach `docs/archive/` zostały zsynchronizowane z `DOCS_CATALOG.md`, `docs/reference/ARCHITECTURE_DECISIONS.md` został doprowadzony do zgodności z aktualnym modelem observability i lokalnych katalogów runtime, `docs/reference/REMOTE_SITE_TOOLS_PLAN.md` został doprecyzowany jako warstwa constraint/plan, proceduralne docs LLM zostały ograniczone tak, by nie konkurowały z canonical workflow i live MCP verification, `docs/reference/REGISTRY.md` został ograniczony do roli wąskiej referencji tematycznej, `docs/reference/CORE_MODULE_BOUNDARY_REFACTOR_PLAN.md` został doprecyzowany jako plan refaktoru, nie snapshot aktywnego runtime, a strategia redakcyjna docs została jawnie podporządkowana canonical layer.
-3. Starsze docs registry/design nadal mieszają plan, historię i wdrożenie; `docs/reference/REGISTRY.md` oraz `RUNTIME_CONTRACTS_CURRENT.md` pozostają ważniejszymi źródłami dla bieżącego runtime.
+1. Część dokumentacji reference nadal wymaga ostrożnego porównywania z aktywnym runtime przed użyciem jako source-of-truth, ale główne szerokie dokumenty o najwyższym ryzyku mylącego autorytetu zostały już znormalizowane.
+2. Status headers w najbardziej mylących plikach `docs/archive/` zostały zsynchronizowane z `DOCS_CATALOG.md`, a najważniejsze `current_reference` dostały jawne reguły czytania obok canonical docs i aktywnego runtime.
+3. Starsze docs registry/design nadal mieszają plan, historię i wdrożenie; przy realnym rozjeździe `CURRENT_STATE.md`, `RUNTIME_CONTRACTS_CURRENT.md` i aktywny runtime path pozostają rozstrzygające.
 
 ## 11. Czytaj dalej
 
