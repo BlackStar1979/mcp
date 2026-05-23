@@ -127,6 +127,12 @@ test("assertSupportedRuntimeConfig blocks oauth2 and missing bearer secret", () 
   );
 });
 
+test("assertSupportedRuntimeConfig still accepts legacy MCP_TOKEN fallback for local bearer mode", () => {
+  assert.doesNotThrow(
+    () => assertSupportedRuntimeConfig({ authMode: "bearer", tokenFile: null }, { env: { MCP_TOKEN: "legacy-local-secret" } })
+  );
+});
+
 test("resolveAuthModulePath returns access and bearer modules", () => {
   assert.equal(resolveAuthModulePath("access"), "./core/auth.js");
   assert.equal(resolveAuthModulePath("bearer"), "./core/auth_bearer.js");
