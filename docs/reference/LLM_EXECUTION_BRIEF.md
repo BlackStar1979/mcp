@@ -2,11 +2,27 @@
 
 Data: 2026-05-03
 Status: current_reference
-Zakres: instrukcja dla kolejnego modelu LLM kontynuującego rozwój `C:\Work\mcp`
+Zakres: instrukcja dla kolejnego modelu LLM kontynuującego rozwój `C:\Work\mcp`; czytać jako proceduralny guide, nie jako samodzielny snapshot aktywnego runtime
 
 Dokument nadrzędny dla porządku dokumentacyjnego:
 
 - `docs/DOCUMENTATION_GOVERNANCE_SPEC.md`
+
+## Ważne
+
+Ten dokument ma pomagać w prowadzeniu pracy modelu, ale nie zastępuje canonical docs ani aktywnej weryfikacji runtime.
+
+Czytaj razem z:
+
+1. `docs/CURRENT_STATE.md`
+2. `docs/RUNTIME_CONTRACTS_CURRENT.md`
+3. `docs/DOCS_CATALOG.md`
+
+Aktualna reguła operacyjna:
+
+- zmiany `repo-only` i `test-only` nie wymagają deploy pipeline, restartu ani reconnectu
+- zmiany runtime-facing wymagają właściwej ścieżki staging/deploy
+- po zmianach runtime-facing należy domknąć pracę live MCP smoke-checkiem, a nie tylko zielonym `npm test`
 
 ## Rola
 

@@ -2,7 +2,23 @@
 
 Data: 2026-05-04
 Status: current_reference
-Zakres: bardzo prosty protokół dla kolejnego modelu LLM, żeby pracował po kolei i bez zgadywania
+Zakres: bardzo prosty protokół dla kolejnego modelu LLM, żeby pracował po kolei i bez zgadywania; czytać jako proceduralną checklistę, nie jako nadrzędny opis bieżącego runtime
+
+## Ważne
+
+Ten dokument ma upraszczać zachowanie modelu, ale nie może konkurować z canonical docs ani z aktywną weryfikacją runtime.
+
+Czytaj razem z:
+
+1. `docs/CURRENT_STATE.md`
+2. `docs/RUNTIME_CONTRACTS_CURRENT.md`
+3. `docs/DOCS_CATALOG.md`
+
+Aktualna reguła operacyjna:
+
+- zmiany `repo-only` i `test-only` kończą się na walidacji, aktualizacji canonical docs, commit i push
+- zmiany runtime-facing przechodzą przez `.mcp_warzone`, `Prepare`, `Execute`, restart i reconnect tylko wtedy, gdy to naprawdę zmienia runtime/tool surface
+- po zmianie runtime-facing obowiązuje live MCP smoke-check, nie tylko lokalny test repo
 
 ## Przeczytaj to jak instrukcję wykonywania pracy
 
