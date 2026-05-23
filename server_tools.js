@@ -91,6 +91,20 @@ function createServer(activeModuleLoaders = moduleLoaders) {
 const app = express();
 
 app.use(express.json({ limit: JSON_BODY_LIMIT }));
+app.use((err, req, res, next) => {
+  if (err?.type === "entity.parse.failed") {
+    res.status(400).json({
+      jsonrpc: "2.0",
+      error: {
+        code: -32700,
+        message: "Parse error",
+      },
+      id: null,
+    });
+    return;
+  }
+  next(err);
+});
 
 app.get("/", (req, res) => {
   res.status(200).send("MCP server is running. Use POST /mcp.");

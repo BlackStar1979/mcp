@@ -1000,8 +1000,8 @@ Aktualny checkpoint potwierdzony lokalnie po korektach test surface:
   - `POST http://127.0.0.1:3010/mcp` `tools/call search({ query: "current state" })` — PASS
   - `npm test` po restarcie środowiska — PASS `194/194`
 - repo validation po dodaniu guardraila dla transport contract `server_tools /mcp`:
-  - `node --test tests/server_tools_mcp_transport_contract.test.js` — PASS `2/2`
-  - `npm test` — PASS `196/196`
+  - `node --test tests/server_tools_mcp_transport_contract.test.js` — PASS `3/3`
+  - `npm test` — PASS `199/199`
 
 Obszary objęte testami:
 
@@ -1029,6 +1029,7 @@ Obszary objęte testami:
 - `server_tools /mcp` transport contract:
   - CORS allow-list zawiera `Accept`
   - runtime używa `StreamableHTTPServerTransport`
+  - malformed JSON body dostaje bounded `HTTP 400` z MCP `Parse error`, bez stack trace spam na stderr
 - local CommonJS dependency graph resolution bez false positives z komentarzy/stringów
 - `edit_file_patch` line-ending normalization dla anchorów i treści
 - remote site tools contract i handler baseline dla `run_process` i `process_runner_status`

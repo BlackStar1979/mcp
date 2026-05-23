@@ -328,6 +328,7 @@ Therefore:
 8. Full `server_tools.js` MCP over `POST /mcp` currently enforces streamable-HTTP content negotiation:
    - requests must accept both `application/json` and `text/event-stream`
    - a request missing this `Accept` contract is rejected with `Not Acceptable`
+   - malformed JSON request bodies are rejected with bounded `HTTP 400` / JSON-RPC parse error instead of leaking raw parser stack traces to runtime stderr
 2. For connector-safe diagnostics, compare:
    - raw `GET /healthz`
    - raw `POST /mcp initialize`
