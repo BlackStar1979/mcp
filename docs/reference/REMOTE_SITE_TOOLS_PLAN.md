@@ -2,7 +2,23 @@
 
 Data: 2026-05-12
 Status: current_reference
-Zakres: plan bounded remote VPS site file tools for local MCP runtime
+Zakres: plan i ograniczenia architektoniczne dla bounded remote VPS site tools; nie jest pełnym bieżącym snapshotem wdrożonego tool surface
+
+## Important
+
+This document remains useful as the design/constraint layer for the remote-site family, but it must not be read alone as the current deployment state.
+
+Read together with:
+
+1. `docs/CURRENT_STATE.md`
+2. `docs/RUNTIME_CONTRACTS_CURRENT.md`
+3. `docs/DOCS_CATALOG.md`
+
+Current reality to keep in mind:
+
+- the `remote_site_*` tool family is already present in the active runtime
+- runtime status and retention-preview tools also exist beyond the earlier v1 planning subset
+- this file should therefore be read as constraint/intent context, not as a complete list of what is currently deployed
 
 ## Objective
 
