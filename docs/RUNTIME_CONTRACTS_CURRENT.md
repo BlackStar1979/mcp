@@ -309,6 +309,9 @@ Therefore:
    - `inputSchema` / `outputSchema` changes
    - runtime bootstrap sequence changes
    because it instantiates a real `McpServer` and executes production registration functions instead of only validating descriptors statically
+9. `tests/server_tools_mcp_transport_contract.test.js` is a required static guardrail for the full `server_tools.js` transport edge:
+   - `Accept` must remain present in the `/mcp` CORS allow-list
+   - the runtime path must continue using `StreamableHTTPServerTransport`
 
 ### Desktop connector learnings
 
