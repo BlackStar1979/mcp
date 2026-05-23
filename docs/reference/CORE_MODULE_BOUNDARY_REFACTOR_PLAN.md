@@ -2,7 +2,23 @@
 
 Data: 2026-05-14
 Status: current_reference
-Zakres: audit i plan refaktoru `C:\Work\mcp\core` tak, żeby moduły były semantycznie czytelne, opcjonalnie odpinane przy starcie i gotowe do pracy lokalnej oraz późniejszego przeniesienia na VPS
+Zakres: audit i plan refaktoru `C:\Work\mcp\core` tak, żeby moduły były semantycznie czytelne, opcjonalnie odpinane przy starcie i gotowe do pracy lokalnej oraz późniejszego przeniesienia na VPS; nie jest pełnym snapshotem aktywnego runtime
+
+## Ważne
+
+Ten dokument pozostaje użyteczny jako plan i mapa granic refaktoru `core/`, ale nie powinien być czytany jako nadrzędny opis tego, co jest już wdrożone w aktywnym runtime.
+
+Czytaj razem z:
+
+1. `docs/CURRENT_STATE.md`
+2. `docs/RUNTIME_CONTRACTS_CURRENT.md`
+3. `docs/DOCS_CATALOG.md`
+
+Aktualna reguła interpretacyjna:
+
+- ten plik opisuje kierunek i status refaktoru granic modułów
+- canonical docs mają pierwszeństwo przy ustalaniu, co jest już aktywne produkcyjnie
+- jeśli pojawi się rozjazd między planem refaktoru a bieżącym runtime, rozstrzygające są canonical docs i aktywny kod
 
 ## Cel
 
