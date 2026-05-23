@@ -21,6 +21,7 @@ import {
   BEARER_TOKEN_FILE,
   SERVER_AUTH_MODE,
   buildWorkRoots,
+  loadBearerAccessSecret,
   parseExtraWorkRoots,
   listWorkspaceRoots,
   workspaceAccessHint,
@@ -68,6 +69,32 @@ test("default server auth mode is access on port 3001", () => {
   assert.equal(AUTH_MODE_PORTS.bearer, 3002);
   assert.equal(AUTH_MODE_PORTS.oauth2, 3003);
   assert.equal(BEARER_TOKEN_FILE, null);
+});
+
+test("bearer secret helper prefers MCP_BEARER_TOKEN over legacy MCP_TOKEN by default", () => {
+  const previousBearer = process.env.MCP_BEARER_TOKEN;
+  const previousLegacy = process.env.MCP_TOKEN;
+
+  try {
+    process.env.MCP_BEARER_TOKEN = "preferred-bearer-token";
+    process.env.MCP_TOKEN = "legacy-token-only";
+    assert.equal(loadBearerAccessSecret({ tokenFile: null }), "preferred-bearer-token");
+
+    delete process.env.MCP_BEARER_TOKEN;
+    assert.equal(loadBearerAccessSecret({ tokenFile: null }), "legacy-token-only");
+  } finally {
+    if (previousBearer === undefined) {
+      delete process.env.MCP_BEARER_TOKEN;
+    } else {
+      process.env.MCP_BEARER_TOKEN = previousBearer;
+    }
+
+    if (previousLegacy === undefined) {
+      delete process.env.MCP_TOKEN;
+    } else {
+      process.env.MCP_TOKEN = previousLegacy;
+    }
+  }
 });
 
 test("runtime protection remains enforced under runtime mcp/ subtree while workspace root can expand", () => {

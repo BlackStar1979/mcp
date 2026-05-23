@@ -29,7 +29,7 @@ Do tych ról służą odpowiednio:
 7. Zmiany runtime MCP wdraża się przez manifest + deploy/rollback.
 8. Zmiany testów i dokumentacji repo nie są automatycznie zmianami runtime MCP.
 9. `server_tools.js --auth access` używa portu `3001` i modelu Cloudflare Access / Codex; origin akceptuje request po obecności `Cf-Access-Jwt-Assertion`.
-10. `server_tools.js --auth bearer --token-file <BASE MCP>\.secrets\mcp_token.txt` używa portu `3002`, akceptuje `Authorization: Bearer ...` i zachowuje legacy `?token=...` fallback dla kompatybilności klienta. Dla lokalnego bearer mode istnieje też legacy fallback środowiskowy `MCP_TOKEN`, ale nie jest to docelowy publiczny model auth. `server_tools_token.js` pozostaje tylko shimem kompatybilnościowym, nie docelowym launcherem.
+10. `server_tools.js --auth bearer --token-file <BASE MCP>\.secrets\mcp_token.txt` używa portu `3002`, akceptuje `Authorization: Bearer ...` i zachowuje legacy `?token=...` fallback dla kompatybilności klienta. Dla lokalnego bearer mode istnieje też legacy fallback środowiskowy `MCP_TOKEN`, ale domyślny priorytet środowiskowy pozostaje po stronie `MCP_BEARER_TOKEN`; nie jest to docelowy publiczny model auth. `server_tools_token.js` pozostaje tylko shimem kompatybilnościowym, nie docelowym launcherem.
 11. `server_tools.js --auth oauth2` jest zarezerwowany dla portu `3003`, ale nie jest jeszcze zaimplementowany i ma kończyć start jawnie błędem zamiast udawać działanie.
 12. `server_tools.js` wspiera startup-time module gating:
     - `--modules <csv>`

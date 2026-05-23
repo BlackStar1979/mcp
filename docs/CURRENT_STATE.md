@@ -82,7 +82,7 @@ Potwierdzone:
 - launcher `server_tools.js --auth access` -> port `3001`
 - auth mode `access`: Cloudflare Access assertion model dla publicznego/Codexowego toru
 - launcher `server_tools.js --auth bearer --token-file <BASE MCP>\.secrets\mcp_token.txt` -> port `3002`
-- lokalny bearer mode zachowuje legacy env fallback `MCP_TOKEN`, ale nie jest to docelowy publiczny model auth
+- lokalny bearer mode zachowuje legacy env fallback `MCP_TOKEN`, ale priorytet środowiskowy pozostaje po stronie `MCP_BEARER_TOKEN`; nie jest to docelowy publiczny model auth
 - launcher `server_tools.js --auth oauth2` -> port `3003` (reserved, jeszcze niezaimplementowany)
 - legacy shim `server_tools_token.js` nadal istnieje, ale nie jest docelowym launcherem
 - `StreamableHTTPServerTransport`
