@@ -4,6 +4,22 @@ Data: 2026-05-14
 Status: current_reference
 Zakres: robocza strategia porządkowania dokumentacji `C:\Work\mcp\docs` bez utraty pamięci operacyjnej, architektonicznej i incydentowej
 
+## Ważne
+
+Ten dokument pozostaje wykonawczą strategią porządkowania katalogu `docs/`, ale nie zastępuje canonical docs ani nie rozstrzyga samodzielnie bieżącego stanu runtime.
+
+Czytaj razem z:
+
+1. `docs/CURRENT_STATE.md`
+2. `docs/RUNTIME_CONTRACTS_CURRENT.md`
+3. `docs/DOCS_CATALOG.md`
+
+Reguła interpretacyjna:
+
+- ten plik mówi jak porządkować dokumentację
+- canonical docs mówią co jest bieżącą prawdą runtime
+- jeśli strategia redakcyjna wydaje się kolidować z canonical docs albo aktywnym runtime, rozstrzygające są canonical docs i aktywny kod
+
 ## Cel
 
 Ten dokument nie jest nową specyfikacją nadrzędną. Tę rolę pełni:
@@ -327,4 +343,3 @@ to właśnie ten dokument ma odpowiadać:
 ```text
 jak porządkować bez niszczenia pamięci systemu
 ```
-
