@@ -53,12 +53,14 @@ Potwierdzone:
   - `GET /healthz`
   - `GET /statusz`
 - payload jest bounded i zawiera:
+  - top-level `status` (`ok` / `warn` / `degraded`) spójny z `health.level`,
   - `runtime` (name/version/profile/auth_mode),
   - `process` (pid/uptime_s),
   - `network` (host/port/public_endpoint_hint),
   - `modules` (enabled_ids/disabled_ids/degraded_ids),
   - `observability` (audit_writable/perf_writable),
   - `health` (level/warnings),
+- samo `modules.degraded_ids` podnosi `health.level` i top-level `status` do `degraded`, nawet bez dodatkowych warningów observability,
 - status payload nie zawiera tokenów/sekretów.
 
 Wymagania i kontrakt referencyjny:

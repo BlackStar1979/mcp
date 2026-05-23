@@ -37,13 +37,20 @@ function normalizeModuleState(modules = {}) {
 }
 
 function buildHealth({ warnings, modules }) {
+  const hasDegradedModule = Array.isArray(modules.degraded_ids) && modules.degraded_ids.length > 0;
+  if (hasDegradedModule) {
+    return {
+      level: "degraded",
+      warnings: Array.isArray(warnings) ? warnings : [],
+    };
+  }
+
   if (!Array.isArray(warnings) || !warnings.length) {
     return { level: "ok", warnings: [] };
   }
 
-  const hasDegradedModule = Array.isArray(modules.degraded_ids) && modules.degraded_ids.length > 0;
   return {
-    level: hasDegradedModule ? "degraded" : "warn",
+    level: "warn",
     warnings,
   };
 }
@@ -80,7 +87,11 @@ export async function buildRuntimeStatus({
   const health = buildHealth({ warnings, modules: safeModules });
 
   return {
-    status: health.level === "degraded" ? "degraded" : "ok",
+    status: health.level === "degraded"
+      ? "degraded"
+      : health.level === "warn"
+        ? "warn"
+        : "ok",
     generated_at: generatedAt,
     runtime: safeRuntime,
     process: {

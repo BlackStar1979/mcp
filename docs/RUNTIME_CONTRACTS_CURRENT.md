@@ -41,7 +41,8 @@ Do tych ról służą odpowiednio:
   - `GET /healthz`
   - `GET /statusz`
   - oba endpointy są zasilane wspólnym providerem `core/observability/runtime_status_provider.js`
-- status payload nie może ujawniać sekretów; kontrakt obejmuje tylko bounded pola runtime/process/network/modules/observability/health
+- status payload nie może ujawniać sekretów; kontrakt obejmuje tylko bounded pola status/runtime/process/network/modules/observability/health
+- top-level `status` musi pozostać spójny z `health.level` (`ok` / `warn` / `degraded`), a `modules.degraded_ids` samo w sobie podnosi status do `degraded`
 12. structuredContent jest kanałem operacyjnym; content jest warstwą prezentacyjną.
 13. `stc_safe.js` jest osobnym connector-safe profilem na porcie `3010`, używa strict shape `2025-05-strict-v1`, wystawia tylko `search` i `fetch`, nie importuje mutation-capable modułów i używa zwykłego JSON-RPC over HTTP na `POST /mcp`.
 14. Publiczny connector-safe host dla ChatGPT Desktop powinien używać hostname bez underscore; w praktyce `mcp_stc_safe...` nie przechodził handshake w Desktop app mimo poprawnych odpowiedzi HTTP, a `mcp-stc-safe...` działa poprawnie.

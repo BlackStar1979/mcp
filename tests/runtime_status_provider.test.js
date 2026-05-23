@@ -75,3 +75,36 @@ test("runtime status provider keeps secret-safe payload", async () => {
   assert.equal(serialized.includes("authorization"), false);
   assert.equal(serialized.includes("cf-access"), false);
 });
+
+test("runtime status provider marks degraded modules as degraded health", async () => {
+  const tempDir = path.join(os.tmpdir(), "mcp-runtime-status-degraded-test");
+  const auditPath = path.join(tempDir, "audit.log");
+  const perfPath = path.join(tempDir, "perf.log");
+
+  const status = await buildRuntimeStatus({
+    runtime: {
+      name: "modular-tools",
+      version: "1.7.0",
+      profile: "tools",
+      auth_mode: "access",
+    },
+    network: {
+      host: "127.0.0.1",
+      port: 3001,
+      public_endpoint_hint: "",
+    },
+    modules: {
+      enabled_ids: ["index"],
+      disabled_ids: ["remote_site"],
+      degraded_ids: ["web"],
+    },
+    paths: {
+      audit_log_file: auditPath,
+      perf_log_file: perfPath,
+    },
+  });
+
+  assert.equal(status.status, "degraded");
+  assert.equal(status.health.level, "degraded");
+  assert.deepEqual(status.modules.degraded_ids, ["web"]);
+});
