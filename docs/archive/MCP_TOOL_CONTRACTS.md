@@ -13,7 +13,7 @@ Najpierw czytaj:
 1. `docs/README.md`
 2. `docs/CURRENT_STATE.md`
 3. `docs/RUNTIME_CONTRACTS_CURRENT.md`
-4. `docs/REGISTRY.md`
+4. `docs/reference/REGISTRY.md`
 5. `docs/DOCS_CATALOG.md`
 
 Najważniejsze znane rozjazdy:

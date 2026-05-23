@@ -1,7 +1,7 @@
 # Registry Runtime Design v1
 
 Data: 2026-05-04
-Status: current_reference
+Status: contradicted_in_part
 Zakres: design registry z elementami częściowo wdrożonymi; nie jest canonical opisem aktywnego runtime
 
 ## Ważne
@@ -12,7 +12,7 @@ Czytaj razem z:
 
 1. `docs/CURRENT_STATE.md`
 2. `docs/RUNTIME_CONTRACTS_CURRENT.md`
-3. `docs/REGISTRY.md`
+3. `docs/reference/REGISTRY.md`
 4. `docs/DOCS_CATALOG.md`
 
 Najważniejszy znany rozjazd:

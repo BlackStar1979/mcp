@@ -99,5 +99,6 @@ Powód:
 3. `current_plan` czytaj wyłącznie jako plan.
 4. `incident_reference` czytaj jako lekcję, nie specyfikację.
 5. `historical_reference` i `staging_reference` nie są podstawą do decyzji bez porównania z runtime i canonical docs.
+6. Jeśli nagłówek statusu w pliku koliduje z tym katalogiem, traktuj `DOCS_CATALOG.md` oraz canonical docs jako rozstrzygające i zsynchronizuj nagłówek przy najbliższym bezpiecznym slicesie.
 
 
