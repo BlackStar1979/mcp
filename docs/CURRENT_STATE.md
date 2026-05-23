@@ -980,6 +980,13 @@ Aktualny checkpoint potwierdzony lokalnie po korektach test surface:
   - `tool_usage_snapshot()` — `status: ok`
   - snapshot potwierdził, że bieżące web/research usage pozostaje bounded i nie daje jeszcze dowodu potrzeby `download_docs`
 - live MCP verification po restarcie `server_tools.js` i restarcie Codexa na `2026-05-07` potwierdziła obecność `run_process` i `process_runner_status` w aktywnym tool surface oraz `status: ok` dla `run_process(command=node, args=[--version], cwd=mcp)`; `process_runner_status` potwierdził też politykę `inherits_full_parent_env: false`
+- repo validation po lokalnych zmianach poza Desktop/Codex w `core/code/shared_runtime.js`, `core/filesystem/patch_tools.js` oraz odpowiadających testach:
+  - `node --test tests/code_graph_cjs_deps.test.js` — PASS `2/2`
+  - `node --test tests/patch_tools_line_endings.test.js` — PASS `3/3`
+  - `npm test` — PASS `193/193`
+- wynik audytu tych zmian:
+  - `core/code/shared_runtime.js` rozpoznaje lokalne literalne `require("...")` dla code graph, ale nie traktuje już komentarzy i stringów zawierających tekst `require(...)` jako importów
+  - `core/filesystem/patch_tools.js` normalizuje matching anchora `edit_file_patch` między `CRLF` / `LF` / `CR`, zachowuje dominujący line ending pliku docelowego i nadal blokuje niejednoznaczny anchor po normalizacji
 
 Obszary objęte testami:
 
@@ -1004,6 +1011,8 @@ Obszary objęte testami:
 - truth tools contract i handler baseline dla `change_workflow_simulator`
 - truth tools contract i handler baseline dla `tool_usage_snapshot`
 - process tools
+- local CommonJS dependency graph resolution bez false positives z komentarzy/stringów
+- `edit_file_patch` line-ending normalization dla anchorów i treści
 - remote site tools contract i handler baseline dla `run_process` i `process_runner_status`
 - web tools static/runtime-shape guards
 - bounded npm package metadata guard

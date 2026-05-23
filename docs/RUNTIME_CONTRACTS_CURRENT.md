@@ -370,6 +370,16 @@ Rule for next slices:
 - rerun full `npm test`
 - sync canonical state docs if coverage assumptions change
 
+### Code graph and patch semantics
+
+Confirmed current runtime behavior:
+
+- dependency graph analysis in `core/code/shared_runtime.js` resolves local JavaScript/TypeScript `import ... from` edges and local literal CommonJS `require("...")` edges
+- commented-out or stringified `require(...)` text must not create dependency edges or unresolved imports
+- `edit_file_patch` anchor matching is normalized across `CRLF` / `LF` / `CR`
+- `edit_file_patch` rewrites inserted/replacement content using the dominant line-ending style detected in the target file
+- `edit_file_patch` still requires exactly one anchor match after normalization and must reject ambiguous normalized matches
+
 ### Remote site config reference rule
 
 Confirmed current runtime rule:

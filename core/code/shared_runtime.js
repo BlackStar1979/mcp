@@ -123,6 +123,99 @@ function addSymbol(symbols, item) {
   if (symbols.length < MAX_SYMBOLS) symbols.push(item);
 }
 
+function matchRequireSource(line) {
+  const text = String(line || "");
+  let i = 0;
+  let quote = null;
+  let inBlockComment = false;
+
+  while (i < text.length) {
+    if (inBlockComment) {
+      const end = text.indexOf("*/", i);
+      if (end === -1) return null;
+      inBlockComment = false;
+      i = end + 2;
+      continue;
+    }
+
+    const ch = text[i];
+    const next = text[i + 1];
+
+    if (quote) {
+      if (ch === "\\") {
+        i += 2;
+        continue;
+      }
+      if (ch === quote) quote = null;
+      i += 1;
+      continue;
+    }
+
+    if (ch === "/" && next === "/") return null;
+    if (ch === "/" && next === "*") {
+      inBlockComment = true;
+      i += 2;
+      continue;
+    }
+    if (ch === "'" || ch === "\"" || ch === "`") {
+      quote = ch;
+      i += 1;
+      continue;
+    }
+
+    if (!text.startsWith("require", i)) {
+      i += 1;
+      continue;
+    }
+
+    const prev = i === 0 ? "" : text[i - 1];
+    const afterWord = text[i + "require".length] || "";
+    if ((prev && /[\w$]/.test(prev)) || /[\w$]/.test(afterWord)) {
+      i += "require".length;
+      continue;
+    }
+
+    let j = i + "require".length;
+    while (/\s/.test(text[j] || "")) j += 1;
+    if (text[j] !== "(") {
+      i += "require".length;
+      continue;
+    }
+
+    j += 1;
+    while (/\s/.test(text[j] || "")) j += 1;
+    const sourceQuote = text[j];
+    if (sourceQuote !== "'" && sourceQuote !== "\"") {
+      i += "require".length;
+      continue;
+    }
+
+    j += 1;
+    let source = "";
+    while (j < text.length) {
+      const cur = text[j];
+      if (cur === "\\") {
+        if (j + 1 >= text.length) return null;
+        source += text[j + 1];
+        j += 2;
+        continue;
+      }
+      if (cur === sourceQuote) {
+        j += 1;
+        while (/\s/.test(text[j] || "")) j += 1;
+        if (text[j] === ")") return source;
+        break;
+      }
+      source += cur;
+      j += 1;
+    }
+
+    i += "require".length;
+  }
+
+  return null;
+}
+
 function extractJsSymbols(text) {
   const symbols = [];
   const lines = linesOf(text);
@@ -152,6 +245,9 @@ function extractJsSymbols(text) {
 
     m = line.match(/^\s*import\s+(.+?)\s+from\s+["'](.+?)["']/);
     if (m) { addSymbol(symbols, { kind: "import", name: m[1].trim(), source: m[2], line: n }); continue; }
+
+    const requireSource = matchRequireSource(line);
+    if (requireSource) { addSymbol(symbols, { kind: "import", name: "require", source: requireSource, line: n }); continue; }
   }
 
   return symbols;

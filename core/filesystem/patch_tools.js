@@ -27,6 +27,52 @@ const EDIT_FILE_PATCH_OUTPUT = z.object({
   backup: z.string().nullable(),
 }).strict();
 
+function detectDominantLineEnding(text) {
+  const crlf = (text.match(/\r\n/g) || []).length;
+  const withoutCrlf = text.replace(/\r\n/g, "");
+  const lf = (withoutCrlf.match(/\n/g) || []).length;
+  const cr = (withoutCrlf.match(/\r/g) || []).length;
+  if (crlf >= lf && crlf >= cr && crlf > 0) return "\r\n";
+  if (lf >= cr && lf > 0) return "\n";
+  if (cr > 0) return "\r";
+  return "\n";
+}
+
+function normalizeLineEndings(text) {
+  return String(text || "").replace(/\r\n|\r|\n/g, "\n");
+}
+
+function convertLineEndings(text, eol) {
+  return normalizeLineEndings(text).replace(/\n/g, eol);
+}
+
+function normalizeWithBoundaryMap(text) {
+  const source = String(text || "");
+  let normalized = "";
+  const boundary = [0];
+  let i = 0;
+  while (i < source.length) {
+    const ch = source[i];
+    if (ch === "\r") {
+      normalized += "\n";
+      if (source[i + 1] === "\n") i += 2;
+      else i += 1;
+      boundary.push(i);
+      continue;
+    }
+    if (ch === "\n") {
+      normalized += "\n";
+      i += 1;
+      boundary.push(i);
+      continue;
+    }
+    normalized += ch;
+    i += 1;
+    boundary.push(i);
+  }
+  return { normalized, boundary };
+}
+
 function countOccurrences(text, needle) {
   if (!needle) return 0;
   let count = 0;
@@ -39,18 +85,41 @@ function countOccurrences(text, needle) {
   }
 }
 
-function assertSingleOccurrence(text, needle, label) {
-  const count = countOccurrences(text, needle);
-  if (count !== 1) throw new Error(label + " must match exactly once; matched " + count + ".");
-  return count;
+function findSingleAnchorRange(source, anchor) {
+  const exactMatches = countOccurrences(source, anchor);
+  const mapped = normalizeWithBoundaryMap(source);
+  const normalizedAnchor = normalizeLineEndings(anchor);
+  const normalizedMatches = countOccurrences(mapped.normalized, normalizedAnchor);
+
+  if (normalizedMatches !== 1) {
+    throw new Error(
+      "Patch blocked: anchor must match exactly once; exact=" + exactMatches
+      + "; line_end_normalized=" + normalizedMatches
+      + "; detected_eol=" + JSON.stringify(detectDominantLineEnding(source)) + "."
+    );
+  }
+
+  const normalizedStart = mapped.normalized.indexOf(normalizedAnchor);
+  const normalizedEnd = normalizedStart + normalizedAnchor.length;
+  return {
+    start: mapped.boundary[normalizedStart],
+    end: mapped.boundary[normalizedEnd],
+    matches: normalizedMatches,
+  };
 }
 
-function applyTextPatch(source, { mode, anchor, content }) {
-  assertSingleOccurrence(source, anchor, "anchor");
-  if (mode === "before") return source.replace(anchor, content + anchor);
-  if (mode === "after") return source.replace(anchor, anchor + content);
-  if (mode === "replace") return source.replace(anchor, content);
+export function applyTextPatch(source, { mode, anchor, content }) {
+  const range = findSingleAnchorRange(source, anchor);
+  const patchContent = convertLineEndings(content, detectDominantLineEnding(source));
+
+  if (mode === "before") return source.slice(0, range.start) + patchContent + source.slice(range.start);
+  if (mode === "after") return source.slice(0, range.end) + patchContent + source.slice(range.end);
+  if (mode === "replace") return source.slice(0, range.start) + patchContent + source.slice(range.end);
   throw new Error("Unsupported patch mode: " + mode);
+}
+
+export function countPatchAnchorMatches(source, anchor) {
+  return findSingleAnchorRange(source, anchor).matches;
 }
 
 export function registerFsPatchTools(server) {
@@ -84,9 +153,7 @@ export function registerFsPatchTools(server) {
     if (!stat.isFile()) throw new Error("Not a file.");
 
     const original = await fs.readFile(filePath, "utf8");
-    const matches = countOccurrences(original, anchor);
-    if (matches !== 1) throw new Error("Patch blocked: anchor must match exactly once; matched " + matches + ".");
-
+    const matches = countPatchAnchorMatches(original, anchor);
     const patched = applyTextPatch(original, { mode, anchor, content });
     for (const marker of require_markers || []) {
       if (!patched.includes(marker)) throw new Error("Patch blocked: required marker missing after patch: " + marker);
