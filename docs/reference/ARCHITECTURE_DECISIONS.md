@@ -1,6 +1,18 @@
 # Architecture decisions
 
 Data: 2026-05-01
+Status: current_reference
+Zakres: bazowe decyzje architektoniczne repo i runtime; czytać jako skrót zasad, nie jako pełny bieżący snapshot wdrożenia
+
+## Ważne
+
+Ten dokument pozostaje użyteczny jako krótka baza decyzji repo/runtime, ale nie jest nadrzędnym source-of-truth dla aktywnego stanu wdrożenia.
+
+Czytaj razem z:
+
+1. `docs/CURRENT_STATE.md`
+2. `docs/RUNTIME_CONTRACTS_CURRENT.md`
+3. `docs/DOCS_CATALOG.md`
 
 ## Scope
 
@@ -25,27 +37,29 @@ Nie wchodzą runtime artefakty, indeksy, logi, backupy ani sandboxy robocze.
 
 Te ścieżki są lokalne i nie powinny być publikowane:
 
-- `.mcp_audit/` — planowane miejsce na audyt zdarzeń runtime; obecnie brak aktywnej integracji produkcyjnej.
-- `.mcp_audit.log` — historyczny plik logu; obecnie nie jest wiarygodnym źródłem aktywnego audytu.
+- `.mcp_audit/` — lokalne ledgery i artefakty observability runtime.
+- `.mcp_audit.log` — aktywny lokalny audit log runtime.
 - `.mcp_backups/` — automatyczne backupy tworzone przez narzędzia plikowe.
 - `.mcp_index/` — lokalny indeks wyszukiwania.
 - `.mcp_trash/` — lokalny kosz operacji usuwania.
 - `.mcp_warzone/` — sandbox na eksperymenty, wersje próbne i pliki tymczasowe.
+- `.mcp_deploy/` — manifesty i recordy lokalnego workflow deploy.
+- `.mcp_deploy_backup/` — backupy tworzone przez workflow deploy.
 
 ## Audit decision
 
-Audyt jest wymaganiem docelowym, ale obecny stan jest niespójny:
+Audit i performance logging są aktywnymi elementami lokalnego runtime operatorskiego:
 
-- istnieją ślady `.mcp_audit.log`,
-- istnieje katalog `.mcp_audit/`,
-- archiwalne lub eksperymentalne implementacje są w sandboxie,
-- brak potwierdzonej, aktywnej integracji runtime w produkcyjnych modułach.
+- istnieje aktywny `core/audit.js`,
+- istnieje aktywny `core/perf.js`,
+- aktywne runtime zapisują zdarzenia do `.mcp_audit.log` i `.mcp_perf.log`,
+- observability coverage jest traktowane jako część correctness runtime.
 
-Decyzja: nie traktować obecnego audytu jako funkcji produkcyjnej. Przywrócenie audytu wymaga osobnego zadania z testami, spójnym formatem zdarzeń i jasnym miejscem zapisu.
+Decyzja: artefakty audit/perf są lokalnymi źródłami dowodowymi dla operatorskiego runtime, ale nie są canonical documentation ani częścią publikowanego repo.
 
 ## Performance logging decision
 
-Historyczne mechanizmy `.mcp_perf.log` i `.mcp_perf_on` są traktowane jako nieaktywne. Jeżeli monitoring wydajności wróci, powinien zostać zaimplementowany jako jawna funkcja runtime z testami i dokumentacją.
+Mechanizmy `.mcp_perf.log` i `.mcp_perf_on` są aktywne w lokalnym runtime operatorskim. Nowy runtime/tool path nie powinien być uznawany za gotowy, jeśli omija wymagane perf/audit coverage.
 
 ## Documentation decision
 
@@ -56,7 +70,7 @@ Dawny katalog `.mcp_notes` został przeniesiony do `docs/`, ponieważ zawiera do
 Aktualny baseline repozytorium:
 
 - publikować `docs/`,
-- nie publikować `.mcp_audit`, `.mcp_warzone`, `.mcp_backups`, `.mcp_index`, `.mcp_trash`, logów i cache,
-- nie wprowadzać częściowo działającego audytu/perf do runtime bez osobnej implementacji i testów,
+- nie publikować `.mcp_audit`, `.mcp_warzone`, `.mcp_backups`, `.mcp_index`, `.mcp_trash`, `.mcp_deploy`, `.mcp_deploy_backup`, logów i cache,
+- nie wprowadzać nowego runtime/tool path bez spójnego observability coverage i testów,
 - utrzymać `server.js` jako read-only MCP,
 - utrzymać `server_tools.js` jako modularny MCP narzędziowy.

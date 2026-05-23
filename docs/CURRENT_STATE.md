@@ -1060,7 +1060,7 @@ Potwierdzone:
 ## 10. Najważniejsze otwarte nieprawidłowości
 
 1. Część dokumentacji reference nadal wymaga ostrożnego porównywania z aktywnym runtime przed użyciem jako source-of-truth.
-2. Status headers w najbardziej mylących plikach `docs/archive/` zostały zsynchronizowane z `DOCS_CATALOG.md`, ale same historyczne treści nadal wymagają czytania tylko obok canonical docs.
+2. Status headers w najbardziej mylących plikach `docs/archive/` zostały zsynchronizowane z `DOCS_CATALOG.md`, a `docs/reference/ARCHITECTURE_DECISIONS.md` został doprowadzony do zgodności z aktualnym modelem observability i lokalnych katalogów runtime.
 3. Starsze docs registry/design nadal mieszają plan, historię i wdrożenie; `docs/reference/REGISTRY.md` oraz `RUNTIME_CONTRACTS_CURRENT.md` pozostają ważniejszymi źródłami dla bieżącego runtime.
 
 ## 11. Czytaj dalej
