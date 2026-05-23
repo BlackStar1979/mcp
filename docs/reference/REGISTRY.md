@@ -2,7 +2,23 @@
 
 Data: 2026-05-05
 Status: current_reference
-Zakres: aktywny stan registry tools, outputSchema coverage i ręcznie potwierdzona live runtime verification całego control-plane po wdrożeniu `tool_registry_execute`
+Zakres: wąska referencja tematyczna dla aktywnego control-plane registry; nie zastępuje canonical docs opisujących cały bieżący runtime
+
+## Ważne
+
+Ten dokument pozostaje aktualną referencją dla rodziny `tool_registry_*`, ale nie powinien być czytany jako nadrzędny source-of-truth dla całego runtime MCP.
+
+Czytaj razem z:
+
+1. `docs/CURRENT_STATE.md`
+2. `docs/RUNTIME_CONTRACTS_CURRENT.md`
+3. `docs/DOCS_CATALOG.md`
+
+Aktualna reguła interpretacyjna:
+
+- ten plik opisuje tylko control-plane registry
+- canonical runtime boundaries, workflow deploy i szersze reguły operacyjne mają pierwszeństwo w canonical docs
+- jeśli pojawi się rozjazd między tym plikiem a canonical docs, rozstrzygające są canonical docs i aktywny runtime path
 
 ## Runtime model
 
