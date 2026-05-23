@@ -97,6 +97,30 @@ test("bearer secret helper prefers MCP_BEARER_TOKEN over legacy MCP_TOKEN by def
   }
 });
 
+test("bearer secret helper prefers token file over inline secret and rejects empty files", () => {
+  const sandboxDir = path.join(RUNTIME_DIR, ".mcp_sandbox");
+  fs.mkdirSync(sandboxDir, { recursive: true });
+  const tempDir = fs.mkdtempSync(path.join(sandboxDir, "bearer-secret-"));
+  const tokenFile = path.join(tempDir, "mcp_token.txt");
+  const emptyTokenFile = path.join(tempDir, "empty_token.txt");
+
+  try {
+    fs.writeFileSync(tokenFile, "file-secret\n", "utf8");
+    fs.writeFileSync(emptyTokenFile, "   \n", "utf8");
+
+    assert.equal(
+      loadBearerAccessSecret({ tokenFile, inlineToken: "inline-secret" }),
+      "file-secret"
+    );
+    assert.throws(
+      () => loadBearerAccessSecret({ tokenFile: emptyTokenFile, inlineToken: "inline-secret" }),
+      /Bearer token file is empty/
+    );
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
 test("runtime protection remains enforced under runtime mcp/ subtree while workspace root can expand", () => {
   assert.equal(BLOCKED_TOP_LEVEL_DIRS.has("node_modules"), true);
   assert.equal(BLOCKED_TOP_LEVEL_DIRS.has("mcp"), false);
