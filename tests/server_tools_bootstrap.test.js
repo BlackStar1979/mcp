@@ -85,6 +85,24 @@ test("applyServerToolsCliConfig sets bearer mode token file cleanly", () => {
   assert.equal("MCP_TOKEN" in env, false);
 });
 
+test("applyServerToolsCliConfig preserves inline bearer env secret when no token file is provided", () => {
+  const env = {
+    MCP_BEARER_TOKEN_FILE: "C:\\tmp\\stale-token.txt",
+    MCP_BEARER_TOKEN: "preferred-inline-secret",
+    MCP_TOKEN: "legacy-inline-secret",
+  };
+
+  const runtime = applyServerToolsCliConfig({ authMode: "bearer", tokenFile: null }, { env });
+
+  assert.equal(runtime.port, SERVER_TOOLS_AUTH_PORTS.bearer);
+  assert.equal(env.MCP_SERVER_AUTH_MODE, "bearer");
+  assert.equal("MCP_BEARER_TOKEN_FILE" in env, false);
+  assert.equal(env.MCP_BEARER_TOKEN, "preferred-inline-secret");
+  assert.equal(env.MCP_TOKEN, "legacy-inline-secret");
+  assert.equal(runtime.enabledModules.length, SERVER_TOOL_MODULES.length);
+  assert.equal(runtime.disabledModules.length, 0);
+});
+
 test("applyServerToolsCliConfig applies module gating when provided by CLI", () => {
   const env = {
     MCP_ENABLED_MODULES: "web,truth,process", // should be ignored when CLI modules are set
