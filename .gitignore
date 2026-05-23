@@ -4,6 +4,7 @@ warzone/
 .mcp_audit.log
 .mcp_backups/
 .mcp_index/
+.mcp_sandbox/
 .mcp_trash/
 .mcp_warzone/
 .mcp_perf.log
