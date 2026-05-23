@@ -21,3 +21,12 @@ test("server_tools handles malformed JSON bodies with bounded parse error respon
   assert.match(src, /code:\s*-32700/);
   assert.match(src, /message:\s*"Parse error"/);
 });
+
+test("server_tools keeps bounded JSON-RPC method-not-allowed handling on /mcp", () => {
+  const src = fs.readFileSync("server_tools.js", "utf8");
+  assert.match(src, /function methodNotAllowed\(res\)/);
+  assert.match(src, /res\.status\(405\)\.json\(/);
+  assert.match(src, /message:\s*"Method not allowed\."/);
+  assert.match(src, /app\.get\("\/mcp",[\s\S]*?methodNotAllowed\(res\)/);
+  assert.match(src, /app\.delete\("\/mcp",[\s\S]*?methodNotAllowed\(res\)/);
+});
