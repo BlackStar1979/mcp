@@ -83,6 +83,7 @@ Potwierdzone:
   - malformed JSON body -> `HTTP 400` / `Parse error`
   - `GET /mcp` i `DELETE /mcp` -> bounded `405 Method not allowed`
   - `OPTIONS /mcp` eksponuje jawny allow-list nagłówków dla streamable HTTP
+  - nieoczekiwany błąd transportu/request path -> bounded `HTTP 500` / JSON-RPC `Internal server error`
 - read-only profile i tools profile używają wspólnego modelu workspace rootów: bare paths wskazują primary root `C:\Work`, a dodatkowe rooty mogą być dołączane przez `MCP_EXTRA_ROOTS` i adresowane jako `@alias/...`
 - w środowiskach nie-Windows domyślne rooty są wyprowadzane z checkoutu repo lub jawnych override `MCP_WORK_ROOT` / `MCP_RUNTIME_DIR`, żeby CI i testy nie traktowały `C:\Work` jako ścieżki względnej
 

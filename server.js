@@ -411,19 +411,34 @@ export function createReadonlyApp() {
 
   app.post("/mcp", async (req, res) => {
     const server = createServer();
+    try {
+      const transport = new StreamableHTTPServerTransport({
+        sessionIdGenerator: undefined,
+      });
 
-    const transport = new StreamableHTTPServerTransport({
-      sessionIdGenerator: undefined,
-    });
+      res.on("close", async () => {
+        try {
+          await transport.close();
+          await server.close();
+        } catch {}
+      });
 
-    res.on("close", async () => {
-      try {
-        await transport.close();
-      } catch {}
-    });
+      await server.connect(transport);
+      await transport.handleRequest(req, res, req.body);
+    } catch (err) {
+      console.error("MCP request failed:", err);
 
-    await server.connect(transport);
-    await transport.handleRequest(req, res, req.body);
+      if (!res.headersSent) {
+        res.status(500).json({
+          jsonrpc: "2.0",
+          error: {
+            code: -32603,
+            message: "Internal server error",
+          },
+          id: req.body?.id ?? null,
+        });
+      }
+    }
   });
 
   return app;

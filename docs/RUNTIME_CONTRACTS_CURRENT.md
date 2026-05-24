@@ -47,6 +47,7 @@ Do tych ról służą odpowiednio:
 - oba aktywne serwery runtime mają też bounded guardraile transportowe na `POST /mcp`:
   - bounded `HTTP 400` / JSON-RPC `Parse error` dla malformed JSON body
   - bounded `405 Method not allowed` dla niewspieranych metod na `/mcp`
+  - bounded `HTTP 500` / JSON-RPC `Internal server error` dla nieoczekiwanych wyjątków request/transport path
   - `StreamableHTTPServerTransport` pozostaje aktywnym transportem po obu stronach
 - live verification na `2026-05-24` potwierdziła ten kontrakt również dla read-only `server.js` na `3000`:
   - `initialize` — PASS
