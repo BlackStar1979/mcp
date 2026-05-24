@@ -2,7 +2,7 @@ import express from "express";
 import { z } from "zod";
 import fs from "fs/promises";
 import path from "path";
-import { pathToFileURL } from "url";
+import { fileURLToPath, pathToFileURL } from "url";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 
@@ -323,13 +323,6 @@ export function createServer() {
   return server;
 }
 
-const app = express();
-app.use(express.json({ limit: "50mb" }));
-
-app.get("/", (req, res) => {
-  res.send("Read-only MCP server is running. Use /mcp.");
-});
-
 async function runtimeStatusPayload() {
   return buildRuntimeStatus({
     runtime: {
@@ -355,35 +348,56 @@ async function runtimeStatusPayload() {
   });
 }
 
-app.get("/healthz", async (req, res) => {
-  const status = await runtimeStatusPayload();
-  res.status(status.health.level === "degraded" ? 503 : 200).json(status);
-});
+export function createReadonlyApp() {
+  const app = express();
+  app.use(express.json({ limit: "50mb" }));
 
-app.get("/statusz", async (req, res) => {
-  const status = await runtimeStatusPayload();
-  res.status(200).json(status);
-});
-
-app.all("/mcp", async (req, res) => {
-  const server = createServer();
-
-  const transport = new StreamableHTTPServerTransport({
-    sessionIdGenerator: undefined,
+  app.get("/", (req, res) => {
+    res.send("Read-only MCP server is running. Use /mcp.");
   });
 
-  res.on("close", async () => {
-    try {
-      await transport.close();
-    } catch {}
+  app.get("/healthz", async (req, res) => {
+    const status = await runtimeStatusPayload();
+    res.status(status.health.level === "degraded" ? 503 : 200).json(status);
   });
 
-  await server.connect(transport);
-  await transport.handleRequest(req, res, req.body);
-});
+  app.get("/statusz", async (req, res) => {
+    const status = await runtimeStatusPayload();
+    res.status(200).json(status);
+  });
 
-app.listen(PORT, "127.0.0.1", () => {
-  console.log(`Read-only MCP server running at http://127.0.0.1:${PORT}/mcp`);
-  console.log(`Primary workspace root: ${PRIMARY_ROOT.path}`);
-  console.log(`Configured workspace roots: ${ROOTS.map((item) => `${item.primary ? '*' : ''}${item.alias}=${item.path}`).join(', ')}`);
-});
+  app.all("/mcp", async (req, res) => {
+    const server = createServer();
+
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: undefined,
+    });
+
+    res.on("close", async () => {
+      try {
+        await transport.close();
+      } catch {}
+    });
+
+    await server.connect(transport);
+    await transport.handleRequest(req, res, req.body);
+  });
+
+  return app;
+}
+
+export function startReadonlyServer() {
+  const app = createReadonlyApp();
+  return app.listen(PORT, "127.0.0.1", () => {
+    console.log(`Read-only MCP server running at http://127.0.0.1:${PORT}/mcp`);
+    console.log(`Primary workspace root: ${PRIMARY_ROOT.path}`);
+    console.log(`Configured workspace roots: ${ROOTS.map((item) => `${item.primary ? '*' : ''}${item.alias}=${item.path}`).join(', ')}`);
+  });
+}
+
+const isDirectRun = process.argv[1]
+  && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+
+if (isDirectRun) {
+  startReadonlyServer();
+}

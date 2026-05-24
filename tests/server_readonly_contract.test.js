@@ -1,8 +1,12 @@
 import assert from "node:assert/strict";
+import { execFile } from "node:child_process";
 import fs from "node:fs";
+import { promisify } from "node:util";
 import test from "node:test";
 
-import { registerReadonlyTools } from "../server.js";
+import { createReadonlyApp, registerReadonlyTools, startReadonlyServer } from "../server.js";
+
+const execFileAsync = promisify(execFile);
 
 const serverSource = fs.readFileSync("server.js", "utf8");
 
@@ -20,7 +24,10 @@ function captureReadonlyTools() {
 
 test("server.js exports createServer for the production read-only runtime path", () => {
   assert.match(serverSource, /export function createServer\(\)/);
+  assert.match(serverSource, /export function createReadonlyApp\(\)/);
+  assert.match(serverSource, /export function startReadonlyServer\(\)/);
   assert.match(serverSource, /export function registerReadonlyTools\(/);
+  assert.match(serverSource, /if \(isDirectRun\)/);
 });
 
 test("server.js declares outputSchema for all read-only tools", () => {
@@ -60,4 +67,20 @@ test("server.js read-only fetch keeps file text in content and structuredContent
   assert.equal(result.structuredContent.text.includes("\"name\": \"mcp\""), true);
   assert.equal(result.content[0].text.trim().startsWith("{"), true);
   assert.equal(result.structuredContent.id, "mcp/package.json");
+});
+
+test("server.js module import no longer starts the HTTP listener", async () => {
+  const { stdout, stderr } = await execFileAsync(
+    process.execPath,
+    ["--input-type=module", "--eval", "import './server.js';"],
+    { cwd: process.cwd(), timeout: 3000 }
+  );
+
+  assert.equal(stdout.trim(), "");
+  assert.equal(stderr.trim(), "");
+});
+
+test("server.js still exposes explicit app/server launcher exports", () => {
+  assert.equal(typeof createReadonlyApp, "function");
+  assert.equal(typeof startReadonlyServer, "function");
 });
