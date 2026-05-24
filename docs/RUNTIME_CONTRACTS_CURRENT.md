@@ -55,6 +55,7 @@ Do tych ról służą odpowiednio:
   - malformed JSON `POST /mcp` — `400 Parse error`
 - status payload nie może ujawniać sekretów; kontrakt obejmuje tylko bounded pola status/runtime/process/network/modules/observability/health
 - top-level `status` musi pozostać spójny z `health.level` (`ok` / `warn` / `degraded`), a `modules.degraded_ids` samo w sobie podnosi status do `degraded`
+- sam provider statusu nie może tworzyć brakujących katalogów ani plików logów podczas sprawdzania zapisywalności; `healthz/statusz` są obserwacyjne i mają tylko raportować `audit_writable` / `perf_writable`
 12. structuredContent jest kanałem operacyjnym; content jest warstwą prezentacyjną.
 13. W pełnym `server_tools.js` helpery wyników nie powinny domyślnie lustrzanie dumpować całego JSON do `content[0].text`; pełny mirror JSON jest zarezerwowany dla jawnie tekstowych/readoutowych ścieżek oraz dla osobnego profilu connector-safe.
 14. `stc_safe.js` jest osobnym connector-safe profilem na porcie `3010`, używa strict shape `2025-05-strict-v1`, wystawia tylko `search` i `fetch`, nie importuje mutation-capable modułów i używa zwykłego JSON-RPC over HTTP na `POST /mcp`.

@@ -16,7 +16,6 @@ async function canWritePath(filePath) {
 
   try {
     const dir = path.dirname(filePath);
-    await fs.mkdir(dir, { recursive: true });
     await fs.access(dir, fs.constants.W_OK);
     return true;
   } catch {

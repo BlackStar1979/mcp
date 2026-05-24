@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
@@ -107,4 +108,45 @@ test("runtime status provider marks degraded modules as degraded health", async 
   assert.equal(status.status, "degraded");
   assert.equal(status.health.level, "degraded");
   assert.deepEqual(status.modules.degraded_ids, ["web"]);
+});
+
+test("runtime status provider does not create missing log directories while checking writability", async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "mcp-runtime-status-sidefx-"));
+  const missingLogsDir = path.join(tempDir, "nested", "logs");
+  const auditPath = path.join(missingLogsDir, "audit.log");
+  const perfPath = path.join(missingLogsDir, "perf.log");
+
+  await assert.rejects(fs.access(missingLogsDir));
+
+  const status = await buildRuntimeStatus({
+    runtime: {
+      name: "modular-tools",
+      version: "1.7.0",
+      profile: "tools",
+      auth_mode: "access",
+    },
+    network: {
+      host: "127.0.0.1",
+      port: 3001,
+      public_endpoint_hint: "",
+    },
+    modules: {
+      enabled_ids: ["index"],
+      disabled_ids: [],
+      degraded_ids: [],
+    },
+    paths: {
+      audit_log_file: auditPath,
+      perf_log_file: perfPath,
+    },
+  });
+
+  await assert.rejects(fs.access(missingLogsDir));
+  assert.equal(status.observability.audit_writable, false);
+  assert.equal(status.observability.perf_writable, false);
+  assert.equal(status.status, "warn");
+  assert.deepEqual(status.health.warnings, [
+    "audit_log_not_writable",
+    "perf_log_not_writable",
+  ]);
 });

@@ -61,6 +61,7 @@ Potwierdzone:
   - `observability` (audit_writable/perf_writable),
   - `health` (level/warnings),
 - samo `modules.degraded_ids` podnosi `health.level` i top-level `status` do `degraded`, nawet bez dodatkowych warningów observability,
+- provider statusu nie może mutować filesystem podczas samego sprawdzania zapisywalności logów; brakujący katalog/pliki logów mają dawać `audit_writable=false` / `perf_writable=false` i status `warn`, a nie być tworzone przez `healthz/statusz`,
 - status payload nie zawiera tokenów/sekretów.
 
 Wymagania i kontrakt referencyjny:
