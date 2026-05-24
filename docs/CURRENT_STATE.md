@@ -1037,6 +1037,11 @@ Aktualny checkpoint potwierdzony lokalnie po korektach test surface:
 - repo validation po dodaniu transport guardraili do `server.js`:
   - `node --test tests/server_readonly_transport_contract.test.js` — PASS `4/4`
   - `npm test` — PASS `221/221`
+- live MCP verification po restarcie `server.js` na `2026-05-24`:
+  - `POST http://127.0.0.1:3000/mcp` `initialize` — PASS
+  - `POST http://127.0.0.1:3000/mcp` `tools/call search({ query: "current state" })` — PASS
+  - `GET http://127.0.0.1:3000/mcp` — bounded `405 Method Not Allowed`
+  - malformed JSON `POST http://127.0.0.1:3000/mcp` — bounded `HTTP 400` / `Parse error`
 
 Obszary objęte testami:
 

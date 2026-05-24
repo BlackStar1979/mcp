@@ -48,6 +48,11 @@ Do tych ról służą odpowiednio:
   - bounded `HTTP 400` / JSON-RPC `Parse error` dla malformed JSON body
   - bounded `405 Method not allowed` dla niewspieranych metod na `/mcp`
   - `StreamableHTTPServerTransport` pozostaje aktywnym transportem po obu stronach
+- live verification na `2026-05-24` potwierdziła ten kontrakt również dla read-only `server.js` na `3000`:
+  - `initialize` — PASS
+  - poprawne `tools/call search(...)` — PASS
+  - `GET /mcp` — `405`
+  - malformed JSON `POST /mcp` — `400 Parse error`
 - status payload nie może ujawniać sekretów; kontrakt obejmuje tylko bounded pola status/runtime/process/network/modules/observability/health
 - top-level `status` musi pozostać spójny z `health.level` (`ok` / `warn` / `degraded`), a `modules.degraded_ids` samo w sobie podnosi status do `degraded`
 12. structuredContent jest kanałem operacyjnym; content jest warstwą prezentacyjną.
