@@ -57,6 +57,7 @@ test("all server_tools exposed tools have minimum MCP descriptors", () => {
 
     assertBooleanAnnotation(config, name, "readOnlyHint");
     assertBooleanAnnotation(config, name, "destructiveHint");
+    assertBooleanAnnotation(config, name, "idempotentHint");
     assertBooleanAnnotation(config, name, "openWorldHint");
   }
 });
@@ -187,7 +188,69 @@ test("read-only descriptor semantics are internally consistent", () => {
   for (const { name, config } of tools) {
     if (config.annotations.readOnlyHint === true) {
       assert.equal(config.annotations.destructiveHint, false, `${name}: read-only tool cannot be destructive`);
+      assert.equal(config.annotations.idempotentHint, true, `${name}: read-only tool should remain idempotent`);
     }
+  }
+});
+
+test("destructive descriptor semantics are internally consistent", () => {
+  const tools = collectRegisteredTools();
+
+  for (const { name, config } of tools) {
+    if (config.annotations.destructiveHint === true) {
+      assert.equal(config.annotations.readOnlyHint, false, `${name}: destructive tool cannot be read-only`);
+      assert.equal(config.annotations.idempotentHint, false, `${name}: destructive tool should not claim idempotence`);
+    }
+  }
+});
+
+test("open-world hint stays limited to web and remote-site families", () => {
+  const byName = new Map(collectRegisteredTools().map((tool) => [tool.name, tool]));
+
+  for (const name of [
+    "http_get",
+    "pypi_info",
+    "check_pypi_package",
+    "check_npm_package",
+    "fetch_github_file",
+    "list_remote_site_files",
+    "read_remote_site_file",
+    "write_remote_site_file",
+    "edit_remote_site_file",
+    "move_remote_site_file",
+    "delete_remote_site_file",
+    "restore_remote_site_file",
+    "remote_site_runtime_status",
+    "preview_remote_site_retention",
+  ]) {
+    assert.equal(byName.get(name).config.annotations.openWorldHint, true, `${name}: expected openWorldHint=true`);
+  }
+
+  for (const name of [
+    "tool_registry_status",
+    "tool_registry_list",
+    "tool_registry_get_tool",
+    "tool_registry_validate_tool",
+    "tool_registry_policy",
+    "tool_registry_preflight",
+    "tool_registry_execute",
+    "tool_registry_plan",
+    "run_process",
+    "process_runner_status",
+    "get_info",
+    "list_directory",
+    "read_file",
+    "read_file_lines",
+    "read_file_chunk",
+    "write_file",
+    "append_file",
+    "copy_path",
+    "move_path",
+    "delete_path",
+    "restore_path",
+    "edit_file_patch",
+  ]) {
+    assert.equal(byName.get(name).config.annotations.openWorldHint, false, `${name}: expected openWorldHint=false`);
   }
 });
 
