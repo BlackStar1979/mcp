@@ -15,7 +15,7 @@ import {
 } from "./core/config.js";
 import { buildRuntimeStatus } from "./core/observability/runtime_status_provider.js";
 import { safePath, toRel } from "./core/paths.js";
-import { ok, textOk } from "./core/responses.js";
+import { ok, registerSafeTool, textOk } from "./core/responses.js";
 
 const PORT = 3000;
 const ROOTS = listWorkspaceRoots();
@@ -128,7 +128,7 @@ async function fileInfo(fullPath) {
 
 export function registerReadonlyTools(server) {
   const rootsHint = workspaceAccessHint();
-  server.registerTool(
+  registerSafeTool(server,
     "search",
     {
       title: "Search local MCP files",
@@ -184,7 +184,7 @@ export function registerReadonlyTools(server) {
     }
   );
 
-  server.registerTool(
+  registerSafeTool(server,
     "fetch",
     {
       title: "Fetch local MCP file",
@@ -221,7 +221,7 @@ export function registerReadonlyTools(server) {
     }
   );
 
-  server.registerTool(
+  registerSafeTool(server,
     "list_directory",
     {
       title: "List directory",
@@ -255,7 +255,7 @@ export function registerReadonlyTools(server) {
     }
   );
 
-  server.registerTool(
+  registerSafeTool(server,
     "read_file",
     {
       title: "Read file",
@@ -287,7 +287,7 @@ export function registerReadonlyTools(server) {
     }
   );
 
-  server.registerTool(
+  registerSafeTool(server,
     "get_info",
     {
       title: "Get file or directory info",

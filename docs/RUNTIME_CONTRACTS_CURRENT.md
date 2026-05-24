@@ -198,6 +198,7 @@ Adresowanie ścieżek:
 - `server.js` read-only runtime został doszczelniony do tego samego kanonu:
   - `search`, `list_directory`, `get_info` zwracają krótką warstwę prezentacyjną i pełne `structuredContent`
   - `fetch` i `read_file` zachowują tekst w `content` oraz ten sam tekst w `structuredContent.text`, bo są jawnie tekstowymi ścieżkami odczytu
+  - błędy `server.js` nie powinny już wychodzić jako surowe wyjątki handlera; read-only runtime używa kontrolowanego MCP error result z `isError`, `content`, i `structuredContent.details.tool`
 - connector-safe payloads use:
   - exactly one `content` item
   - `content[0].type === "text"`

@@ -69,6 +69,17 @@ test("server.js read-only fetch keeps file text in content and structuredContent
   assert.equal(result.structuredContent.id, "mcp/package.json");
 });
 
+test("server.js read-only tools return controlled MCP error results", async () => {
+  const tools = captureReadonlyTools();
+  const result = await tools.get("read_file").handler({ path: "mcp/package.json/not-a-file" });
+
+  assert.equal(result.isError, true);
+  assert.equal(typeof result.content[0].text, "string");
+  assert.ok(result.content[0].text.length > 0);
+  assert.equal(result.structuredContent.status, "error");
+  assert.equal(result.structuredContent.details.tool, "read_file");
+});
+
 test("server.js module import no longer starts the HTTP listener", async () => {
   const { stdout, stderr } = await execFileAsync(
     process.execPath,
