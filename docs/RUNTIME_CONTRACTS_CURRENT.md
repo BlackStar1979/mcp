@@ -44,7 +44,8 @@ Do tych ról służą odpowiednio:
 - status payload nie może ujawniać sekretów; kontrakt obejmuje tylko bounded pola status/runtime/process/network/modules/observability/health
 - top-level `status` musi pozostać spójny z `health.level` (`ok` / `warn` / `degraded`), a `modules.degraded_ids` samo w sobie podnosi status do `degraded`
 12. structuredContent jest kanałem operacyjnym; content jest warstwą prezentacyjną.
-13. `stc_safe.js` jest osobnym connector-safe profilem na porcie `3010`, używa strict shape `2025-05-strict-v1`, wystawia tylko `search` i `fetch`, nie importuje mutation-capable modułów i używa zwykłego JSON-RPC over HTTP na `POST /mcp`.
+13. W pełnym `server_tools.js` helpery wyników nie powinny domyślnie lustrzanie dumpować całego JSON do `content[0].text`; pełny mirror JSON jest zarezerwowany dla jawnie tekstowych/readoutowych ścieżek oraz dla osobnego profilu connector-safe.
+14. `stc_safe.js` jest osobnym connector-safe profilem na porcie `3010`, używa strict shape `2025-05-strict-v1`, wystawia tylko `search` i `fetch`, nie importuje mutation-capable modułów i używa zwykłego JSON-RPC over HTTP na `POST /mcp`.
 14. Publiczny connector-safe host dla ChatGPT Desktop powinien używać hostname bez underscore; w praktyce `mcp_stc_safe...` nie przechodził handshake w Desktop app mimo poprawnych odpowiedzi HTTP, a `mcp-stc-safe...` działa poprawnie.
 15. Perf logging w pełnym `server_tools.js` jest centralne i transportowe:
    - każde `server.registerTool(...)` przechodzi przez `timeTool(...)`
@@ -184,6 +185,10 @@ Adresowanie ścieżek:
   - filesystem mutation tools
   - registry execute surface
   - remote site tools
+- pełny `server_tools.js` i `server.js` nie muszą naśladować tego strict connector mirror shape; dla nich canonical rule to:
+  - `structuredContent` pozostaje kanałem maszynowym
+  - `content` może być krótkim komunikatem prezentacyjnym
+  - exact JSON mirror w `content[0].text` powinien być używany tylko wtedy, gdy narzędzie świadomie zwraca bounded tekst albo gdy kompatybilność connector-safe tego wymaga
 - connector-safe payloads use:
   - exactly one `content` item
   - `content[0].type === "text"`
