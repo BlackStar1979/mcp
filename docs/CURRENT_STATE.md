@@ -1002,6 +1002,15 @@ Aktualny checkpoint potwierdzony lokalnie po korektach test surface:
   - `POST http://127.0.0.1:3010/mcp` `tools/list` — PASS
   - `POST http://127.0.0.1:3010/mcp` `tools/call search({ query: "current state" })` — PASS
   - `npm test` po restarcie środowiska — PASS `194/194`
+- live MCP verification po pushu `d28f0a8` i restarcie runtime na `2026-05-24`:
+  - `POST http://127.0.0.1:3001/mcp` `initialize` — PASS
+  - `POST http://127.0.0.1:3002/mcp` `initialize` — PASS
+  - `POST http://127.0.0.1:3010/mcp` `initialize` — PASS
+  - `POST http://127.0.0.1:3001/mcp` `tools/call tool_registry_status` — PASS
+  - `POST http://127.0.0.1:3002/mcp` `tools/call tool_registry_status` — PASS
+  - `POST http://127.0.0.1:3010/mcp` `tools/call search({ query: "current state" })` — PASS
+  - pełny runtime `3001/3002` zwraca krótkie prezentacyjne `content[0].text = "Status: ok."` i pełne dane w `structuredContent`
+  - `stc_safe` `3010` zachowuje strict JSON mirror w `content[0].text` oraz zgodne `structuredContent`
 - repo validation po dodaniu guardraila dla transport contract `server_tools /mcp`:
   - `node --test tests/server_tools_mcp_transport_contract.test.js` — PASS `3/3`
   - `npm test` — PASS `199/199`

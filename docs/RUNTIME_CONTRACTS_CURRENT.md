@@ -189,6 +189,9 @@ Adresowanie ścieżek:
   - `structuredContent` pozostaje kanałem maszynowym
   - `content` może być krótkim komunikatem prezentacyjnym
   - exact JSON mirror w `content[0].text` powinien być używany tylko wtedy, gdy narzędzie świadomie zwraca bounded tekst albo gdy kompatybilność connector-safe tego wymaga
+- live verification po restarcie na 2026-05-24 potwierdziła ten rozdział semantyki:
+  - `tool_registry_status` na `3001` (`access`) i `3002` (`bearer`) zwraca krótkie `content[0].text = "Status: ok."` oraz pełne dane w `structuredContent`
+  - `search` na `3010` (`stc_safe`) nadal zwraca strict JSON mirror w `content[0].text` oraz zgodne `structuredContent`
 - connector-safe payloads use:
   - exactly one `content` item
   - `content[0].type === "text"`
