@@ -191,6 +191,12 @@ Adresowanie ścieżek:
 - startup recovery is decoupled from legacy `core/code_tools.js`
 - rollback recovery uses `core/recovery_rollback.js`
 
+### Remote site runtime-status boundary
+
+- `remote_site_runtime_status` uses `healthy` / `attention_required` as bounded operational states
+- `status: healthy` is valid only when warning list is empty
+- warnings from `invalid_metadata_records` and `invalid_log_lines` are operational warnings and must elevate status to `attention_required`, even if inventory/permission policy itself remains healthy
+
 ### Connector-safe boundary
 
 - `stc_safe.js` does not register or import:

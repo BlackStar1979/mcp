@@ -197,8 +197,12 @@ export function buildRemoteSiteRuntimeStatus({
     warnings.push({ code: 'invalid_log_lines', count: logs.invalid_lines.length });
   }
 
+  const status = warnings.length
+    ? (policy.status === 'healthy' ? 'attention_required' : policy.status)
+    : policy.status;
+
   return {
-    status: warnings.length ? policy.status : 'healthy',
+    status,
     generated_at: generatedAt,
     inventory: {
       total_artifacts: inventory.total_artifacts,

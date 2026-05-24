@@ -99,3 +99,114 @@ test('buildRemoteSiteRuntimeStatus reports attention_required on warnings', () =
   assert.equal(status.status, 'attention_required');
   assert.ok(Array.isArray(status.warnings));
 });
+
+test('buildRemoteSiteRuntimeStatus elevates invalid metadata warnings to attention_required', () => {
+  const status = buildRemoteSiteRuntimeStatus({
+    inventoryEntries: [
+      {
+        path: 'logs/site-files.log',
+        modified_at: '2026-05-10T00:00:00.000Z',
+        size: 100,
+        mode: '0644',
+      },
+      {
+        path: 'meta/a.json',
+        modified_at: '2026-05-10T00:00:00.000Z',
+        size: 50,
+        mode: '0644',
+      },
+      {
+        path: 'trash/.keep',
+        modified_at: '2026-05-10T00:00:00.000Z',
+        size: 1,
+        mode: '0640',
+      },
+      {
+        path: 'trash/README',
+        modified_at: '2026-05-10T00:00:00.000Z',
+        size: 10,
+        mode: '0640',
+      },
+      {
+        path: 'edits/.keep',
+        modified_at: '2026-05-10T00:00:00.000Z',
+        size: 1,
+        mode: '0640',
+      },
+      {
+        path: 'edits/README',
+        modified_at: '2026-05-10T00:00:00.000Z',
+        size: 10,
+        mode: '0640',
+      },
+    ],
+    metadataRecords: [
+      {
+        schema_version: 1,
+        operation_id: 'abc',
+      },
+    ],
+    logLines: [
+      '{"schema_version":1,"operation_id":"abc","operation":"write"}',
+    ],
+  });
+
+  assert.equal(status.status, 'attention_required');
+  assert.ok(status.warnings.some((warning) => warning.code === 'invalid_metadata_records'));
+});
+
+test('buildRemoteSiteRuntimeStatus elevates invalid log warnings to attention_required', () => {
+  const status = buildRemoteSiteRuntimeStatus({
+    inventoryEntries: [
+      {
+        path: 'logs/site-files.log',
+        modified_at: '2026-05-10T00:00:00.000Z',
+        size: 100,
+        mode: '0644',
+      },
+      {
+        path: 'meta/a.json',
+        modified_at: '2026-05-10T00:00:00.000Z',
+        size: 50,
+        mode: '0644',
+      },
+      {
+        path: 'trash/.keep',
+        modified_at: '2026-05-10T00:00:00.000Z',
+        size: 1,
+        mode: '0640',
+      },
+      {
+        path: 'trash/README',
+        modified_at: '2026-05-10T00:00:00.000Z',
+        size: 10,
+        mode: '0640',
+      },
+      {
+        path: 'edits/.keep',
+        modified_at: '2026-05-10T00:00:00.000Z',
+        size: 1,
+        mode: '0640',
+      },
+      {
+        path: 'edits/README',
+        modified_at: '2026-05-10T00:00:00.000Z',
+        size: 10,
+        mode: '0640',
+      },
+    ],
+    metadataRecords: [
+      {
+        schema_version: 1,
+        operation: 'write',
+        operation_id: 'abc',
+      },
+    ],
+    logLines: [
+      '{invalid',
+    ],
+  });
+
+  assert.equal(status.status, 'attention_required');
+  assert.ok(status.warnings.some((warning) => warning.code === 'invalid_log_lines'));
+});

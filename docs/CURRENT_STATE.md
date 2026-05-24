@@ -359,6 +359,7 @@ Aktualna praktyka operacyjna dla auth do VPS:
 - aktualnie potwierdzony działający ref operatorski to:
   - `www/remote-site-tools-config.json`
 - plik `C:\Work\www\remote-site-tools-config.json` jest operacyjnym kluczem wejścia na VPS dla tej rodziny tooli i nie powinien być "odkrywany" przez zgadywanie ścieżki
+- `remote_site_runtime_status` nie może raportować `status: healthy`, jeśli obecne są warningi z `invalid_metadata_records` albo `invalid_log_lines`; takie warningi podnoszą status co najmniej do `attention_required`
 
 ## 2a. Logging coverage
 

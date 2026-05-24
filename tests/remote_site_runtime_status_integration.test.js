@@ -80,3 +80,58 @@ test('runtime status reports ok for balanced bounded inventory', () => {
   assert.equal(status.status, 'healthy');
   assert.equal(status.warnings.length, 0);
 });
+
+test('runtime status does not stay healthy when only metadata warnings are present', () => {
+  const status = buildRemoteSiteRuntimeStatus({
+    inventoryEntries: [
+      {
+        path: 'logs/site-files.log',
+        modified_at: '2026-05-10T00:00:00.000Z',
+        size: 123,
+        mode: '0644',
+      },
+      {
+        path: 'meta/a.json',
+        modified_at: '2026-05-10T00:00:00.000Z',
+        size: 50,
+        mode: '0644',
+      },
+      {
+        path: 'trash/.keep',
+        modified_at: '2026-05-10T00:00:00.000Z',
+        size: 1,
+        mode: '0640',
+      },
+      {
+        path: 'trash/README',
+        modified_at: '2026-05-10T00:00:00.000Z',
+        size: 10,
+        mode: '0640',
+      },
+      {
+        path: 'edits/.keep',
+        modified_at: '2026-05-10T00:00:00.000Z',
+        size: 1,
+        mode: '0640',
+      },
+      {
+        path: 'edits/README',
+        modified_at: '2026-05-10T00:00:00.000Z',
+        size: 10,
+        mode: '0640',
+      },
+    ],
+    metadataRecords: [
+      {
+        schema_version: 1,
+        operation_id: 'abc',
+      },
+    ],
+    logLines: [
+      '{"schema_version":1,"operation_id":"abc","operation":"write"}',
+    ],
+  });
+
+  assert.equal(status.status, 'attention_required');
+  assert.ok(status.warnings.some((warning) => warning.code === 'invalid_metadata_records'));
+});
