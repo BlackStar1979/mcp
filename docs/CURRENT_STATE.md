@@ -78,6 +78,10 @@ Potwierdzone:
   - `search`, `list_directory`, `get_info` używają krótkiego `content` i pełnego `structuredContent`
   - `fetch` i `read_file` zachowują tekst w `content` oraz w `structuredContent.text`
   - błędy `server.js` wracają już jako kontrolowane MCP result z `isError` zamiast polegać na surowym wyjątku handlera
+- `server.js` ma też już bounded guardraile transportowe na `/mcp`:
+  - malformed JSON body -> `HTTP 400` / `Parse error`
+  - `GET /mcp` i `DELETE /mcp` -> bounded `405 Method not allowed`
+  - `OPTIONS /mcp` eksponuje jawny allow-list nagłówków dla streamable HTTP
 - read-only profile i tools profile używają wspólnego modelu workspace rootów: bare paths wskazują primary root `C:\Work`, a dodatkowe rooty mogą być dołączane przez `MCP_EXTRA_ROOTS` i adresowane jako `@alias/...`
 - w środowiskach nie-Windows domyślne rooty są wyprowadzane z checkoutu repo lub jawnych override `MCP_WORK_ROOT` / `MCP_RUNTIME_DIR`, żeby CI i testy nie traktowały `C:\Work` jako ścieżki względnej
 
@@ -1030,6 +1034,9 @@ Aktualny checkpoint potwierdzony lokalnie po korektach test surface:
 - repo validation po przejściu `server.js` na kontrolowany MCP error contract:
   - `node --test tests/server_readonly_contract.test.js` — PASS `8/8`
   - `npm test` — PASS `214/214`
+- repo validation po dodaniu transport guardraili do `server.js`:
+  - `node --test tests/server_readonly_transport_contract.test.js` — PASS `4/4`
+  - `npm test` — PASS `221/221`
 
 Obszary objęte testami:
 

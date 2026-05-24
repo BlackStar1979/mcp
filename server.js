@@ -351,6 +351,20 @@ async function runtimeStatusPayload() {
 export function createReadonlyApp() {
   const app = express();
   app.use(express.json({ limit: "50mb" }));
+  app.use((err, req, res, next) => {
+    if (err?.type === "entity.parse.failed") {
+      res.status(400).json({
+        jsonrpc: "2.0",
+        error: {
+          code: -32700,
+          message: "Parse error",
+        },
+        id: null,
+      });
+      return;
+    }
+    next(err);
+  });
 
   app.get("/", (req, res) => {
     res.send("Read-only MCP server is running. Use /mcp.");
@@ -366,7 +380,36 @@ export function createReadonlyApp() {
     res.status(200).json(status);
   });
 
-  app.all("/mcp", async (req, res) => {
+  function methodNotAllowed(res) {
+    res.status(405).json({
+      jsonrpc: "2.0",
+      error: {
+        code: -32000,
+        message: "Method not allowed.",
+      },
+      id: null,
+    });
+  }
+
+  app.get("/mcp", (req, res) => {
+    methodNotAllowed(res);
+  });
+
+  app.delete("/mcp", (req, res) => {
+    methodNotAllowed(res);
+  });
+
+  app.options("/mcp", (req, res) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Accept, Mcp-Session-Id, mcp-session-id"
+    );
+    res.status(204).end();
+  });
+
+  app.post("/mcp", async (req, res) => {
     const server = createServer();
 
     const transport = new StreamableHTTPServerTransport({
