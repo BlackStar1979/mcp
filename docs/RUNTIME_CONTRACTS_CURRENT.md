@@ -195,6 +195,9 @@ Adresowanie ścieżek:
 - live verification po restarcie na 2026-05-24 potwierdziła ten rozdział semantyki:
   - `tool_registry_status` na `3001` (`access`) i `3002` (`bearer`) zwraca krótkie `content[0].text = "Status: ok."` oraz pełne dane w `structuredContent`
   - `search` na `3010` (`stc_safe`) nadal zwraca strict JSON mirror w `content[0].text` oraz zgodne `structuredContent`
+- `server.js` read-only runtime został doszczelniony do tego samego kanonu:
+  - `search`, `list_directory`, `get_info` zwracają krótką warstwę prezentacyjną i pełne `structuredContent`
+  - `fetch` i `read_file` zachowują tekst w `content` oraz ten sam tekst w `structuredContent.text`, bo są jawnie tekstowymi ścieżkami odczytu
 - connector-safe payloads use:
   - exactly one `content` item
   - `content[0].type === "text"`

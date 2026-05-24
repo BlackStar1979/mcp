@@ -74,6 +74,9 @@ Potwierdzone:
 - read-only MCP
 - port `3000`
 - cały aktywny read-only surface `search`, `fetch`, `list_directory`, `read_file`, `get_info` deklaruje już jawne `outputSchema`
+- semantyka wyników `server.js` jest już rozdzielona od profilu connector-safe:
+  - `search`, `list_directory`, `get_info` używają krótkiego `content` i pełnego `structuredContent`
+  - `fetch` i `read_file` zachowują tekst w `content` oraz w `structuredContent.text`
 - read-only profile i tools profile używają wspólnego modelu workspace rootów: bare paths wskazują primary root `C:\Work`, a dodatkowe rooty mogą być dołączane przez `MCP_EXTRA_ROOTS` i adresowane jako `@alias/...`
 - w środowiskach nie-Windows domyślne rooty są wyprowadzane z checkoutu repo lub jawnych override `MCP_WORK_ROOT` / `MCP_RUNTIME_DIR`, żeby CI i testy nie traktowały `C:\Work` jako ścieżki względnej
 
@@ -1019,6 +1022,10 @@ Aktualny checkpoint potwierdzony lokalnie po korektach test surface:
   - `node --check C:\Work\mcp\server.js` — PASS
   - `node --test tests/server_readonly_contract.test.js` — PASS `3/3`
   - `npm test` — PASS `209/209`
+- repo validation po rozdzieleniu result semantics `server.js` od strict connector mirror:
+  - `node --test tests/server_readonly_contract.test.js` — PASS `5/5`
+  - `node --test tests/full_vs_connector_result_contract.test.js` — PASS `2/2`
+  - `npm test` — PASS `211/211`
 
 Obszary objęte testami:
 

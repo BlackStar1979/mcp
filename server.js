@@ -15,6 +15,7 @@ import {
 } from "./core/config.js";
 import { buildRuntimeStatus } from "./core/observability/runtime_status_provider.js";
 import { safePath, toRel } from "./core/paths.js";
+import { ok, textOk } from "./core/responses.js";
 
 const PORT = 3000;
 const ROOTS = listWorkspaceRoots();
@@ -125,19 +126,8 @@ async function fileInfo(fullPath) {
   };
 }
 
-export function createServer() {
+export function registerReadonlyTools(server) {
   const rootsHint = workspaceAccessHint();
-  const server = new McpServer(
-    {
-      name: "local-mcp-readonly-files",
-      version: "1.1.3",
-    },
-    {
-      instructions:
-        `Read-only MCP server for configured workspace roots. ${rootsHint} Use search/fetch for knowledge retrieval and list_directory/read_file/get_info for direct file inspection.`,
-    }
-  );
-
   server.registerTool(
     "search",
     {
@@ -154,11 +144,7 @@ export function createServer() {
       const results = [];
 
       if (!q) {
-        const output = { results: [] };
-        return {
-          content: [{ type: "text", text: JSON.stringify(output) }],
-          structuredContent: output,
-        };
+        return ok({ results: [] });
       }
 
       for await (const filePath of walkAllRoots()) {
@@ -194,12 +180,7 @@ export function createServer() {
         if (results.length >= 20) break;
       }
 
-      const output = { results };
-
-      return {
-        content: [{ type: "text", text: JSON.stringify(output) }],
-        structuredContent: output,
-      };
+      return ok({ results });
     }
   );
 
@@ -236,10 +217,7 @@ export function createServer() {
         },
       };
 
-      return {
-        content: [{ type: "text", text: JSON.stringify(output) }],
-        structuredContent: output,
-      };
+      return textOk(text, output);
     }
   );
 
@@ -273,10 +251,7 @@ export function createServer() {
         entries: result,
       };
 
-      return {
-        content: [{ type: "text", text: JSON.stringify(output, null, 2) }],
-        structuredContent: output,
-      };
+      return ok(output);
     }
   );
 
@@ -308,10 +283,7 @@ export function createServer() {
         modified: stat.mtime.toISOString(),
       };
 
-      return {
-        content: [{ type: "text", text: JSON.stringify(output) }],
-        structuredContent: output,
-      };
+      return textOk(text, output);
     }
   );
 
@@ -328,14 +300,25 @@ export function createServer() {
     },
     async ({ path: requestedPath }) => {
       const targetPath = safePath(requestedPath);
-      const output = await fileInfo(targetPath);
-
-      return {
-        content: [{ type: "text", text: JSON.stringify(output, null, 2) }],
-        structuredContent: output,
-      };
+      return ok(await fileInfo(targetPath));
     }
   );
+}
+
+export function createServer() {
+  const rootsHint = workspaceAccessHint();
+  const server = new McpServer(
+    {
+      name: "local-mcp-readonly-files",
+      version: "1.1.3",
+    },
+    {
+      instructions:
+        `Read-only MCP server for configured workspace roots. ${rootsHint} Use search/fetch for knowledge retrieval and list_directory/read_file/get_info for direct file inspection.`,
+    }
+  );
+
+  registerReadonlyTools(server);
 
   return server;
 }
