@@ -27,6 +27,55 @@ const READ_ONLY = {
   openWorldHint: false,
 };
 
+const SEARCH_RESULT_ITEM_OUTPUT = z.object({
+  id: z.string(),
+  title: z.string(),
+  text: z.string(),
+  url: z.string(),
+}).strict();
+
+const SEARCH_OUTPUT = z.object({
+  results: z.array(SEARCH_RESULT_ITEM_OUTPUT),
+}).strict();
+
+const FETCH_OUTPUT = z.object({
+  id: z.string(),
+  title: z.string(),
+  text: z.string(),
+  url: z.string(),
+  metadata: z.object({
+    source: z.string(),
+    workspace_access: z.string(),
+    size: z.number().int().nonnegative(),
+    modified: z.string(),
+  }).strict(),
+}).strict();
+
+const FILE_INFO_OUTPUT = z.object({
+  id: z.string(),
+  path: z.string(),
+  name: z.string(),
+  type: z.enum(["file", "directory"]),
+  size: z.number().int().nonnegative(),
+  created: z.string(),
+  modified: z.string(),
+  url: z.string(),
+}).strict();
+
+const LIST_DIRECTORY_OUTPUT = z.object({
+  directory: z.string(),
+  count: z.number().int().nonnegative(),
+  entries: z.array(FILE_INFO_OUTPUT),
+}).strict();
+
+const READ_FILE_OUTPUT = z.object({
+  id: z.string(),
+  path: z.string(),
+  text: z.string(),
+  size: z.number().int().nonnegative(),
+  modified: z.string(),
+}).strict();
+
 const SKIPPED_DIRECTORIES = new Set([
   "node_modules",
   ".git",
@@ -76,7 +125,7 @@ async function fileInfo(fullPath) {
   };
 }
 
-function createServer() {
+export function createServer() {
   const rootsHint = workspaceAccessHint();
   const server = new McpServer(
     {
@@ -97,6 +146,7 @@ function createServer() {
       inputSchema: z.object({
         query: z.string(),
       }),
+      outputSchema: SEARCH_OUTPUT,
       annotations: READ_ONLY,
     },
     async ({ query }) => {
@@ -161,6 +211,7 @@ function createServer() {
       inputSchema: z.object({
         id: z.string(),
       }),
+      outputSchema: FETCH_OUTPUT,
       annotations: READ_ONLY,
     },
     async ({ id }) => {
@@ -200,6 +251,7 @@ function createServer() {
       inputSchema: z.object({
         path: z.string().default("."),
       }),
+      outputSchema: LIST_DIRECTORY_OUTPUT,
       annotations: READ_ONLY,
     },
     async ({ path: requestedPath }) => {
@@ -236,6 +288,7 @@ function createServer() {
       inputSchema: z.object({
         path: z.string(),
       }),
+      outputSchema: READ_FILE_OUTPUT,
       annotations: READ_ONLY,
     },
     async ({ path: requestedPath }) => {
@@ -270,6 +323,7 @@ function createServer() {
       inputSchema: z.object({
         path: z.string(),
       }),
+      outputSchema: FILE_INFO_OUTPUT,
       annotations: READ_ONLY,
     },
     async ({ path: requestedPath }) => {

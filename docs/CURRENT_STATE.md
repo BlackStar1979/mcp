@@ -73,6 +73,7 @@ Potwierdzone:
 
 - read-only MCP
 - port `3000`
+- cały aktywny read-only surface `search`, `fetch`, `list_directory`, `read_file`, `get_info` deklaruje już jawne `outputSchema`
 - read-only profile i tools profile używają wspólnego modelu workspace rootów: bare paths wskazują primary root `C:\Work`, a dodatkowe rooty mogą być dołączane przez `MCP_EXTRA_ROOTS` i adresowane jako `@alias/...`
 - w środowiskach nie-Windows domyślne rooty są wyprowadzane z checkoutu repo lub jawnych override `MCP_WORK_ROOT` / `MCP_RUNTIME_DIR`, żeby CI i testy nie traktowały `C:\Work` jako ścieżki względnej
 
@@ -1014,6 +1015,10 @@ Aktualny checkpoint potwierdzony lokalnie po korektach test surface:
 - repo validation po dodaniu guardraila dla transport contract `server_tools /mcp`:
   - `node --test tests/server_tools_mcp_transport_contract.test.js` — PASS `3/3`
   - `npm test` — PASS `199/199`
+- repo validation po dodaniu `outputSchema` i guardraila kontraktu dla read-only `server.js`:
+  - `node --check C:\Work\mcp\server.js` — PASS
+  - `node --test tests/server_readonly_contract.test.js` — PASS `3/3`
+  - `npm test` — PASS `209/209`
 
 Obszary objęte testami:
 
