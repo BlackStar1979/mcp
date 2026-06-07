@@ -458,6 +458,7 @@ Correct production path for runtime MCP changes:
 9. rollback if result is wrong
 
 Repo-only docs changes do not require runtime deploy, restart, or reconnect.
+Runtime indexing must not ingest local deployment, audit, backup, log, temp, secret, or MCP staging artifacts; keep `SKIPPED_SCAN_DIRS` in `core/config.js` and its regression tests aligned with the operational directories documented in README/CURRENT_STATE.
 
 Test/supporting repo changes require staging validation and repo validation, but do not require runtime deploy unless they modify active runtime files.
 

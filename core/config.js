@@ -228,7 +228,13 @@ export const SKIPPED_SCAN_DIRS = new Set([
   ".mcp_sandbox",
   ".mcp_tool_memory",
   ".mcp_warzone",
+  ".mcp_audit",
+  ".mcp_deploy",
+  ".mcp_deploy_backup",
   ".secrets",
+  "_backups",
+  "logs",
+  ".temp",
 ]);
 
 export const SKIPPED_SCAN_EXTENSIONS = new Set([

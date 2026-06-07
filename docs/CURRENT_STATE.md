@@ -935,6 +935,7 @@ Potwierdzone:
 - `perf.ps1`
 - lokalna historia deployów w `.mcp_deploy`
 - backupi deployów w `.mcp_deploy_backup`
+- indeksowanie runtime pomija lokalne katalogi operacyjne i artefaktowe przez `SKIPPED_SCAN_DIRS`, w tym `.mcp_audit`, `.mcp_deploy`, `.mcp_deploy_backup`, `_backups`, `logs` i `.temp`
 
 Obowiązujący model dla zmian runtime MCP:
 

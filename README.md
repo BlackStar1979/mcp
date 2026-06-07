@@ -278,10 +278,15 @@ Repozytorium nie powinno zawierać:
 - `.mcp_index/`,
 - `.mcp_trash/`,
 - `.mcp_warzone/`,
+- `.mcp_deploy/`,
 - `.mcp_deploy_backup/`,
+- `_backups/`,
+- `logs/`,
+- `.temp/`,
 - logów, cache i środowisk wirtualnych.
 
 Reguły wykluczeń są zapisane w `.gitignore`.
+Te same katalogi operacyjne są pomijane przez indeksowanie runtime przez `SKIPPED_SCAN_DIRS` w `core/config.js`, żeby lokalne artefakty deploy/audit/log nie trafiały do indeksu kontekstowego.
 
 ## Audit i performance logging
 

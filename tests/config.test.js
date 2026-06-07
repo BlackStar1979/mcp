@@ -129,7 +129,13 @@ test("runtime protection remains enforced under runtime mcp/ subtree while works
   assert.equal(READ_BLOCKED_PATH_PREFIXES.has("mcp/.secrets"), true);
   assert.equal(SKIPPED_SCAN_DIRS.has("node_modules"), true);
   assert.equal(SKIPPED_SCAN_DIRS.has(".mcp_warzone"), true);
+  assert.equal(SKIPPED_SCAN_DIRS.has(".mcp_audit"), true);
+  assert.equal(SKIPPED_SCAN_DIRS.has(".mcp_deploy"), true);
+  assert.equal(SKIPPED_SCAN_DIRS.has(".mcp_deploy_backup"), true);
   assert.equal(SKIPPED_SCAN_DIRS.has(".secrets"), true);
+  assert.equal(SKIPPED_SCAN_DIRS.has("_backups"), true);
+  assert.equal(SKIPPED_SCAN_DIRS.has("logs"), true);
+  assert.equal(SKIPPED_SCAN_DIRS.has(".temp"), true);
 });
 
 test("extra workspace roots can be parsed and built without another redesign", () => {

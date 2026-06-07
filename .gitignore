@@ -22,9 +22,11 @@ env/
 
 # MCP operational deployment runtime state
 .mcp_deploy/*.manifest.json
+.mcp_deploy/manifest_*.json
 .mcp_deploy/*.prepare.json
 .mcp_deploy/*.executed.json
 .mcp_deploy/*.rollback.json
 .mcp_deploy/*.rollback-dry-run.json
+.mcp_deploy/staged/
 .mcp_deploy_backup/
 .secrets/
