@@ -163,8 +163,8 @@ test("invalid extra root entries are rejected explicitly", () => {
   assert.throws(() => parseExtraWorkRoots(`bad alias=${PORTFOLIO_ROOT}`), /Invalid workspace root alias/);
 });
 
-test("server.js and indexer reuse shared workspace-root configuration", () => {
-  const serverSource = fs.readFileSync("server.js", "utf8");
+test("connector tools and indexer reuse shared workspace-root configuration", () => {
+  const serverSource = fs.readFileSync("core/connector_tools.js", "utf8");
   const indexerSource = fs.readFileSync("core/indexer.js", "utf8");
 
   assert.match(serverSource, /listWorkspaceRoots/);

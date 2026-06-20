@@ -7,7 +7,6 @@
   "main": "server_tools.js",
   "scripts": {
     "start": "node server_tools.js",
-    "start:safe": "node stc_safe.js",
     "test": "node --test"
   },
   "repository": {

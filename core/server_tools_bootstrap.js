@@ -21,6 +21,12 @@ export const SERVER_TOOL_MODULES = Object.freeze([
     registerExport: "registerFsTools",
   },
   {
+    id: "connector",
+    label: "connector search/fetch tools",
+    importPath: "./core/connector_tools.js",
+    registerExport: "registerConnectorTools",
+  },
+  {
     id: "science",
     label: "science tools",
     importPath: "./core/science_tools.js",

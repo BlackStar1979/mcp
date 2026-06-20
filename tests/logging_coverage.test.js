@@ -17,19 +17,6 @@ test("server_tools keeps central perf wrappers for requests and tools", async ()
   assert.match(source, /await timeRequest\(\{ method: req\.method, url: req\.url \}/);
 });
 
-test("connector-safe runtime logs requests and tool calls", async () => {
-  const source = await readFromRepo("core", "stc_safe_runtime.js");
-  assert.match(source, /import \{ audit \} from "\.\/audit\.js";/);
-  assert.match(source, /import \{ timeRequest, timeTool \} from "\.\/perf\.js";/);
-  assert.match(source, /await auditConnectorEvent\("rpc_received"/);
-  assert.match(source, /await auditConnectorEvent\("tool_call_start"/);
-  assert.match(source, /await auditConnectorEvent\("tool_call_end"/);
-  assert.match(source, /await auditConnectorEvent\("stc_safe_search"/);
-  assert.match(source, /await auditConnectorEvent\("stc_safe_fetch"/);
-  assert.match(source, /await auditConnectorEvent\("stc_safe_request"/);
-  assert.match(source, /await timeRequest\(\{ method: req\.method, url: req\.url, runtime: "stc_safe" \}/);
-});
-
 test("index, science, and code tool groups contain audit logging", async () => {
   const indexSource = await readFromRepo("core", "tools_index.js");
   const scienceSource = await readFromRepo("core", "science_tools.js");

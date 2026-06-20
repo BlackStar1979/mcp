@@ -125,7 +125,7 @@ test("applyServerToolsCliConfig applies module gating when provided by CLI", () 
   );
   assert.deepEqual(
     runtime.disabledModules.map((item) => item.id),
-    ["index", "filesystem", "science", "code_safe", "registry_safe", "process", "remote_site"]
+    ["index", "filesystem", "connector", "science", "code_safe", "registry_safe", "process", "remote_site"]
   );
   assert.equal(env.MCP_ENABLED_MODULES, "web,truth,process");
   assert.equal(env.MCP_DISABLED_MODULES, "process");

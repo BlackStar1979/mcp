@@ -2,11 +2,11 @@
 
 Lokalny projekt MCP oparty o Node.js, Express i `@modelcontextprotocol/sdk`.
 
-Repozytorium zawiera dwa serwery MCP:
+Repozytorium zawiera jeden serwer MCP:
 
-- `server.js` — podstawowy read-only MCP dla skonfigurowanych workspace rootów. Bare paths i `.` wskazują primary root `C:\Work`, a dodatkowe rooty są adresowane jawnie jako `@alias/...`.
-- `server_tools.js` — modularny MCP tools profile z narzędziami FS, index, science, connector-safe code tools i connector-safe registry control-plane.
-- `stc_safe.js` — osobny connector-safe MCP profile z wyłącznie `search` i `fetch`, bez mutation-capable tools.
+- `server_tools.js` — modularny MCP tools profile z narzędziami FS, index, connector search/fetch, science, connector-safe code tools i connector-safe registry control-plane. Bare paths i `.` wskazują primary root `C:\Work`, a dodatkowe rooty są adresowane jawnie jako `@alias/...`.
+
+> Wcześniejsze serwery `server.js` (read-only base, :3000) oraz `stc_safe.js` (connector-safe `search`/`fetch`, :3010) zostały wycofane 2026-06-20. `server.js` złożony do modułu `connector` w `server_tools.js`; `stc_safe.js` zarchiwizowany w `C:\Work\archive\stc_safe_20260620`.
 
 ## Status
 
@@ -115,55 +115,11 @@ Uwaga:
 - odpowiednik `ALL` to brak `--modules` i brak `--disable-modules` (domyślnie wszystko włączone)
 - odpowiednik `NONE` celowo nie istnieje: bootstrap kończy się błędem, jeśli po gatingu nie zostaje żaden moduł
 
-### Connector-safe MCP profile
-
-```bash
-npm run start:safe
-```
-
-Alternatywnie:
-
-```bash
-node C:\Work\mcp\stc_safe.js
-```
-
-Self-test:
-
-```bash
-node C:\Work\mcp\stc_safe.js --self-test
-```
-
-Profil `stc_safe.js`:
-
-- domyślny port `3010`
-- strict connector shape `2025-05-strict-v1`
-- tylko `search` i `fetch`
-- bez mutation-capable imports
-- bez `StreamableHTTPServerTransport`
-- `outputSchema` + `structuredContent` + JSON mirror w `content[0].text`
-- `fetch` capped domyślnie do `2500` znaków z metadanymi:
-  - `connectorShapeVersion`
-  - `truncated`
-  - `original_chars`
-  - `cap_chars`
-- audit connector-safe nie loguje surowych `query` / `id`; używa hash-only summary i flag markerów
-- publiczny host sprawdzony praktycznie:
-  - `https://mcp-stc-safe.romionologic.dev/mcp`
-- profil jest zgodny z kierunkiem przykładów stateless HTTP z oficjalnych SDK MCP; nie jest to jednorazowy hack tylko celowy, minimalny runtime
-- referencyjnym canary dla tego profilu pozostaje:
-  - `C:\Work\mcp-tests\server.js`
-
-Ważna uwaga:
+### Uwagi dla publicznych connectorów (ChatGPT Desktop)
 
 - dla publicznego MCP używanego przez ChatGPT Desktop preferuj hostname z myślnikami
 - hostname z underscore może działać po HTTP, a mimo to nie przejść procesu tworzenia łącznika w Desktop app
 - część wrażliwie wyglądających argumentów może zostać zatrzymana przez ChatGPT Desktop approval/preflight zanim trafi do serwera; to nie jest problem, który da się naprawić wyłącznie w samym MCP runtime
-
-### Read-only MCP
-
-```bash
-node server.js
-```
 
 ## Workspace roots
 
@@ -238,8 +194,7 @@ Nie należy kopiować zmian bezpośrednio do runtime z pominięciem deploy/rollb
 ├── .mcp_warzone/         # lokalny staging zmian, nie source-of-truth repo
 ├── .mcp_deploy/          # manifesty i recordy deploy
 ├── .mcp_deploy_backup/   # backupy deploy
-├── server.js             # read-only MCP
-├── server_tools.js       # modularny MCP tools profile
+├── server_tools.js       # modularny MCP tools profile (read-only connector search/fetch w module "connector")
 ├── deploy.ps1
 ├── rollback.ps1
 ├── perf.ps1
@@ -312,8 +267,6 @@ Serwer wykonuje operacje na lokalnym systemie plików, dlatego powinien być uru
 - `--auth oauth2` — zarezerwowany tor `3003`, jeszcze niezaimplementowany
 
 W trybie bearer publiczny host nie jest wymagany; lokalny runtime akceptuje `Authorization: Bearer ...` oraz legacy `?token=...` fallback dla klienta, który nie potrafi wysłać bearer headera podczas handshake.
-
-`stc_safe.js` jest profilem connector-safe i nie powinien być mieszany z mutation-capable tool surface `server_tools.js`.
 
 ## Licencja
 

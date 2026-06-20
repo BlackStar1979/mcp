@@ -244,7 +244,6 @@ export const SKIPPED_SCAN_EXTENSIONS = new Set([
 ]);
 
 export const PROTECTED_PATHS = new Set([
-  "mcp/server.js",
   "mcp/server_tools.js",
   "mcp/package.json",
   "mcp/package-lock.json",
