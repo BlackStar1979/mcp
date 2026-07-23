@@ -94,7 +94,7 @@ Potwierdzone:
 - tools profile
 - launcher `server_tools.js --auth access` -> port `3001`
 - auth mode `access`: Cloudflare Access assertion model dla publicznego/Codexowego toru
-- launcher `server_tools.js --auth bearer --token-file <BASE MCP>\.secrets\mcp_token.txt` -> port `3002`
+- launcher `server_tools.js --auth bearer --token-file C:\Users\mczyz\.romion\mcp_token.txt` -> port `3002`
 - lokalny bearer mode zachowuje legacy env fallback `MCP_TOKEN`, ale priorytet środowiskowy pozostaje po stronie `MCP_BEARER_TOKEN`; nie jest to docelowy publiczny model auth
 - launcher `server_tools.js --auth oauth2` -> port `3003` (reserved, jeszcze niezaimplementowany)
 - legacy shim `server_tools_token.js` nadal istnieje, ale nie jest docelowym launcherem
@@ -405,7 +405,7 @@ Ważna granica:
 - `server_tools.js --auth access` obsługuje tor Codex/Cloudflare Access na `3001`
 - publiczny host `https://modular-mcp.romionologic.dev/mcp` jest chroniony przez Cloudflare Access `SERVICE AUTH`
 - request przepuszczony przez Cloudflare Access dociera do origin z `Cf-Access-Jwt-Assertion`; aktywny runtime `access` traktuje ten header jako warunek autoryzacji
-- `server_tools.js --auth bearer --token-file C:\Work\mcp\.secrets\mcp_token.txt` obsługuje tor bearer na `3002`
+- `server_tools.js --auth bearer --token-file C:\Users\mczyz\.romion\mcp_token.txt` obsługuje tor bearer na `3002`
 - tryb bearer akceptuje `Authorization: Bearer ...` oraz legacy `?token=...` jako fallback kompatybilnościowy dla klienta, który nie potrafi wysłać bearer headera podczas handshake
 - `server_tools.js --auth oauth2` jest zarezerwowany dla `3003`, ale nie jest jeszcze zaimplementowany
 - `CF-Access-Client-Id` i `CF-Access-Client-Secret` są używane po stronie klienta MCP/Codexa do wejścia przez Access, a nie jako jawny token URL

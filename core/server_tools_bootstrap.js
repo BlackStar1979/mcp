@@ -125,7 +125,7 @@ export function serverToolsUsage() {
     "Usage:",
     "  node C:\\Work\\mcp\\server_tools.js",
     "  node C:\\Work\\mcp\\server_tools.js --auth access",
-    "  node C:\\Work\\mcp\\server_tools.js --auth bearer --token-file <BASE MCP>\\.secrets\\mcp_token.txt",
+    "  node C:\\Work\\mcp\\server_tools.js --auth bearer --token-file C:\\Users\\mczyz\\.romion\\mcp_token.txt",
     "  node C:\\Work\\mcp\\server_tools.js --auth oauth2",
     "  node C:\\Work\\mcp\\server_tools.js --modules index,filesystem,science,code_safe,registry_safe,web,truth,process,remote_site",
     "  node C:\\Work\\mcp\\server_tools.js --disable-modules process,remote_site",

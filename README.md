@@ -74,7 +74,7 @@ Tryby auth:
 
 ```bash
 node C:\Work\mcp\server_tools.js --auth access
-node C:\Work\mcp\server_tools.js --auth bearer --token-file C:\Work\mcp\.secrets\mcp_token.txt
+node C:\Work\mcp\server_tools.js --auth bearer --token-file C:\Users\mczyz\.romion\mcp_token.txt
 node C:\Work\mcp\server_tools.js --auth oauth2
 ```
 

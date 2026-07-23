@@ -1,5 +1,6 @@
 node_modules/
 warzone/
+.codebase-memory/
 .mcp_audit/
 .mcp_audit.log
 .mcp_backups/
